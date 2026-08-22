@@ -1,0 +1,16 @@
+# 依赖目录
+node_modules/
+
+# 构建产物与 TypeScript 增量缓存
+dist/
+*.tsbuildinfo
+
+# 微信开发者工具的本机私有配置
+project.private.config.json
+
+# 日志与编辑器/系统临时文件
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
