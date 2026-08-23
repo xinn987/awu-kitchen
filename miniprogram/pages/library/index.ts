@@ -18,6 +18,9 @@ interface FilterChip {
   active: boolean
 }
 
+/** 搜索输入防抖，避免每个按键都全量重建列表。 */
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -35,7 +38,11 @@ Page({
   },
 
   onLoad() {
-    this.setData({ statusBarHeight: wx.getSystemInfoSync().statusBarHeight ?? 20 })
+    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight ?? 20 })
+  },
+
+  onUnload() {
+    if (searchTimer) clearTimeout(searchTimer)
   },
 
   onShow() {
@@ -91,7 +98,9 @@ Page({
   },
 
   onSearchInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ query: event.detail.value }, () => this.refresh())
+    this.setData({ query: event.detail.value })
+    if (searchTimer) clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => this.refresh(), 150)
   },
 
   selectFilter(event: WechatMiniprogram.BaseEvent) {
@@ -118,6 +127,10 @@ Page({
       this.refresh()
       this.showToast(message)
     }
+  },
+
+  onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
+    return { title: '家味 · 我们的家庭食谱', path: '/pages/library/index' }
   },
 
   showToast(message: string) {

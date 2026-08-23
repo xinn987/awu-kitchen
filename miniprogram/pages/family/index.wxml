@@ -12,11 +12,13 @@
           <view class="member-title-row">
             <text class="member-name">{{item.name}}</text>
             <text wx:if="{{item.isSelf}}" class="self-label">（你）</text>
-            <text wx:if="{{item.isAdmin}}" class="crown">♛</text>
+            <view wx:if="{{item.isAdmin}}" class="crown"><app-icon name="crown" size="28"></app-icon></view>
           </view>
           <text class="member-meta">{{item.roleLabel}} · 参与了 {{item.contributionCount}} 份食谱</text>
         </view>
-        <view wx:if="{{item.canRemove}}" class="remove-member" role="button" aria-label="移出成员" data-id="{{item.id}}" bindtap="askRemove">×</view>
+        <view wx:if="{{item.canRemove}}" class="remove-member" role="button" aria-label="移出成员" data-id="{{item.id}}" bindtap="askRemove">
+          <app-icon name="x" size="34"></app-icon>
+        </view>
       </view>
 
       <view wx:if="{{inviteOpen}}" class="invite-card">
@@ -24,10 +26,15 @@
         <view class="invite-row">
           <input value="{{inviteInput}}" placeholder="输入成员名称" focus bindinput="onInviteInput" bindconfirm="sendInvite" />
           <view class="invite-submit {{!canInvite ? 'disabled' : ''}}" role="button" bindtap="sendInvite">邀请</view>
-          <view class="invite-close" role="button" aria-label="关闭邀请" bindtap="closeInvite">×</view>
+          <view class="invite-close" role="button" aria-label="关闭邀请" bindtap="closeInvite">
+            <app-icon name="x" size="36"></app-icon>
+          </view>
         </view>
       </view>
-      <view wx:else class="invite-entry" role="button" bindtap="openInvite"><text class="invite-icon">＋</text> 邀请家庭成员</view>
+      <view wx:else class="invite-entry" role="button" bindtap="openInvite">
+        <view class="invite-icon"><app-icon name="user-plus" size="34"></app-icon></view>
+        <text>邀请家庭成员</text>
+      </view>
 
       <view class="family-note">所有成员均可查看和编辑食谱；管理员只负责邀请和移除成员。食谱属于家庭共同拥有，经验仅供参考，不构成专业建议。</view>
     </view>

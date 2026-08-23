@@ -1,5 +1,6 @@
 {
   "usingComponents": {
+    "app-icon": "/components/app-icon/index",
     "member-avatar": "/components/member-avatar/index",
     "bottom-nav": "/components/bottom-nav/index",
     "quick-capture": "/components/quick-capture/index",

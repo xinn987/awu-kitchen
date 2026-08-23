@@ -6,15 +6,18 @@ Component({
     title: { type: String, value: '' },
     subtitle: { type: String, value: '' },
     rightText: { type: String, value: '' },
+    rightIcon: { type: String, value: '' },
   },
-  data: { statusBarHeight: 20, barHeight: 44 },
+  data: { statusBarHeight: 20, barHeight: 44, rightInset: 0 },
   lifetimes: {
     attached() {
-      const windowInfo = wx.getSystemInfoSync()
+      const windowInfo = wx.getWindowInfo()
       const menu = wx.getMenuButtonBoundingClientRect()
       const statusBarHeight = windowInfo.statusBarHeight ?? 20
       const barHeight = Math.max(44, (menu.top - statusBarHeight) * 2 + menu.height)
-      this.setData({ statusBarHeight, barHeight })
+      // 右侧操作要整体让开原生胶囊，否则会被胶囊盖住。
+      const rightInset = menu.width > 0 ? Math.max(0, windowInfo.windowWidth - menu.left + 8) : 0
+      this.setData({ statusBarHeight, barHeight, rightInset })
     },
   },
   methods: {

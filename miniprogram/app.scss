@@ -6,6 +6,7 @@ page {
   color: #1a1714;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 28rpx;
+  -webkit-tap-highlight-color: transparent;
 }
 
 view, text, input, textarea, button, scroll-view { box-sizing: border-box; }
@@ -21,7 +22,7 @@ button {
 
 button::after { border: 0; }
 
-.font-serif { font-family: 'Songti SC', 'STSong', serif; }
+.font-serif { font-family: 'Noto Serif SC', 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', serif; }
 
 .page-shell {
   height: 100vh;
@@ -60,12 +61,15 @@ button::after { border: 0; }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12rpx;
   border-radius: 28rpx;
   font-size: 28rpx;
   font-weight: 500;
+  transition: transform 0.15s ease;
 }
 
 .primary-button { background: #bf5924; color: #fff; }
+.primary-button:active, .secondary-button:active { transform: scale(0.97); }
 .primary-button[disabled], .primary-button.disabled { background: #e3dcd2; color: #9a8e82; }
 .secondary-button { background: #fff; color: #7c6f63; border: 1rpx solid rgba(26, 23, 20, 0.12); }
 
@@ -76,7 +80,9 @@ button::after { border: 0; }
   gap: 20rpx;
   padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
   border-top: 1rpx solid rgba(26, 23, 20, 0.08);
-  background: rgba(244, 239, 230, 0.98);
+  background: rgba(244, 239, 230, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .field-label { margin-bottom: 14rpx; color: #7c6f63; font-size: 24rpx; font-weight: 500; }
@@ -91,4 +97,4 @@ button::after { border: 0; }
 
 .field-input { height: 78rpx; padding: 0 24rpx; }
 .field-textarea { min-height: 112rpx; padding: 20rpx 24rpx; line-height: 1.7; }
-.empty-state { padding: 112rpx 20rpx; color: #9a8e82; text-align: center; font-size: 27rpx; }
+.empty-state { padding: 112rpx 40rpx; color: #9a8e82; text-align: center; font-size: 27rpx; }

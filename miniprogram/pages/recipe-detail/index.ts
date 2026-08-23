@@ -49,6 +49,14 @@ Page({
 
   backToLibrary() { wx.reLaunch({ url: '/pages/library/index' }) },
 
+  onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
+    const recipe = this.data.recipe
+    return {
+      title: recipe ? `${recipe.name} · 家味家庭食谱` : '家味 · 我们的家庭食谱',
+      path: `/pages/recipe-detail/index?id=${this.data.id}`,
+    }
+  },
+
   editRecipe() {
     wx.navigateTo({ url: `/pages/recipe-edit/index?id=${this.data.id}` })
   },

@@ -13,7 +13,7 @@
 .snapshot-label { display: block; margin-bottom: 12rpx; color: #9a8e82; font-size: 21rpx; }
 .snapshot-key { display: block; margin-top: 8rpx; color: #1a1714; font-size: 24rpx; line-height: 1.7; }
 .restore-row { margin-top: 18rpx; color: #7c6f63; font-size: 23rpx; }
-.restore-link { color: #7c6f63; font-size: 23rpx; }
+.restore-link { display: flex; align-items: center; gap: 6rpx; color: #7c6f63; font-size: 23rpx; }
 .restore-confirm { display: flex; align-items: center; flex-wrap: wrap; gap: 20rpx; }
 .confirm-link { color: #bf5924; font-size: 23rpx; font-weight: 600; }
 .cancel-link { color: #9a8e82; font-size: 23rpx; }

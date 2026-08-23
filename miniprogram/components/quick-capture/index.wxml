@@ -1,11 +1,13 @@
-<view wx:if="{{opened}}" class="sheet-layer" bindtap="close">
+<view wx:if="{{mounted}}" class="sheet-layer {{open ? 'open' : ''}}" bindtap="close">
   <view class="sheet" catchtap="noop">
     <view class="sheet-handle"></view>
 
     <view wx:if="{{step === 'name'}}" class="sheet-body">
       <view class="sheet-header">
         <text class="sheet-title">收录一道新做法</text>
-        <view class="close-button" role="button" aria-label="关闭" bindtap="close">×</view>
+        <view class="close-button" role="button" aria-label="关闭" bindtap="close">
+          <app-icon name="x" size="38"></app-icon>
+        </view>
       </view>
       <text class="sheet-label">食谱名称</text>
       <input
@@ -13,7 +15,7 @@
         value="{{name}}"
         placeholder="这道辅食叫什么？"
         placeholder-class="input-placeholder"
-        focus="{{opened}}"
+        focus="{{open}}"
         bindinput="onNameInput"
         bindconfirm="next"
       />
@@ -22,9 +24,13 @@
 
     <view wx:else class="sheet-body">
       <view class="sheet-header">
-        <view class="back-button" role="button" aria-label="返回上一步" bindtap="back">‹</view>
+        <view class="back-button" role="button" aria-label="返回上一步" bindtap="back">
+          <app-icon name="chevron-left" size="40"></app-icon>
+        </view>
         <text class="recipe-name font-serif">{{name}}</text>
-        <view class="close-button" role="button" aria-label="关闭" bindtap="close">×</view>
+        <view class="close-button" role="button" aria-label="关闭" bindtap="close">
+          <app-icon name="x" size="38"></app-icon>
+        </view>
       </view>
       <text class="sheet-label">这次做成功，关键在哪里？</text>
       <textarea

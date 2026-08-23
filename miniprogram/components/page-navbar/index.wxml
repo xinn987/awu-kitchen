@@ -1,14 +1,21 @@
 <view class="navbar" style="padding-top: {{statusBarHeight}}px;">
   <view class="navbar-row" style="height: {{barHeight}}px;">
     <view class="navbar-side navbar-left" role="button" bindtap="onLeft">
-      <text class="chevron">‹</text><text>{{leftText}}</text>
+      <app-icon name="chevron-left" size="32"></app-icon><text>{{leftText}}</text>
     </view>
     <view class="navbar-center">
       <text wx:if="{{title}}" class="navbar-title">{{title}}</text>
       <text wx:if="{{subtitle}}" class="navbar-subtitle">{{subtitle}}</text>
     </view>
-    <view class="navbar-side navbar-right" role="button" bindtap="onRight">
-      <text wx:if="{{rightText}}">{{rightText}}</text>
+    <view
+      wx:if="{{rightText}}"
+      class="navbar-side navbar-right"
+      style="margin-right: {{rightInset}}px;"
+      role="button"
+      bindtap="onRight"
+    >
+      <app-icon wx:if="{{rightIcon}}" name="{{rightIcon}}" size="28"></app-icon>
+      <text>{{rightText}}</text>
     </view>
   </view>
 </view>

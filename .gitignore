@@ -14,3 +14,6 @@ project.private.config.json
 Thumbs.db
 .idea/
 .vscode/
+
+# 评审用的截图与自动化脚本
+/shots/

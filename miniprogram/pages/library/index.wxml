@@ -13,7 +13,7 @@
         </view>
       </view>
       <view class="search-box">
-        <view class="search-icon"></view>
+        <view class="search-icon"><app-icon name="search" size="30"></app-icon></view>
         <input value="{{query}}" placeholder="搜索食谱名或食材" placeholder-class="search-placeholder" bindinput="onSearchInput" />
       </view>
     </view>
@@ -71,7 +71,7 @@
       </view>
 
       <view wx:if="{{formal.length === 0 && drafts.length === 0}}" class="empty-state">
-        {{query ? '没有找到相关的食谱' : '这里还没有食谱'}}
+        {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
       </view>
     </view>
   </scroll-view>

@@ -1,6 +1,7 @@
 /**
  * 两步式快速收录：先留下名称，再填写成功关键。
  * 第二步可以明确暂存为待补条目，避免把草稿伪装成正式食谱。
+ * mounted/open 两个状态负责滑入滑出动画，opened 只反映外部意图。
  */
 import { quickCapture, savePending } from '../../services/recipe-store'
 
@@ -10,10 +11,15 @@ const KEY_EXAMPLES = [
   '比如：南瓜蒸到筷子能轻松穿透，过一遍筛，口感明显更细',
 ]
 
+/** 退场动画结束后才卸载面板。 */
+let exitTimer: ReturnType<typeof setTimeout> | undefined
+
 Component({
   options: { styleIsolation: 'apply-shared' },
   properties: { opened: { type: Boolean, value: false } },
   data: {
+    mounted: false,
+    open: false,
     step: 'name',
     name: '',
     keyText: '',
@@ -24,9 +30,22 @@ Component({
   observers: {
     opened(opened: boolean) {
       if (opened) {
+        if (exitTimer) {
+          clearTimeout(exitTimer)
+          exitTimer = undefined
+        }
         const example = KEY_EXAMPLES[Math.floor(Math.random() * KEY_EXAMPLES.length)]
-        this.setData({ step: 'name', name: '', keyText: '', example, nameFilled: false, keyFilled: false })
+        this.setData({ mounted: true, open: false, step: 'name', name: '', keyText: '', example, nameFilled: false, keyFilled: false })
+        wx.nextTick(() => this.setData({ open: true }))
+      } else if (this.data.mounted) {
+        this.setData({ open: false })
+        exitTimer = setTimeout(() => this.setData({ mounted: false }), 280)
       }
+    },
+  },
+  lifetimes: {
+    detached() {
+      if (exitTimer) clearTimeout(exitTimer)
     },
   },
   methods: {

@@ -6,7 +6,9 @@
     <view wx:else class="timeline">
       <view wx:for="{{revisions}}" wx:key="id" class="revision-row">
         <view wx:if="{{index < revisions.length - 1}}" class="timeline-line"></view>
-        <view class="timeline-dot {{item.isCurrent ? 'current' : ''}}">{{item.isCurrent ? '◷' : '↻'}}</view>
+        <view class="timeline-dot {{item.isCurrent ? 'current' : ''}}">
+          <app-icon name="{{item.isCurrent ? 'clock' : 'rotate'}}" size="28"></app-icon>
+        </view>
         <view class="revision-body">
           <view class="revision-author">
             <member-avatar name="{{item.author}}" size="38" color="{{item.avatarColor}}"></member-avatar>
@@ -27,7 +29,10 @@
               <view class="confirm-link" role="button" data-id="{{item.id}}" bindtap="confirmRestore">确认恢复</view>
               <view class="cancel-link" role="button" bindtap="cancelRestore">取消</view>
             </view>
-            <view wx:else class="restore-link" role="button" data-id="{{item.id}}" bindtap="startRestore">↻ 恢复此版本</view>
+            <view wx:else class="restore-link" role="button" data-id="{{item.id}}" bindtap="startRestore">
+              <app-icon name="rotate" size="26"></app-icon>
+              <text>恢复此版本</text>
+            </view>
           </view>
         </view>
       </view>

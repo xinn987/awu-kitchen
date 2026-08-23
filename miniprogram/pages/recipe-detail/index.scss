@@ -8,13 +8,13 @@
 .meta-row { gap: 14rpx; margin-top: 18rpx; color: #7c6f63; font-size: 24rpx; }
 .author-row { gap: 12rpx; }
 .dot { color: rgba(124, 111, 99, 0.4); }
-.history-link { color: #7c6f63; font-size: 24rpx; text-decoration: underline; text-underline-offset: 6rpx; }
+.history-link { display: flex; align-items: center; gap: 6rpx; color: #7c6f63; font-size: 24rpx; text-decoration: underline; text-underline-offset: 6rpx; }
 .tag-row { flex-wrap: wrap; gap: 12rpx; margin-top: 24rpx; }
 .detail-section { padding: 36rpx 0; border-bottom: 1rpx solid rgba(26, 23, 20, 0.08); }
 .success-list { display: flex; flex-direction: column; gap: 20rpx; }
 .success-key { padding: 26rpx; border-left: 6rpx solid #bf5924; border-radius: 24rpx; background: rgba(191, 89, 36, 0.05); color: #1a1714; font-size: 28rpx; line-height: 1.8; }
 .draft-warning { display: flex; gap: 18rpx; padding: 32rpx; border: 2rpx dashed #fcd34d; border-radius: 24rpx; background: #fffbeb; }
-.warning-icon { width: 32rpx; height: 32rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 3rpx solid #d97706; border-radius: 50%; color: #d97706; font-size: 22rpx; font-weight: 700; }
+.warning-icon { display: flex; margin-top: 4rpx; color: #d97706; }
 .warning-title { display: block; color: #92400e; font-size: 27rpx; font-weight: 500; }
 .warning-copy { display: block; margin-top: 6rpx; color: #b45309; font-size: 24rpx; line-height: 1.6; }
 .warning-link { margin-top: 16rpx; color: #92400e; font-size: 24rpx; font-weight: 500; text-decoration: underline; }
@@ -28,4 +28,3 @@
 .footnote { padding-top: 28rpx; border-top: 1rpx solid rgba(26, 23, 20, 0.08); color: #9a8e82; font-size: 23rpx; }
 .copy-button { width: 188rpx; }
 .edit-button { flex: 1; }
-

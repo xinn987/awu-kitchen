@@ -1,13 +1,15 @@
 <view class="tabbar">
   <view class="tab {{active === 'library' ? 'active' : ''}}" bindtap="goLibrary">
-    <view class="books-icon"><view></view><view></view></view>
+    <app-icon name="books" size="42"></app-icon>
     <text>食谱库</text>
   </view>
   <view class="tab-center">
-    <view class="capture-button" bindtap="capture" aria-label="收录新做法">＋</view>
+    <view class="capture-button" bindtap="capture" aria-label="收录新做法">
+      <app-icon name="plus" size="46"></app-icon>
+    </view>
   </view>
   <view class="tab {{active === 'family' ? 'active' : ''}}" bindtap="goFamily">
-    <view class="users-icon"><view class="user-head"></view><view class="user-body"></view></view>
+    <app-icon name="users" size="42"></app-icon>
     <text>家庭</text>
   </view>
 </view>

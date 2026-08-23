@@ -1,5 +1,5 @@
 <view class="page-shell">
-  <page-navbar left-text="食谱库" right-text="✎ 编辑" bindleft="backToLibrary" bindright="editRecipe"></page-navbar>
+  <page-navbar left-text="食谱库" right-text="编辑" right-icon="pencil" bindleft="backToLibrary" bindright="editRecipe"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
@@ -16,7 +16,10 @@
             <text>{{recipe.updatedBy}} 修改于 {{recipe.updatedDate}}</text>
           </view>
           <text class="dot">·</text>
-          <view class="history-link" role="button" bindtap="openHistory">◷ 修订记录</view>
+          <view class="history-link" role="button" bindtap="openHistory">
+            <app-icon name="clock" size="26"></app-icon>
+            <text>修订记录</text>
+          </view>
         </view>
         <view wx:if="{{recipe.stage || recipe.tags.length > 0}}" class="tag-row">
           <text wx:if="{{recipe.stage}}" class="pill">{{recipe.stage}}</text>
@@ -27,7 +30,7 @@
       <view class="detail-section">
         <view class="section-label">成功关键</view>
         <view wx:if="{{recipe.isDraft}}" class="draft-warning">
-          <text class="warning-icon">!</text>
+          <view class="warning-icon"><app-icon name="alert-triangle" size="34"></app-icon></view>
           <view>
             <text class="warning-title">还没有记录成功关键</text>
             <text class="warning-copy">补充至少一条，这道做法才能正式存入食谱库。</text>
@@ -61,8 +64,11 @@
   </scroll-view>
 
   <view wx:if="{{found && recipe}}" class="action-bar">
-    <view class="secondary-button copy-button" role="button" bindtap="duplicate">▣ 复制</view>
-    <view class="primary-button edit-button" role="button" bindtap="editRecipe">✎ {{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
+    <view class="secondary-button copy-button" role="button" bindtap="duplicate">
+      <app-icon name="copy" size="30"></app-icon>
+      <text>复制</text>
+    </view>
+    <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
   </view>
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>

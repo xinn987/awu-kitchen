@@ -29,7 +29,7 @@ Page({
   },
 
   onLoad() {
-    this.setData({ statusBarHeight: wx.getSystemInfoSync().statusBarHeight ?? 20 })
+    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight ?? 20 })
   },
 
   onShow() { this.refresh() },
@@ -89,6 +89,10 @@ Page({
     } else {
       this.showToast(message)
     }
+  },
+
+  onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
+    return { title: '家味 · 邀请家人一起维护家庭食谱', path: '/pages/family/index' }
   },
 
   showToast(message: string) {
