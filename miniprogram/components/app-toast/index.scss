@@ -6,7 +6,8 @@
   max-width: 620rpx;
   box-sizing: border-box;
   padding: 18rpx 28rpx;
-  transform: translateX(-50%);
+  opacity: 0;
+  transform: translateX(-50%) translateY(-16rpx);
   border-radius: 28rpx;
   background: #26211b;
   color: #f0ebe2;
@@ -15,16 +16,13 @@
   font-weight: 500;
   line-height: 1.55;
   text-align: center;
-  animation: toast-in 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
+  pointer-events: none;
+  transition:
+    opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1),
+    transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-16rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+.toast.open {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }

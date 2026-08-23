@@ -13,10 +13,13 @@ Component({
     attached() {
       const windowInfo = wx.getWindowInfo()
       const menu = wx.getMenuButtonBoundingClientRect()
-      const statusBarHeight = windowInfo.statusBarHeight ?? 20
+      const statusBarHeight = windowInfo.statusBarHeight || 20
       const barHeight = Math.max(44, (menu.top - statusBarHeight) * 2 + menu.height)
-      // 右侧操作要整体让开原生胶囊，否则会被胶囊盖住。
-      const rightInset = menu.width > 0 ? Math.max(0, windowInfo.windowWidth - menu.left + 8) : 0
+      // 右侧操作要让开原生胶囊；扣除导航行自身的 28rpx 内边距，避免重复留白。
+      const rowPadding = windowInfo.windowWidth * 28 / 750
+      const rightInset = menu.width > 0
+        ? Math.max(0, windowInfo.windowWidth - menu.left + 8 - rowPadding)
+        : 0
       this.setData({ statusBarHeight, barHeight, rightInset })
     },
   },

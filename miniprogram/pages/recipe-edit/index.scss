@@ -24,7 +24,7 @@
 .small-action:active { opacity: 0.5; }
 .small-action.disabled { color: #ddd2c0; }
 .option-row { display: flex; flex-wrap: wrap; gap: 14rpx; }
-.option-chip { min-height: 54rpx; padding: 4rpx 24rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 999rpx; background: #fff; color: #7c6f63; font-size: 24rpx; transition: transform 0.15s ease; }
+.option-chip { min-height: 54rpx; display: inline-flex; align-items: center; justify-content: center; padding: 4rpx 24rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 999rpx; background: #fff; color: #7c6f63; font-size: 24rpx; transition: transform 0.15s ease; }
 .option-chip:active { transform: scale(0.95); }
 .option-chip.active { border-color: #bf5924; background: #bf5924; color: #fff; }
 .tag-editor-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14rpx; }

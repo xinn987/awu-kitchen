@@ -30,6 +30,13 @@ button::after { border: 0; }
   flex-direction: column;
   background: #f4efe6;
   overflow: hidden;
+  animation: page-in 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/** 与 HTTP demo 的 app-screen 保持一致：换页时轻微上移并淡入。 */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(16rpx); }
+  to { opacity: 1; transform: none; }
 }
 
 .page-scroll { flex: 1; min-height: 0; }

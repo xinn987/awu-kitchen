@@ -17,5 +17,7 @@
       <app-icon wx:if="{{rightIcon}}" name="{{rightIcon}}" size="28"></app-icon>
       <text>{{rightText}}</text>
     </view>
+    <!-- 无右侧操作时仍保留等宽槽位，保证标题以屏幕为基准居中。 -->
+    <view wx:else class="navbar-side navbar-placeholder"></view>
   </view>
 </view>

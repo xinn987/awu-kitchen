@@ -41,7 +41,7 @@ export function saveState(state: RecipeState): void {
 }
 
 export function getCurrentUser(state = getState()): Member {
-  return state.members.find((member) => member.id === CURRENT_USER_ID) ?? {
+  return state.members.find((member) => member.id === CURRENT_USER_ID) || {
     id: CURRENT_USER_ID,
     name: '妈妈',
     role: 'admin',
@@ -203,4 +203,3 @@ export function removeMember(id: string): void {
 export function resetDemoState(): void {
   saveState(seedState())
 }
-

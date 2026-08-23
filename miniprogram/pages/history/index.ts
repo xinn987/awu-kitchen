@@ -22,7 +22,7 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
-    this.setData({ id: options.id ?? '' })
+    this.setData({ id: options.id || '' })
   },
 
   onShow() { this.refresh() },
@@ -34,16 +34,20 @@ Page({
       return
     }
     const state = getState()
-    const latestId = recipe.revisions[recipe.revisions.length - 1]?.id ?? ''
-    const revisions = [...recipe.revisions].reverse().map((revision) => ({
-      ...revision,
-      isCurrent: revision.id === latestId,
-      confirming: revision.id === this.data.confirmId,
-      dateLabel: shortDate(revision.time),
-      relativeLabel: relativeTime(revision.time),
-      avatarColor: state.members.find((member) => member.name === revision.author)?.color ?? '#8A7E74',
-      visibleKeys: revision.snapshot.successKeys.filter((key) => key.trim().length > 0),
-    }))
+    const latestRevision = recipe.revisions[recipe.revisions.length - 1]
+    const latestId = latestRevision ? latestRevision.id : ''
+    const revisions = [...recipe.revisions].reverse().map((revision) => {
+      const author = state.members.find((member) => member.name === revision.author)
+      return {
+        ...revision,
+        isCurrent: revision.id === latestId,
+        confirming: revision.id === this.data.confirmId,
+        dateLabel: shortDate(revision.time),
+        relativeLabel: relativeTime(revision.time),
+        avatarColor: author && author.color ? author.color : '#8A7E74',
+        visibleKeys: revision.snapshot.successKeys.filter((key) => key.trim().length > 0),
+      }
+    })
     this.setData({ found: true, recipeName: recipe.name, revisions })
   },
 

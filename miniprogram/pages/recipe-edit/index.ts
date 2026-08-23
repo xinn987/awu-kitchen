@@ -26,7 +26,7 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
-    const id = options.id ?? ''
+    const id = options.id || ''
     const recipe = getRecipe(id)
     if (!recipe) {
       this.setData({ id, found: false })
@@ -39,11 +39,11 @@ Page({
       name: recipe.name,
       keys: recipe.successKeys.length > 0 ? [...recipe.successKeys] : [''],
       ingredients: recipe.ingredients.length > 0
-        ? recipe.ingredients.map((item) => ({ name: item.name, amount: item.amount ?? '' }))
+        ? recipe.ingredients.map((item) => ({ name: item.name, amount: item.amount || '' }))
         : [{ name: '', amount: '' }],
       steps: recipe.steps.length > 0 ? [...recipe.steps] : [''],
-      type: recipe.type ?? '',
-      stage: recipe.stage ?? '',
+      type: recipe.type || '',
+      stage: recipe.stage || '',
       tags: [...recipe.tags],
       wasDraft,
     }, () => this.recompute())

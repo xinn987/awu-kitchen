@@ -14,7 +14,7 @@ export function cloneJson<T>(value: T): T {
 export function relativeTime(iso: string): string {
   const time = new Date(iso).getTime()
   if (Number.isNaN(time)) return ''
-  const minutes = Math.floor((Date.now() - time) / 60_000)
+  const minutes = Math.floor((Date.now() - time) / 60000)
   if (minutes < 1) return '刚刚'
   if (minutes < 60) return `${minutes} 分钟前`
   const hours = Math.floor(minutes / 60)
@@ -38,4 +38,3 @@ export function shortDate(iso: string): string {
 export function isFormalRecipe(recipe: { successKeys: string[] }): boolean {
   return recipe.successKeys.some((key) => key.trim().length > 0)
 }
-

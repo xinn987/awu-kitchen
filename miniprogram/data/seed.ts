@@ -5,10 +5,10 @@
 
 import type { Member, Recipe, RecipeContent, Revision } from '../models/recipe'
 
-const DAY = 86_400_000
+const DAY = 86400000
 
 function ago(days: number, hours = 0): string {
-  return new Date(Date.now() - days * DAY - hours * 3_600_000).toISOString()
+  return new Date(Date.now() - days * DAY - hours * 3600000).toISOString()
 }
 
 function contentOf(recipe: RecipeContent): RecipeContent {
@@ -36,7 +36,7 @@ function makeRevision(
     author,
     time,
     summary,
-    snapshot: { ...contentOf(content), successKeys: successKeys ?? [...content.successKeys] },
+    snapshot: { ...contentOf(content), successKeys: successKeys || [...content.successKeys] },
   }
 }
 
@@ -245,4 +245,3 @@ export const SEED_RECIPES: Recipe[] = [
     createdBy: '妈妈', createdAt: ago(5), updatedBy: '妈妈', updatedAt: ago(5), revisions: [],
   },
 ]
-

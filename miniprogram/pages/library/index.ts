@@ -24,6 +24,8 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 Page({
   data: {
     statusBarHeight: 20,
+    // 首页没有自定义导航栏，头像组需要单独避开右上角原生胶囊。
+    headerRightInset: 0,
     query: '',
     filter: '全部',
     formalCount: 0,
@@ -38,7 +40,15 @@ Page({
   },
 
   onLoad() {
-    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight ?? 20 })
+    const windowInfo = wx.getWindowInfo()
+    const menu = wx.getMenuButtonBoundingClientRect()
+    const statusBarHeight = windowInfo.statusBarHeight || 20
+    // 40rpx 是页首自身的水平内边距；额外保留 8px 作为头像与胶囊的视觉间隔。
+    const headerPadding = windowInfo.windowWidth * 40 / 750
+    const headerRightInset = menu.width > 0
+      ? Math.max(0, windowInfo.windowWidth - headerPadding - menu.left + 8)
+      : 0
+    this.setData({ statusBarHeight, headerRightInset })
   },
 
   onUnload() {
@@ -56,11 +66,14 @@ Page({
     const pendingRecipes = getPendingRecipes(state)
     const query = this.data.query.trim().toLowerCase()
     const filter = this.data.filter
-    const colorOf = (name: string) => state.members.find((member) => member.name === name)?.color ?? '#8A7E74'
+    const colorOf = (name: string) => {
+      const member = state.members.find((item) => item.name === name)
+      return member && member.color ? member.color : '#8A7E74'
+    }
     const matchesQuery = (recipe: Recipe) => {
       if (!query) return true
       return [
-        recipe.name, ...recipe.successKeys, recipe.type ?? '', recipe.stage ?? '',
+        recipe.name, ...recipe.successKeys, recipe.type || '', recipe.stage || '',
         ...recipe.tags, ...recipe.ingredients.map((item) => item.name),
       ].join(' ').toLowerCase().includes(query)
     }
@@ -69,7 +82,7 @@ Page({
     const toCard = (recipe: Recipe): RecipeCardView => ({
       ...recipe,
       isDraft: !isFormalRecipe(recipe),
-      firstKey: recipe.successKeys[0] ?? '',
+      firstKey: recipe.successKeys[0] || '',
       moreCount: Math.max(0, recipe.successKeys.length - 1),
       visibleTags: recipe.tags.slice(0, 3),
       updatedLabel: relativeTime(recipe.updatedAt),
@@ -77,18 +90,18 @@ Page({
     })
     const typeCounts = new Map<string, number>()
     formalRecipes.forEach((recipe) => {
-      if (recipe.type) typeCounts.set(recipe.type, (typeCounts.get(recipe.type) ?? 0) + 1)
+      if (recipe.type) typeCounts.set(recipe.type, (typeCounts.get(recipe.type) || 0) + 1)
     })
     const baseChips = [
       { label: '全部', count: formalRecipes.length },
-      ...FOOD_TYPES.filter((type) => (typeCounts.get(type) ?? 0) > 0)
-        .map((type) => ({ label: type, count: typeCounts.get(type) ?? 0 })),
+      ...FOOD_TYPES.filter((type) => (typeCounts.get(type) || 0) > 0)
+        .map((type) => ({ label: type, count: typeCounts.get(type) || 0 })),
       ...(pendingRecipes.length > 0 ? [{ label: '待补充', count: pendingRecipes.length }] : []),
     ]
     this.setData({
       formalCount: formalRecipes.length,
       pendingCount: pendingRecipes.length,
-      members: state.members.map((member) => ({ id: member.id, name: member.name, color: member.color ?? '#8A7E74' })),
+      members: state.members.map((member) => ({ id: member.id, name: member.name, color: member.color || '#8A7E74' })),
       chips: baseChips.map((chip) => ({ ...chip, active: chip.label === filter })),
       formal: formalRecipes.filter(matchesQuery).filter(matchesType).map(toCard),
       drafts: filter === '全部' || filter === '待补充'

@@ -20,7 +20,7 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
-    const id = options.id ?? ''
+    const id = options.id || ''
     this.setData({ id })
     if (options.toast) this.showToast(decodeURIComponent(options.toast))
   },
@@ -34,7 +34,8 @@ Page({
       return
     }
     const state = getState()
-    const avatarColor = state.members.find((member) => member.name === recipe.updatedBy)?.color ?? '#8A7E74'
+    const recipeMember = state.members.find((member) => member.name === recipe.updatedBy)
+    const avatarColor = recipeMember && recipeMember.color ? recipeMember.color : '#8A7E74'
     this.setData({
       found: true,
       recipe: {

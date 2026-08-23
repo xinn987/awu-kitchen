@@ -1,1 +1,1 @@
-<view wx:if="{{visible}}" class="toast">{{message}}</view>
+<view wx:if="{{mounted}}" class="toast {{open ? 'open' : ''}}">{{message}}</view>

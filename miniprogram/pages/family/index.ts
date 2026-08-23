@@ -29,7 +29,7 @@ Page({
   },
 
   onLoad() {
-    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight ?? 20 })
+    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
   },
 
   onShow() { this.refresh() },
@@ -40,7 +40,7 @@ Page({
     const members = state.members.map((member): MemberView => ({
       id: member.id,
       name: member.name,
-      color: member.color ?? '#8A7E74',
+      color: member.color || '#8A7E74',
       roleLabel: member.role === 'admin' ? '管理员' : '成员',
       isAdmin: member.role === 'admin',
       isSelf: member.id === currentUser.id,
