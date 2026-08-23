@@ -1,15 +1,10 @@
 <view class="page-shell">
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="library-header" style="padding-top: {{statusBarHeight + 20}}px;">
-      <view class="header-row" style="padding-right: {{headerRightInset}}px;">
+      <view class="header-row">
         <view>
           <text class="page-title font-serif">家庭食谱</text>
           <text class="page-meta">{{formalCount}} 份食谱 · {{pendingCount}} 个待补条目</text>
-        </view>
-        <view class="avatar-stack">
-          <view wx:for="{{members}}" wx:key="id" class="avatar-ring">
-            <member-avatar name="{{item.name}}" size="54" color="{{item.color}}"></member-avatar>
-          </view>
         </view>
       </view>
       <view class="search-box">

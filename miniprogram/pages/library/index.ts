@@ -24,13 +24,10 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 Page({
   data: {
     statusBarHeight: 20,
-    // 首页没有自定义导航栏，头像组需要单独避开右上角原生胶囊。
-    headerRightInset: 0,
     query: '',
     filter: '全部',
     formalCount: 0,
     pendingCount: 0,
-    members: [] as Array<{ id: string; name: string; color: string }>,
     chips: [] as FilterChip[],
     formal: [] as RecipeCardView[],
     drafts: [] as RecipeCardView[],
@@ -40,15 +37,7 @@ Page({
   },
 
   onLoad() {
-    const windowInfo = wx.getWindowInfo()
-    const menu = wx.getMenuButtonBoundingClientRect()
-    const statusBarHeight = windowInfo.statusBarHeight || 20
-    // 40rpx 是页首自身的水平内边距；额外保留 8px 作为头像与胶囊的视觉间隔。
-    const headerPadding = windowInfo.windowWidth * 40 / 750
-    const headerRightInset = menu.width > 0
-      ? Math.max(0, windowInfo.windowWidth - headerPadding - menu.left + 8)
-      : 0
-    this.setData({ statusBarHeight, headerRightInset })
+    this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
   },
 
   onUnload() {
@@ -101,7 +90,6 @@ Page({
     this.setData({
       formalCount: formalRecipes.length,
       pendingCount: pendingRecipes.length,
-      members: state.members.map((member) => ({ id: member.id, name: member.name, color: member.color || '#8A7E74' })),
       chips: baseChips.map((chip) => ({ ...chip, active: chip.label === filter })),
       formal: formalRecipes.filter(matchesQuery).filter(matchesType).map(toCard),
       drafts: filter === '全部' || filter === '待补充'

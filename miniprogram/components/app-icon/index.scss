@@ -29,6 +29,18 @@ $foot: "%3C/svg%3E";
 
 .icon-chevron-left { @include icon-mask("#{$head}%3Cpolyline points='15 18 9 12 15 6'/%3E#{$foot}"); }
 
+.icon-chevron-down { @include icon-mask("#{$head}%3Cpolyline points='6 9 12 15 18 9'/%3E#{$foot}"); }
+
+.icon-chevron-right { @include icon-mask("#{$head}%3Cpolyline points='9 18 15 12 9 6'/%3E#{$foot}"); }
+
+.icon-zap { @include icon-mask("#{$head}%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/%3E#{$foot}"); }
+
+.icon-shopping-bag { @include icon-mask("#{$head}%3Cpath d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z'/%3E%3Cline x1='3' y1='6' x2='21' y2='6'/%3E%3Cpath d='M16 10a4 4 0 0 1-8 0'/%3E#{$foot}"); }
+
+.icon-list { @include icon-mask("#{$head}%3Cline x1='8' y1='6' x2='21' y2='6'/%3E%3Cline x1='8' y1='12' x2='21' y2='12'/%3E%3Cline x1='8' y1='18' x2='21' y2='18'/%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'/%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'/%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'/%3E#{$foot}"); }
+
+.icon-tag { @include icon-mask("#{$head}%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E#{$foot}"); }
+
 .icon-pencil { @include icon-mask("#{$head}%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z'/%3E#{$foot}"); }
 
 .icon-clock { @include icon-mask("#{$head}%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E#{$foot}"); }

@@ -44,6 +44,9 @@ button::after { border: 0; }
 .muted { color: #9a8e82; }
 
 .section-label {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
   margin-bottom: 24rpx;
   color: rgba(26, 23, 20, 0.45);
   font-size: 25rpx;

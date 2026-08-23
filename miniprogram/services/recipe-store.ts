@@ -8,7 +8,7 @@ import type { Member, Recipe, RecipeContent, RecipeState } from '../models/recip
 import { cloneJson, isFormalRecipe, uid } from '../utils/recipe-utils'
 
 const STORAGE_KEY = 'jiawei-miniprogram-v2'
-const CURRENT_USER_ID = 'm-mom'
+const DEFAULT_USER_ID = 'm-mom'
 
 function seedState(): RecipeState {
   return cloneJson({ recipes: SEED_RECIPES, members: SEED_MEMBERS })
@@ -40,14 +40,17 @@ export function saveState(state: RecipeState): void {
   }
 }
 
+/** 当前操作者：本地演示固定为妈妈，接入微信登录后在此替换。 */
 export function getCurrentUser(state = getState()): Member {
-  return state.members.find((member) => member.id === CURRENT_USER_ID) || {
-    id: CURRENT_USER_ID,
-    name: '妈妈',
-    role: 'admin',
-    joinedAt: new Date().toISOString(),
-    color: '#BF5924',
-  }
+  return (
+    state.members.find((member) => member.id === DEFAULT_USER_ID) || {
+      id: DEFAULT_USER_ID,
+      name: '妈妈',
+      role: 'admin',
+      joinedAt: new Date().toISOString(),
+      color: '#BF5924',
+    }
+  )
 }
 
 export function getRecipe(id: string): Recipe | undefined {
@@ -195,8 +198,39 @@ export function inviteMember(name: string): Member {
 
 export function removeMember(id: string): void {
   const state = getState()
-  state.members = state.members.filter((member) => member.id !== id || member.id === CURRENT_USER_ID)
+  state.members = state.members.filter((member) => member.id !== id || member.id === DEFAULT_USER_ID)
   saveState(state)
+}
+
+/** 汇总全家用过的核心原料标签，按使用频次排序，供编辑时直接点选。 */
+export function getTagSuggestions(state = getState(), exclude: string[] = [], limit = 8): string[] {
+  return collectNames(
+    state.recipes.map((recipe) => recipe.tags),
+    exclude,
+    limit,
+  )
+}
+
+/** 汇总全家用过的食材名，按使用频次排序，供编辑时直接点选。 */
+export function getIngredientSuggestions(state = getState(), exclude: string[] = [], limit = 8): string[] {
+  return collectNames(
+    state.recipes.map((recipe) => recipe.ingredients.map((item) => item.name)),
+    exclude,
+    limit,
+  )
+}
+
+function collectNames(groups: string[][], exclude: string[], limit: number): string[] {
+  const counts = new Map<string, number>()
+  groups.flat().forEach((name) => {
+    const key = name.trim()
+    if (key) counts.set(key, (counts.get(key) || 0) + 1)
+  })
+  return [...counts.entries()]
+    .filter(([name]) => !exclude.includes(name))
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh'))
+    .slice(0, limit)
+    .map(([name]) => name)
 }
 
 /** 仅供开发调试时恢复初始演示数据。 */
