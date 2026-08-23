@@ -3,8 +3,11 @@
     <view class="library-header" style="padding-top: {{statusBarHeight + 20}}px;">
       <view class="header-row">
         <view>
-          <text class="page-title font-serif">家庭食谱</text>
-          <text class="page-meta">{{formalCount}} 份食谱 · {{pendingCount}} 个待补条目</text>
+          <view class="brand-eyebrow">
+            <text>AWU KITCHEN</text>
+          </view>
+          <text class="page-title font-serif">阿呜厨房</text>
+          <text class="page-meta">{{formalCount}} 份家庭食谱 · {{pendingCount}} 个待补条目</text>
         </view>
       </view>
       <view class="search-box">

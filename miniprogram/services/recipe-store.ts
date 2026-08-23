@@ -322,9 +322,11 @@ export function getIngredientSuggestions(state = getState(), exclude: string[] =
 
 function collectNames(groups: string[][], exclude: string[], limit: number): string[] {
   const counts = new Map<string, number>()
-  groups.flat().forEach((name) => {
-    const key = name.trim()
-    if (key) counts.set(key, (counts.get(key) || 0) + 1)
+  groups.forEach((names) => {
+    names.forEach((name) => {
+      const key = name.trim()
+      if (key) counts.set(key, (counts.get(key) || 0) + 1)
+    })
   })
   return [...counts.entries()]
     .filter(([name]) => !exclude.includes(name))

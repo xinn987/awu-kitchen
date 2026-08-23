@@ -56,8 +56,13 @@ Page({
     const pendingRecipes = getPendingRecipes(state)
     const query = this.data.query.trim().toLowerCase()
     const filter = this.data.filter
+    const memberOf = (memberId: string) => getMemberById(state, memberId)
+    const nameOf = (memberId: string): string => {
+      const member = memberOf(memberId)
+      return member ? member.name : '家人'
+    }
     const colorOf = (memberId: string) => {
-      const member = getMemberById(state, memberId)
+      const member = memberOf(memberId)
       return (member && member.color) || '#8A7E74'
     }
     const matchesQuery = (recipe: Recipe) => {
@@ -75,7 +80,7 @@ Page({
       firstKey: recipe.successKeys[0] || '',
       moreCount: Math.max(0, recipe.successKeys.length - 1),
       visibleTags: recipe.tags.slice(0, 3),
-      updatedName: getMemberById(state, recipe.updatedById)?.name || '家人',
+      updatedName: nameOf(recipe.updatedById),
       updatedLabel: relativeTime(recipe.updatedAt),
       avatarColor: colorOf(recipe.updatedById),
     })
@@ -133,7 +138,7 @@ Page({
   },
 
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
-    return { title: '家味 · 我们的家庭食谱', path: '/pages/library/index' }
+    return { title: '阿呜厨房 · 我们的家庭食谱', path: '/pages/library/index' }
   },
 
   showToast(message: string) {

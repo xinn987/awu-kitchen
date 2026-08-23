@@ -63,7 +63,7 @@ Page({
         recipe.createdById === member.id || recipe.updatedById === member.id).length,
     }))
     const invite = getOrCreateInvite(state)
-    const hoursLeft = Math.max(1, Math.ceil((invite.expiresAt - Date.now()) / 3_600_000))
+    const hoursLeft = Math.max(1, Math.ceil((invite.expiresAt - Date.now()) / 3600000))
     this.setData({
       familyName: state.family.name,
       members,
@@ -88,7 +88,7 @@ Page({
 
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
     return {
-      title: `邀请你加入「${this.data.familyName || '家庭食谱'}」`,
+      title: `阿呜厨房 · 邀请你加入「${this.data.familyName || '家庭食谱'}」`,
       path: `/pages/family/index?invite=${this.data.inviteCode}`,
     }
   },

@@ -43,11 +43,11 @@ Page({
       recipe: {
         ...recipe,
         isDraft: !isFormalRecipe(recipe),
-        updatedName: updatedMember?.name || '家人',
-        createdName: createdMember?.name || '家人',
+        updatedName: updatedMember ? updatedMember.name : '家人',
+        createdName: createdMember ? createdMember.name : '家人',
         updatedDate: shortDate(recipe.updatedAt),
         relativeUpdated: relativeTime(recipe.updatedAt),
-        avatarColor: updatedMember?.color || '#8A7E74',
+        avatarColor: (updatedMember && updatedMember.color) || '#8A7E74',
       },
     })
   },
@@ -57,7 +57,7 @@ Page({
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
     const recipe = this.data.recipe
     return {
-      title: recipe ? `${recipe.name} · 家味家庭食谱` : '家味 · 我们的家庭食谱',
+      title: recipe ? `${recipe.name} · 阿呜厨房` : '阿呜厨房 · 我们的家庭食谱',
       path: `/pages/recipe-detail/index?id=${this.data.id}`,
     }
   },

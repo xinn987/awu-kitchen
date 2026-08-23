@@ -1,0 +1,23 @@
+<!-- 阿呜厨房头像：用张口弧形与一小勺表达“阿呜吃一口”。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">阿呜厨房头像</title>
+  <desc id="desc">暖陶橙色的张口弧形正在迎接一把深棕色小勺。</desc>
+
+  <!-- 与小程序现有界面一致的暖米白底色。 -->
+  <rect width="1024" height="1024" fill="#F4EFE6"/>
+
+  <!-- 不画具体人物，只用一段圆润弧形保留“阿呜张口”的动作感。 -->
+  <path
+    d="M 646 266 A 310 310 0 1 0 646 758"
+    fill="none"
+    stroke="#BF5924"
+    stroke-width="154"
+    stroke-linecap="round"
+  />
+
+  <!-- 小勺保持独立轮廓，缩小到头像尺寸后仍能清楚识别。 -->
+  <g fill="#1A1714" transform="rotate(-28 694 488)">
+    <ellipse cx="626" cy="488" rx="76" ry="58"/>
+    <rect x="684" y="463" width="196" height="50" rx="25"/>
+  </g>
+</svg>
