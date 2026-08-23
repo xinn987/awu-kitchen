@@ -26,7 +26,7 @@
           <view wx:if="{{!item.isCurrent}}" class="restore-row">
             <view wx:if="{{item.confirming}}" class="restore-confirm">
               <text>确认恢复到这个版本？</text>
-              <view class="confirm-link" role="button" data-id="{{item.id}}" bindtap="confirmRestore">确认恢复</view>
+              <view class="confirm-link" role="button" data-id="{{item.id}}" bindtap="confirmRestore">{{restoring ? '恢复中…' : '确认恢复'}}</view>
               <view class="cancel-link" role="button" bindtap="cancelRestore">取消</view>
             </view>
             <view wx:else class="restore-link" role="button" data-id="{{item.id}}" bindtap="startRestore">

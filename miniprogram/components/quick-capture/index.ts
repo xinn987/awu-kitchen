@@ -26,6 +26,7 @@ Component({
     example: KEY_EXAMPLES[0],
     nameFilled: false,
     keyFilled: false,
+    saving: false,
   },
   observers: {
     opened(opened: boolean) {
@@ -35,7 +36,10 @@ Component({
           exitTimer = undefined
         }
         const example = KEY_EXAMPLES[Math.floor(Math.random() * KEY_EXAMPLES.length)]
-        this.setData({ mounted: true, open: false, step: 'name', name: '', keyText: '', example, nameFilled: false, keyFilled: false })
+        this.setData({
+          mounted: true, open: false, step: 'name', name: '', keyText: '', example,
+          nameFilled: false, keyFilled: false, saving: false,
+        })
         wx.nextTick(() => this.setData({ open: true }))
       } else if (this.data.mounted) {
         this.setData({ open: false })
@@ -63,15 +67,27 @@ Component({
       const keyText = event.detail.value
       this.setData({ keyText, keyFilled: keyText.trim().length > 0 })
     },
-    saveFormal() {
-      if (!this.data.nameFilled || !this.data.keyFilled) return
-      const recipe = quickCapture(this.data.name, this.data.keyText)
-      this.triggerEvent('saved', { id: recipe.id, formal: true, message: `「${recipe.name}」已正式收录` })
+    async saveFormal() {
+      if (!this.data.nameFilled || !this.data.keyFilled || this.data.saving) return
+      this.setData({ saving: true })
+      try {
+        const recipe = await quickCapture(this.data.name, this.data.keyText)
+        this.triggerEvent('saved', { id: recipe.id, formal: true, message: `「${recipe.name}」已正式收录` })
+      } catch (error) {
+        this.setData({ saving: false })
+        wx.showToast({ title: error instanceof Error ? error.message : '保存失败，请重试', icon: 'none' })
+      }
     },
-    saveDraft() {
-      if (!this.data.nameFilled) return
-      const recipe = savePending(this.data.name)
-      this.triggerEvent('saved', { id: recipe.id, formal: false, message: '已暂存为待补条目' })
+    async saveDraft() {
+      if (!this.data.nameFilled || this.data.saving) return
+      this.setData({ saving: true })
+      try {
+        const recipe = await savePending(this.data.name)
+        this.triggerEvent('saved', { id: recipe.id, formal: false, message: '已暂存为待补条目' })
+      } catch (error) {
+        this.setData({ saving: false })
+        wx.showToast({ title: error instanceof Error ? error.message : '暂存失败，请重试', icon: 'none' })
+      }
     },
   },
 })

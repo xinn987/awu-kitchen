@@ -1,23 +1,15 @@
-/** 家庭成员：邀请码 + 微信分享邀请；管理员只负责邀请和移除。 */
+/** 家庭成员：云端成员列表、微信分享邀请与管理员移出。 */
 import {
-  getCurrentUser,
-  getMemberById,
-  getOrCreateInvite,
-  getState,
-  joinByInviteCode,
-  removeMember,
-  saveState,
-} from '../../services/recipe-store'
+  createInvite, listMembers, removeMember, type MemberViewData,
+} from '../../services/family-service'
+import { invalidateState } from '../../services/recipe-store'
+import { bootstrapSession } from '../../services/session-service'
 
-interface MemberView {
-  id: string
-  name: string
-  color: string
+interface MemberView extends MemberViewData {
   roleLabel: string
   isAdmin: boolean
   isSelf: boolean
   canRemove: boolean
-  contributionCount: number
 }
 
 Page({
@@ -26,117 +18,94 @@ Page({
     familyName: '',
     members: [] as MemberView[],
     memberCount: 0,
-    inviteCode: '',
+    inviteToken: '',
     inviteExpireLabel: '',
-    joinOpen: false,
-    joinCode: '',
-    joinName: '',
-    canJoin: false,
+    canInvite: false,
+    renewingInvite: false,
     removingId: '',
+    removing: false,
     captureOpen: false,
     toastVisible: false,
     toastMessage: '',
   },
 
-  onLoad(options: Record<string, string | undefined>) {
+  onLoad() {
     this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
-    // 通过家人分享卡片打开：预填邀请码，进入加入流程（Phase B 会拦截「已是成员」）。
-    if (options.invite) {
-      this.setData({ joinOpen: true, joinCode: options.invite }, () => this.updateCanJoin())
+  },
+
+  onShow() { void this.refresh() },
+
+  async refresh() {
+    try {
+      const session = await bootstrapSession()
+      if (session.status !== 'ready') {
+        wx.reLaunch({ url: '/pages/onboarding/index' })
+        return
+      }
+      const data = await listMembers()
+      const current = data.members.find((member) => member.id === data.currentMemberId)
+      const isCurrentAdmin = Boolean(current && current.role === 'admin')
+      const members = data.members.map((member): MemberView => ({
+        ...member,
+        roleLabel: member.role === 'admin' ? '管理员' : '成员',
+        isAdmin: member.role === 'admin',
+        isSelf: member.id === data.currentMemberId,
+        canRemove: Boolean(isCurrentAdmin && member.id !== data.currentMemberId),
+      }))
+      this.setData({
+        familyName: data.family.name,
+        members,
+        memberCount: members.length,
+        canInvite: Boolean(isCurrentAdmin),
+      })
+      if (isCurrentAdmin && !this.data.inviteToken) await this.renewInvite(false)
+    } catch (error) {
+      this.showToast(error instanceof Error ? error.message : '家庭成员加载失败')
     }
   },
 
-  onShow() { this.refresh() },
-
-  refresh() {
-    const state = getState()
-    const currentUser = getCurrentUser(state)
-    const members = state.members.map((member): MemberView => ({
-      id: member.id,
-      name: member.name,
-      color: member.color || '#8A7E74',
-      roleLabel: member.role === 'admin' ? '管理员' : '成员',
-      isAdmin: member.role === 'admin',
-      isSelf: member.id === currentUser.id,
-      canRemove: currentUser.role === 'admin' && member.id !== currentUser.id,
-      contributionCount: state.recipes.filter((recipe) =>
-        recipe.createdById === member.id || recipe.updatedById === member.id).length,
-    }))
-    const invite = getOrCreateInvite(state)
-    const hoursLeft = Math.max(1, Math.ceil((invite.expiresAt - Date.now()) / 3600000))
-    this.setData({
-      familyName: state.family.name,
-      members,
-      memberCount: members.length,
-      inviteCode: invite.code,
-      inviteExpireLabel: `${hoursLeft} 小时内有效`,
-    })
-  },
-
-  /** —— 邀请 —— */
-  copyInviteCode() {
-    wx.setClipboardData({ data: this.data.inviteCode })
-  },
-
-  renewInvite() {
-    const state = getState()
-    state.family.invite = undefined
-    saveState(state)
-    this.refresh()
-    this.showToast('已生成新邀请码')
+  async renewInvite(showMessage = true) {
+    if (this.data.renewingInvite) return
+    this.setData({ renewingInvite: true })
+    try {
+      const invite = await createInvite()
+      const hoursLeft = Math.max(1, Math.ceil((invite.expiresAt - Date.now()) / 3600000))
+      this.setData({ inviteToken: invite.token, inviteExpireLabel: `${hoursLeft} 小时内有效` })
+      if (showMessage) this.showToast('已生成新的单次邀请')
+    } catch (error) {
+      this.showToast(error instanceof Error ? error.message : '邀请生成失败')
+    } finally {
+      this.setData({ renewingInvite: false })
+    }
   },
 
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
     return {
       title: `阿呜厨房 · 邀请你加入「${this.data.familyName || '家庭食谱'}」`,
-      path: `/pages/family/index?invite=${this.data.inviteCode}`,
+      path: `/pages/onboarding/index?invite=${encodeURIComponent(this.data.inviteToken)}`,
     }
   },
 
-  /** —— 手输邀请码加入（兜底） —— */
-  openJoin() {
-    this.setData({ joinOpen: true, joinCode: '', joinName: '', canJoin: false })
-  },
-
-  closeJoin() { this.setData({ joinOpen: false }) },
-
-  onJoinCodeInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ joinCode: event.detail.value }, () => this.updateCanJoin())
-  },
-
-  onJoinNameInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ joinName: event.detail.value }, () => this.updateCanJoin())
-  },
-
-  updateCanJoin() {
-    this.setData({ canJoin: this.data.joinCode.length === 6 && this.data.joinName.trim().length > 0 })
-  },
-
-  submitJoin() {
-    if (!this.data.canJoin) return
-    const result = joinByInviteCode(this.data.joinCode, this.data.joinName)
-    this.showToast(result.message)
-    if (result.ok) {
-      this.setData({ joinOpen: false, joinCode: '', joinName: '' })
-      this.refresh()
-    }
-  },
-
-  /** —— 移出成员 —— */
   askRemove(event: WechatMiniprogram.BaseEvent) {
     this.setData({ removingId: String(event.currentTarget.dataset.id) })
   },
 
   cancelRemove() { this.setData({ removingId: '' }) },
 
-  confirmRemove() {
-    if (!this.data.removingId) return
-    const state = getState()
-    const target = getMemberById(state, this.data.removingId)
-    removeMember(this.data.removingId)
-    this.setData({ removingId: '' })
-    this.refresh()
-    this.showToast(target ? `已移出「${target.name}」` : '已移出成员')
+  async confirmRemove() {
+    if (!this.data.removingId || this.data.removing) return
+    const target = this.data.members.find((member) => member.id === this.data.removingId)
+    this.setData({ removing: true })
+    try {
+      await removeMember(this.data.removingId)
+      invalidateState()
+      this.setData({ removingId: '', removing: false })
+      await this.refresh()
+      this.showToast(target ? `已移出「${target.name}」` : '已移出成员')
+    } catch (error) {
+      this.setData({ removingId: '', removing: false })
+      this.showToast(error instanceof Error ? error.message : '移出失败，请重试')
+    }
   },
 
   openCapture() { this.setData({ captureOpen: true }) },

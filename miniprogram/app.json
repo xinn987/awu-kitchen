@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/library/index",
+    "pages/onboarding/index",
     "pages/recipe-detail/index",
     "pages/recipe-edit/index",
     "pages/history/index",

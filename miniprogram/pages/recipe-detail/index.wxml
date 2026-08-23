@@ -66,7 +66,7 @@
   <view wx:if="{{found && recipe}}" class="action-bar">
     <view class="secondary-button copy-button" role="button" bindtap="duplicate">
       <app-icon name="copy" size="30"></app-icon>
-      <text>复制</text>
+      <text>{{duplicating ? '复制中…' : '复制'}}</text>
     </view>
     <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
   </view>

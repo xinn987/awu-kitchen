@@ -1,5 +1,6 @@
-/** 小程序入口：首版不主动登录，避免把演示 UI 与账号系统耦合。 */
-import { getState } from './services/recipe-store'
+/** 小程序入口：初始化微信云开发，并在后台启动真实身份会话。 */
+import { initCloud } from './config/cloud'
+import { bootstrapSession } from './services/session-service'
 
 /** 安卓系统没有中文衬线字体，加载内嵌的思源宋体子集保持与设计稿一致的排版。 */
 function loadSerifFont() {
@@ -17,8 +18,9 @@ function loadSerifFont() {
 App<IAppOption>({
   globalData: {},
   onLaunch() {
-    // 首次打开时初始化 HTTP demo 的种子数据。
-    getState()
+    initCloud()
+    // 页面会复用同一个会话 Promise；这里捕获错误，避免启动阶段产生未处理拒绝。
+    this.globalData.sessionPromise = bootstrapSession().catch(() => undefined)
     loadSerifFont()
   },
 })

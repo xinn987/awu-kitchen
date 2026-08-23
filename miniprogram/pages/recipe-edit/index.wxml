@@ -171,6 +171,6 @@
   </scroll-view>
 
   <view wx:if="{{found}}" class="action-bar">
-    <view class="primary-button save-button {{!canSave ? 'disabled' : ''}}" role="button" bindtap="save">保存{{formalizing ? '并转为正式食谱' : '修改'}}</view>
+    <view class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" role="button" bindtap="save">{{saving ? '正在保存…' : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</view>
   </view>
 </view>

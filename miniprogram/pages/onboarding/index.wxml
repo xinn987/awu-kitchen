@@ -1,0 +1,42 @@
+<view class="onboarding-shell" style="padding-top: {{statusBarHeight + 24}}px;">
+  <view class="brand-block">
+    <image class="brand-avatar" src="/assets/awu-kitchen-avatar.png" mode="aspectFit"></image>
+    <text class="brand-title font-serif">阿呜厨房</text>
+    <text class="brand-subtitle">把家里做成功的辅食，安静地留下来</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-card">
+    <text class="state-title">正在找到你的家庭…</text>
+  </view>
+
+  <view wx:elif="{{errorMessage}}" class="state-card error-card">
+    <text class="state-title">暂时没有连接上</text>
+    <text class="state-copy">{{errorMessage}}</text>
+    <view class="primary-button" role="button" bindtap="retry">重试</view>
+  </view>
+
+  <view wx:else class="form-card">
+    <view wx:if="{{inviteToken}}">
+      <text class="eyebrow">家庭邀请</text>
+      <text class="form-title font-serif">加入「{{inviteFamilyName}}」</text>
+      <text class="form-copy">填写家人熟悉的称谓。它只在这个家庭里显示，不读取微信昵称。</text>
+    </view>
+    <view wx:else>
+      <text class="eyebrow">第一次使用</text>
+      <text class="form-title font-serif">创建家庭食谱</text>
+      <text class="form-copy">创建后你是管理员，可以通过微信邀请家人共同维护。</text>
+      <text class="field-label">家庭名称</text>
+      <input class="text-input" value="{{familyName}}" maxlength="40" bindinput="onFamilyNameInput" />
+    </view>
+
+    <text class="field-label">你的家庭称谓</text>
+    <input class="text-input" value="{{displayName}}" maxlength="20" placeholder="如：妈妈、爸爸、奶奶" bindinput="onDisplayNameInput" />
+
+    <view class="primary-button {{canSubmit && !saving ? '' : 'disabled'}}" role="button" bindtap="submit">
+      {{saving ? '正在保存…' : (inviteToken ? '确认加入' : '创建家庭')}}
+    </view>
+  </view>
+
+  <text class="privacy-note">微信身份只用于识别家庭成员，不要求授权头像、昵称或手机号。</text>
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

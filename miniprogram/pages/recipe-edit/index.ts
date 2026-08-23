@@ -3,8 +3,9 @@
  * 可选分区默认折叠；食材常用点选 + 名称/用量两框；步骤以成稿列表
  * 逐条录入，边加边看到最终阅读形态。
  */
-import { FOOD_TYPES, STAGES, type FoodType, type Ingredient, type Stage } from '../../models/recipe'
-import { getIngredientSuggestions, getRecipe, getState, getTagSuggestions, updateRecipe } from '../../services/recipe-store'
+import { FOOD_TYPES, STAGES, type FoodType, type Ingredient, type RecipeState, type Stage } from '../../models/recipe'
+import { getIngredientSuggestions, getState, getTagSuggestions, updateRecipe } from '../../services/recipe-store'
+import { ApiError } from '../../services/cloud-client'
 import { isFormalRecipe } from '../../utils/recipe-utils'
 
 const MAX_TAGS = 3
@@ -23,6 +24,8 @@ interface CoreSnapshot {
 }
 
 let originalCore: CoreSnapshot | undefined
+let editingState: RecipeState | undefined
+let editingVersion = 1
 
 function coreOf(keys: string[], ingredients: Array<Ingredient & { amount: string }>, steps: string[]): CoreSnapshot {
   return {
@@ -59,43 +62,57 @@ Page({
     wasDraft: false,
     formalizing: false,
     canSave: false,
+    saving: false,
     showKeysHint: false,
     maxTags: MAX_TAGS,
   },
 
   onLoad(options: Record<string, string | undefined>) {
     const id = options.id || ''
-    const recipe = getRecipe(id)
-    if (!recipe) {
-      this.setData({ id, found: false })
-      return
+    this.setData({ id })
+    void this.loadRecipe(id)
+  },
+
+  async loadRecipe(id: string) {
+    try {
+      const state = await getState(true)
+      const recipe = state.recipes.find((item) => item.id === id)
+      if (!recipe) {
+        this.setData({ id, found: false })
+        return
+      }
+      editingState = state
+      editingVersion = recipe.version || 1
+      const wasDraft = !isFormalRecipe(recipe)
+      const ingredients = recipe.ingredients.map((item) => ({ name: item.name, amount: item.amount || '' }))
+      const steps = [...recipe.steps]
+      originalCore = coreOf(recipe.successKeys, ingredients, steps)
+      this.setData({
+        id,
+        found: true,
+        name: recipe.name,
+        keys: recipe.successKeys.length > 0 ? [...recipe.successKeys] : [''],
+        // 有内容的分区默认展开，空的折叠成一行入口，避免空表单的压迫感。
+        sections: {
+          ingredients: ingredients.length > 0,
+          steps: steps.length > 0,
+          classify: Boolean(recipe.type || recipe.stage || recipe.tags.length > 0),
+        },
+        ingredients,
+        steps,
+        type: recipe.type || '',
+        stage: recipe.stage || '',
+        tags: [...recipe.tags],
+        wasDraft,
+      }, () => this.recompute())
+    } catch (error) {
+      this.setData({ found: false })
+      wx.showToast({ title: error instanceof Error ? error.message : '食谱加载失败', icon: 'none' })
     }
-    const wasDraft = !isFormalRecipe(recipe)
-    const ingredients = recipe.ingredients.map((item) => ({ name: item.name, amount: item.amount || '' }))
-    const steps = [...recipe.steps]
-    originalCore = coreOf(recipe.successKeys, ingredients, steps)
-    this.setData({
-      id,
-      found: true,
-      name: recipe.name,
-      keys: recipe.successKeys.length > 0 ? [...recipe.successKeys] : [''],
-      // 有内容的分区默认展开，空的折叠成一行入口，避免空表单的压迫感。
-      sections: {
-        ingredients: ingredients.length > 0,
-        steps: steps.length > 0,
-        classify: Boolean(recipe.type || recipe.stage || recipe.tags.length > 0),
-      },
-      ingredients,
-      steps,
-      type: recipe.type || '',
-      stage: recipe.stage || '',
-      tags: [...recipe.tags],
-      wasDraft,
-    }, () => this.recompute())
   },
 
   recompute() {
-    const state = getState()
+    const state = editingState
     const hasKeys = this.data.keys.some((key) => key.trim().length > 0)
     this.setData({
       canSave: this.data.name.trim().length > 0 && hasKeys,
@@ -107,8 +124,9 @@ Page({
       ingredientsCount: this.data.ingredients.filter((item) => item.name.trim()).length,
       stepsCount: this.data.steps.filter((step) => step.trim()).length,
       classifyCount: this.data.tags.length + (this.data.type ? 1 : 0) + (this.data.stage ? 1 : 0),
-      ingredientSuggestions: getIngredientSuggestions(state, this.data.ingredients.map((item) => item.name.trim()).filter(Boolean)),
-      tagSuggestions: getTagSuggestions(state, this.data.tags),
+      ingredientSuggestions: state
+        ? getIngredientSuggestions(state, this.data.ingredients.map((item) => item.name.trim()).filter(Boolean)) : [],
+      tagSuggestions: state ? getTagSuggestions(state, this.data.tags) : [],
     })
   },
 
@@ -242,7 +260,7 @@ Page({
   },
 
   save() {
-    if (!this.data.canSave) return
+    if (!this.data.canSave || this.data.saving) return
     // 正式食谱发生实质修改时，在保存这一刻提醒「做成功再更新」，替代常驻警示框。
     const substantiveChanged = originalCore !== undefined
       && JSON.stringify(coreOf(this.data.keys, this.data.ingredients, this.data.steps)) !== JSON.stringify(originalCore)
@@ -252,14 +270,16 @@ Page({
         content: '这次修改涉及关键经验、食材或步骤。建议实际做成功后再更新当前食谱。',
         confirmText: '已成功，保存',
         cancelText: '再看看',
-        success: (result) => { if (result.confirm) this.doSave() },
+        success: (result) => { if (result.confirm) void this.doSave() },
       })
       return
     }
-    this.doSave()
+    void this.doSave()
   },
 
-  doSave() {
+  async doSave() {
+    if (this.data.saving) return
+    this.setData({ saving: true })
     const content = {
       name: this.data.name.trim(),
       successKeys: this.data.keys.map((key) => key.trim()).filter(Boolean),
@@ -271,15 +291,24 @@ Page({
       stage: this.data.stage || undefined,
       tags: [...this.data.tags],
     }
-    const saved = updateRecipe(
-      this.data.id,
-      content,
-      this.data.wasDraft ? '补充成功关键，转为正式食谱' : '更新食谱内容',
-    )
-    if (!saved) return
-    const message = this.data.wasDraft ? '已转为正式食谱' : '已保存'
-    wx.redirectTo({
-      url: `/pages/recipe-detail/index?id=${this.data.id}&toast=${encodeURIComponent(message)}`,
-    })
+    try {
+      await updateRecipe(
+        this.data.id,
+        content,
+        this.data.wasDraft ? '补充成功关键，转为正式食谱' : '更新食谱内容',
+        editingVersion,
+      )
+      const message = this.data.wasDraft ? '已转为正式食谱' : '已保存'
+      wx.redirectTo({
+        url: `/pages/recipe-detail/index?id=${this.data.id}&toast=${encodeURIComponent(message)}`,
+      })
+    } catch (error) {
+      this.setData({ saving: false })
+      if (error instanceof ApiError && error.code === 'VERSION_CONFLICT') {
+        wx.showModal({ title: '食谱已经更新', content: error.message, showCancel: false })
+        return
+      }
+      wx.showToast({ title: error instanceof Error ? error.message : '保存失败，请重试', icon: 'none' })
+    }
   },
 })

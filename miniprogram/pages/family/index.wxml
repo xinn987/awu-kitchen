@@ -21,39 +21,22 @@
         </view>
       </view>
 
-      <!-- 邀请卡：邀请码 + 分享 -->
-      <view class="invite-card">
+      <!-- 邀请卡：管理员生成单次链接，通过微信分享卡片发送。 -->
+      <view wx:if="{{canInvite}}" class="invite-card">
         <view class="invite-head">
           <text class="invite-title">邀请家人加入</text>
           <text class="invite-expire">{{inviteExpireLabel}}</text>
         </view>
         <view class="invite-code-row">
-          <text class="invite-code">{{inviteCode}}</text>
-          <view class="invite-copy" role="button" bindtap="copyInviteCode">复制</view>
+          <text class="invite-link-copy">每个邀请只能由一位家人使用，打开后填写家庭称谓即可加入。</text>
         </view>
         <view class="invite-actions">
-          <button class="invite-share" open-type="share" hover-class="none">
+          <button class="invite-share" open-type="share" hover-class="none" disabled="{{!inviteToken}}">
             <app-icon name="user-plus" size="30"></app-icon>
             <text>微信邀请家人</text>
           </button>
-          <view class="invite-renew" role="button" bindtap="renewInvite">换一个</view>
+          <view class="invite-renew" role="button" bindtap="renewInvite">{{renewingInvite ? '生成中…' : '重新生成'}}</view>
         </view>
-      </view>
-
-      <!-- 手输邀请码加入（分享不了的兜底） -->
-      <view wx:if="{{joinOpen}}" class="join-card">
-        <text class="join-title">用邀请码加入</text>
-        <view class="join-row">
-          <input class="join-code-input" type="number" maxlength="6" value="{{joinCode}}" placeholder="6 位邀请码" bindinput="onJoinCodeInput" />
-          <input class="join-name-input" value="{{joinName}}" placeholder="你的称谓，如：爷爷" bindinput="onJoinNameInput" bindconfirm="submitJoin" />
-        </view>
-        <view class="join-actions">
-          <view class="join-submit {{canJoin ? '' : 'disabled'}}" role="button" bindtap="submitJoin">加入家庭</view>
-          <view class="join-cancel" role="button" bindtap="closeJoin">取消</view>
-        </view>
-      </view>
-      <view wx:else class="join-entry" role="button" bindtap="openJoin">
-        <text class="join-entry-text">收到邀请码？在这里加入</text>
       </view>
 
       <view class="family-note">所有成员均可查看和编辑食谱；管理员只负责邀请和移除成员。食谱属于家庭共同拥有，经验仅供参考，不构成专业建议。</view>
@@ -65,7 +48,7 @@
     <text class="remove-copy">移出后 TA 将无法访问家庭食谱；TA 记录的食谱仍属于家庭，不会被删除。</text>
     <view class="remove-actions">
       <view class="cancel-remove" role="button" bindtap="cancelRemove">取消</view>
-      <view class="confirm-remove" role="button" bindtap="confirmRemove">确认移出</view>
+      <view class="confirm-remove" role="button" bindtap="confirmRemove">{{removing ? '正在移出…' : '确认移出'}}</view>
     </view>
   </view>
 
