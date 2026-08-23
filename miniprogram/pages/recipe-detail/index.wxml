@@ -12,8 +12,8 @@
         </view>
         <view class="meta-row">
           <view class="author-row">
-            <member-avatar name="{{recipe.updatedBy}}" size="38" color="{{recipe.avatarColor}}"></member-avatar>
-            <text>{{recipe.updatedBy}} 修改于 {{recipe.updatedDate}}</text>
+            <member-avatar name="{{recipe.updatedName}}" size="38" color="{{recipe.avatarColor}}"></member-avatar>
+            <text>{{recipe.updatedName}} 修改于 {{recipe.updatedDate}}</text>
           </view>
           <text class="dot">·</text>
           <view class="history-link" role="button" bindtap="openHistory">
@@ -59,7 +59,7 @@
         </view>
       </view>
 
-      <view class="footnote">由 {{recipe.createdBy}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
+      <view class="footnote">由 {{recipe.createdName}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
     </view>
   </scroll-view>
 

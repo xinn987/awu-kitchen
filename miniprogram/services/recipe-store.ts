@@ -1,29 +1,89 @@
 /**
  * 家庭食谱本地仓库。
- * 页面只通过这里读写，未来更换云端 API 时无需重写页面状态逻辑。
+ * 页面只通过这里读写，Phase B 接入微信云开发时仅需替换本文件实现。
+ *
+ * 归因字段一律存成员 id，展示时用 getMemberById 解析成称谓。
  */
 
-import { FAMILY_NAME, SEED_MEMBERS, SEED_RECIPES } from '../data/seed'
-import type { Member, Recipe, RecipeContent, RecipeState } from '../models/recipe'
+import { FAMILY_ID, FAMILY_NAME, SEED_MEMBERS, SEED_RECIPES } from '../data/seed'
+import type { Family, Member, Recipe, RecipeContent, RecipeState } from '../models/recipe'
 import { cloneJson, isFormalRecipe, uid } from '../utils/recipe-utils'
 
-const STORAGE_KEY = 'jiawei-miniprogram-v2'
-const DEFAULT_USER_ID = 'm-mom'
+const STORAGE_KEY = 'jiawei-miniprogram-v3'
+const LEGACY_STORAGE_KEY = 'jiawei-miniprogram-v2'
+const DEFAULT_USER_ID = 'local-mom'
+const INVITE_TTL = 24 * 60 * 60 * 1000
+const MEMBER_COLORS = ['#8A5A4A', '#5A7A8A', '#8A6A4A', '#4A6A8A', '#6A5A8A']
 
 function seedState(): RecipeState {
-  return cloneJson({ recipes: SEED_RECIPES, members: SEED_MEMBERS })
+  return cloneJson({
+    family: { id: FAMILY_ID, name: FAMILY_NAME },
+    recipes: SEED_RECIPES,
+    members: SEED_MEMBERS,
+  })
+}
+
+/** v2 及更早的数据按名字归因，需要迁移到 id 归因并补上家庭实体。 */
+function migrateV2(raw: Record<string, unknown>): RecipeState | null {
+  const recipes = raw.recipes
+  const members = raw.members
+  if (!Array.isArray(recipes) || !Array.isArray(members) || members.length === 0) return null
+  const idByName = new Map<string, string>()
+  const migratedMembers = members.map((item) => {
+    const member = item as Record<string, unknown>
+    if (typeof member.name === 'string') idByName.set(member.name, String(member.id))
+    return {
+      ...member,
+      userId: String(member.userId || `local-${member.id}`),
+    } as Member
+  })
+  const fallbackId = migratedMembers[0].id
+  const resolveByName = (name: unknown): string =>
+    typeof name === 'string' && idByName.has(name) ? (idByName.get(name) as string) : fallbackId
+  const migratedRecipes = recipes.map((item) => {
+    const recipe = item as Record<string, unknown>
+    return {
+      ...recipe,
+      familyId: String(recipe.familyId || FAMILY_ID),
+      createdById: resolveByName(recipe.createdBy),
+      updatedById: resolveByName(recipe.updatedBy),
+      revisions: Array.isArray(recipe.revisions)
+        ? recipe.revisions.map((rev) => {
+            const revision = rev as Record<string, unknown>
+            return { ...revision, authorId: resolveByName(revision.author) }
+          })
+        : [],
+    }
+  }) as Recipe[]
+  return {
+    family: { id: FAMILY_ID, name: FAMILY_NAME },
+    members: migratedMembers,
+    recipes: migratedRecipes,
+  }
 }
 
 function isValidState(value: unknown): value is RecipeState {
   const candidate = value as RecipeState | undefined
-  return Boolean(candidate && Array.isArray(candidate.recipes) && Array.isArray(candidate.members))
+  return Boolean(candidate && candidate.family && Array.isArray(candidate.recipes) && Array.isArray(candidate.members))
 }
 
-/** 读取快照；首次打开或缓存损坏时恢复演示数据。 */
+/** 读取快照；首次打开、旧版本数据或缓存损坏时自动迁移/恢复演示数据。 */
 export function getState(): RecipeState {
   try {
-    const cached = wx.getStorageSync(STORAGE_KEY) as unknown
+    const cached = wx.getStorageSync(STORAGE_KEY)
     if (isValidState(cached)) return cloneJson(cached)
+    // v2 及更早版本存在旧键名下，按名字归因迁移到 id 归因。
+    const legacy = wx.getStorageSync(LEGACY_STORAGE_KEY)
+    if (legacy && migrateV2(legacy as Record<string, unknown>)) {
+      const migrated = migrateV2(legacy as Record<string, unknown>) as RecipeState
+      saveState(migrated)
+      return migrated
+    }
+    if (cached && migrateV2(cached as Record<string, unknown>)) {
+      const migrated = migrateV2(cached as Record<string, unknown>) as RecipeState
+      saveState(migrated)
+      return migrated
+    }
   } catch {
     // 存储不可用时退回种子数据，页面仍可浏览。
   }
@@ -40,17 +100,23 @@ export function saveState(state: RecipeState): void {
   }
 }
 
-/** 当前操作者：本地演示固定为妈妈，接入微信登录后在此替换。 */
+/** 当前操作者：本地演示固定为妈妈，Phase B 接入微信登录后按 openid 匹配。 */
 export function getCurrentUser(state = getState()): Member {
   return (
-    state.members.find((member) => member.id === DEFAULT_USER_ID) || {
-      id: DEFAULT_USER_ID,
+    state.members.find((member) => member.userId === DEFAULT_USER_ID) ||
+    state.members[0] || {
+      id: 'm-mom',
+      userId: DEFAULT_USER_ID,
       name: '妈妈',
       role: 'admin',
       joinedAt: new Date().toISOString(),
       color: '#BF5924',
     }
   )
+}
+
+export function getMemberById(state: RecipeState, id: string): Member | undefined {
+  return state.members.find((member) => member.id === id)
 }
 
 export function getRecipe(id: string): Recipe | undefined {
@@ -79,11 +145,11 @@ export function quickCapture(name: string, successKey: string): Recipe {
   }
   const recipe: Recipe = {
     ...content,
-    id: uid('r-'), family: FAMILY_NAME,
-    createdBy: currentUser.name, createdAt: now,
-    updatedBy: currentUser.name, updatedAt: now,
+    id: uid('r-'), familyId: state.family.id,
+    createdById: currentUser.id, createdAt: now,
+    updatedById: currentUser.id, updatedAt: now,
     revisions: [{
-      id: uid('rev-'), author: currentUser.name, time: now,
+      id: uid('rev-'), authorId: currentUser.id, time: now,
       summary: '初次收录', snapshot: cloneJson(content),
     }],
   }
@@ -98,10 +164,10 @@ export function savePending(name: string): Recipe {
   const currentUser = getCurrentUser(state)
   const now = new Date().toISOString()
   const recipe: Recipe = {
-    id: uid('r-'), family: FAMILY_NAME, name: name.trim(),
+    id: uid('r-'), familyId: state.family.id, name: name.trim(),
     successKeys: [], ingredients: [], steps: [], tags: [],
-    createdBy: currentUser.name, createdAt: now,
-    updatedBy: currentUser.name, updatedAt: now, revisions: [],
+    createdById: currentUser.id, createdAt: now,
+    updatedById: currentUser.id, updatedAt: now, revisions: [],
   }
   state.recipes.unshift(recipe)
   saveState(state)
@@ -119,10 +185,10 @@ export function updateRecipe(id: string, content: RecipeContent, summary: string
   const next: Recipe = {
     ...target,
     ...cloneJson(content),
-    updatedBy: currentUser.name,
+    updatedById: currentUser.id,
     updatedAt: now,
     revisions: [...target.revisions, {
-      id: uid('rev-'), author: currentUser.name, time: now,
+      id: uid('rev-'), authorId: currentUser.id, time: now,
       summary, snapshot: cloneJson(content),
     }],
   }
@@ -146,11 +212,11 @@ export function duplicateRecipe(id: string): Recipe | undefined {
   }
   const copy: Recipe = {
     ...content,
-    id: uid('r-'), family: FAMILY_NAME,
-    createdBy: currentUser.name, createdAt: now,
-    updatedBy: currentUser.name, updatedAt: now,
+    id: uid('r-'), familyId: state.family.id,
+    createdById: currentUser.id, createdAt: now,
+    updatedById: currentUser.id, updatedAt: now,
     revisions: [{
-      id: uid('rev-'), author: currentUser.name, time: now,
+      id: uid('rev-'), authorId: currentUser.id, time: now,
       summary: `复制自「${target.name}」`, snapshot: cloneJson(content),
     }],
   }
@@ -168,15 +234,16 @@ export function restoreRevision(recipeId: string, revisionId: string): Recipe | 
   const revision = target.revisions.find((item) => item.id === revisionId)
   if (!revision) return undefined
   const currentUser = getCurrentUser(state)
+  const author = getMemberById(state, revision.authorId)
   const now = new Date().toISOString()
   const next: Recipe = {
     ...target,
     ...cloneJson(revision.snapshot),
-    updatedBy: currentUser.name,
+    updatedById: currentUser.id,
     updatedAt: now,
     revisions: [...target.revisions, {
-      id: uid('rev-'), author: currentUser.name, time: now,
-      summary: `恢复 ${revision.author} 的版本`, snapshot: cloneJson(revision.snapshot),
+      id: uid('rev-'), authorId: currentUser.id, time: now,
+      summary: `恢复 ${author ? author.name : '家人'} 的版本`, snapshot: cloneJson(revision.snapshot),
     }],
   }
   state.recipes[index] = next
@@ -184,21 +251,54 @@ export function restoreRevision(recipeId: string, revisionId: string): Recipe | 
   return next
 }
 
-export function inviteMember(name: string): Member {
+/**
+ * —— 家庭邀请 ——
+ * 本地演示：生成 6 位限时邀请码，供分享卡片和手输兜底。
+ * Phase B 云端版由云函数生成并校验，防止本地伪造。
+ */
+export function getOrCreateInvite(state = getState()): NonNullable<Family['invite']> {
+  const existing = state.family.invite
+  if (existing && existing.expiresAt > Date.now()) return existing
+  const currentUser = getCurrentUser(state)
+  const invite = {
+    code: String(Math.floor(100000 + Math.random() * 900000)),
+    expiresAt: Date.now() + INVITE_TTL,
+    createdById: currentUser.id,
+  }
+  state.family.invite = invite
+  saveState(state)
+  return invite
+}
+
+/** 手输邀请码加入；本地演示仅做格式与有效期校验。 */
+export function joinByInviteCode(code: string, displayName: string): { ok: boolean; message: string } {
   const state = getState()
-  const colors = ['#8A5A4A', '#5A7A8A', '#8A6A4A', '#4A6A8A']
+  const invite = state.family.invite
+  if (!invite || invite.expiresAt <= Date.now()) return { ok: false, message: '邀请码已过期，请让家人重新生成' }
+  if (invite.code !== code.trim()) return { ok: false, message: '邀请码不正确' }
+  const name = displayName.trim()
+  if (!name) return { ok: false, message: '请填写你的家庭称谓' }
+  if (state.members.some((member) => member.name === name)) return { ok: false, message: '这个称谓已被使用' }
   const member: Member = {
-    id: uid('m-'), name: name.trim(), role: 'member', joinedAt: new Date().toISOString(),
-    color: colors[state.members.length % colors.length],
+    id: uid('m-'),
+    userId: uid('local-'),
+    name,
+    role: 'member',
+    joinedAt: new Date().toISOString(),
+    color: MEMBER_COLORS[state.members.length % MEMBER_COLORS.length],
   }
   state.members.push(member)
   saveState(state)
-  return member
+  return { ok: true, message: `欢迎加入，${name}` }
 }
 
 export function removeMember(id: string): void {
   const state = getState()
-  state.members = state.members.filter((member) => member.id !== id || member.id === DEFAULT_USER_ID)
+  const current = getCurrentUser(state)
+  const target = getMemberById(state, id)
+  // 管理员不能移除自己和另一位管理员（首版只有创建者是管理员）。
+  if (!target || target.id === current.id) return
+  state.members = state.members.filter((member) => member.id !== id)
   saveState(state)
 }
 

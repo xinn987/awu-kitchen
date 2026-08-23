@@ -1,6 +1,6 @@
 /** 家庭食谱库：首页、搜索、轻量筛选和待补条目入口。 */
 import { FOOD_TYPES, type Recipe } from '../../models/recipe'
-import { getFormalRecipes, getPendingRecipes, getState } from '../../services/recipe-store'
+import { getFormalRecipes, getMemberById, getPendingRecipes, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime } from '../../utils/recipe-utils'
 
 interface RecipeCardView extends Recipe {
@@ -8,6 +8,7 @@ interface RecipeCardView extends Recipe {
   firstKey: string
   moreCount: number
   visibleTags: string[]
+  updatedName: string
   updatedLabel: string
   avatarColor: string
 }
@@ -55,9 +56,9 @@ Page({
     const pendingRecipes = getPendingRecipes(state)
     const query = this.data.query.trim().toLowerCase()
     const filter = this.data.filter
-    const colorOf = (name: string) => {
-      const member = state.members.find((item) => item.name === name)
-      return member && member.color ? member.color : '#8A7E74'
+    const colorOf = (memberId: string) => {
+      const member = getMemberById(state, memberId)
+      return (member && member.color) || '#8A7E74'
     }
     const matchesQuery = (recipe: Recipe) => {
       if (!query) return true
@@ -74,8 +75,9 @@ Page({
       firstKey: recipe.successKeys[0] || '',
       moreCount: Math.max(0, recipe.successKeys.length - 1),
       visibleTags: recipe.tags.slice(0, 3),
+      updatedName: getMemberById(state, recipe.updatedById)?.name || '家人',
       updatedLabel: relativeTime(recipe.updatedAt),
-      avatarColor: colorOf(recipe.updatedBy),
+      avatarColor: colorOf(recipe.updatedById),
     })
     const typeCounts = new Map<string, number>()
     formalRecipes.forEach((recipe) => {

@@ -11,8 +11,8 @@
         </view>
         <view class="revision-body">
           <view class="revision-author">
-            <member-avatar name="{{item.author}}" size="38" color="{{item.avatarColor}}"></member-avatar>
-            <text class="author-name">{{item.author}}</text>
+            <member-avatar name="{{item.authorName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+            <text class="author-name">{{item.authorName}}</text>
             <text wx:if="{{item.isCurrent}}" class="current-badge">当前版本</text>
           </view>
           <text class="revision-time">{{item.dateLabel}} · {{item.relativeLabel}}</text>

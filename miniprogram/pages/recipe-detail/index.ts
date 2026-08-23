@@ -1,10 +1,12 @@
 /** 食谱详情：优先呈现成功关键，其次才是食材和步骤。 */
 import type { Recipe } from '../../models/recipe'
-import { duplicateRecipe, getRecipe, getState } from '../../services/recipe-store'
+import { duplicateRecipe, getMemberById, getRecipe, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
 
 interface DetailView extends Recipe {
   isDraft: boolean
+  updatedName: string
+  createdName: string
   updatedDate: string
   relativeUpdated: string
   avatarColor: string
@@ -34,16 +36,18 @@ Page({
       return
     }
     const state = getState()
-    const recipeMember = state.members.find((member) => member.name === recipe.updatedBy)
-    const avatarColor = recipeMember && recipeMember.color ? recipeMember.color : '#8A7E74'
+    const updatedMember = getMemberById(state, recipe.updatedById)
+    const createdMember = getMemberById(state, recipe.createdById)
     this.setData({
       found: true,
       recipe: {
         ...recipe,
         isDraft: !isFormalRecipe(recipe),
+        updatedName: updatedMember?.name || '家人',
+        createdName: createdMember?.name || '家人',
         updatedDate: shortDate(recipe.updatedAt),
         relativeUpdated: relativeTime(recipe.updatedAt),
-        avatarColor,
+        avatarColor: updatedMember?.color || '#8A7E74',
       },
     })
   },

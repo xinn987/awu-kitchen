@@ -40,7 +40,7 @@
             <text wx:for="{{item.visibleTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
           </view>
           <view class="update-row">
-            <member-avatar name="{{item.updatedBy}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+            <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
             <text>{{item.updatedLabel}}</text>
           </view>
         </view>
@@ -59,7 +59,7 @@
         <view class="card-footer">
           <view></view>
           <view class="update-row">
-            <member-avatar name="{{item.updatedBy}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+            <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
             <text>{{item.updatedLabel}}</text>
           </view>
         </view>

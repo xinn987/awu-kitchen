@@ -25,7 +25,7 @@ function contentOf(recipe: RecipeContent): RecipeContent {
 
 function makeRevision(
   id: string,
-  author: string,
+  authorId: string,
   time: string,
   summary: string,
   content: RecipeContent,
@@ -33,7 +33,7 @@ function makeRevision(
 ): Revision {
   return {
     id,
-    author,
+    authorId,
     time,
     summary,
     snapshot: { ...contentOf(content), successKeys: successKeys || [...content.successKeys] },
@@ -41,11 +41,12 @@ function makeRevision(
 }
 
 export const FAMILY_NAME = '我们的家庭食谱'
+export const FAMILY_ID = 'f-demo'
 
 export const SEED_MEMBERS: Member[] = [
-  { id: 'm-mom', name: '妈妈', role: 'admin', joinedAt: ago(62), color: '#BF5924' },
-  { id: 'm-dad', name: '爸爸', role: 'member', joinedAt: ago(58), color: '#4A7C8A' },
-  { id: 'm-grandma', name: '奶奶', role: 'member', joinedAt: ago(31), color: '#6B8A4A' },
+  { id: 'm-mom', userId: 'local-mom', name: '妈妈', role: 'admin', joinedAt: ago(62), color: '#BF5924' },
+  { id: 'm-dad', userId: 'local-dad', name: '爸爸', role: 'member', joinedAt: ago(58), color: '#4A7C8A' },
+  { id: 'm-grandma', userId: 'local-grandma', name: '奶奶', role: 'member', joinedAt: ago(31), color: '#6B8A4A' },
 ]
 
 const yamBeef: RecipeContent = {
@@ -184,64 +185,64 @@ const broccoliPotato: RecipeContent = {
 export const SEED_RECIPES: Recipe[] = [
   {
     ...yamBeef,
-    id: 'r-yam-beef', family: FAMILY_NAME,
-    createdBy: '妈妈', createdAt: ago(21), updatedBy: '妈妈', updatedAt: ago(2, 3),
+    id: 'r-yam-beef', familyId: FAMILY_ID,
+    createdById: 'm-mom', createdAt: ago(21), updatedById: 'm-mom', updatedAt: ago(2, 3),
     revisions: [
-      makeRevision('rev-yam-1', '妈妈', ago(21), '初次收录', yamBeef, ['牛肉逆纹剁碎加淀粉抓匀，粥快好时下锅焖 5 分钟，肉末不柴。']),
-      makeRevision('rev-yam-2', '奶奶', ago(6), '补充山药的处理方式', yamBeef, [yamBeef.successKeys[0]]),
-      makeRevision('rev-yam-3', '妈妈', ago(2, 3), '完善步骤，拆分成功关键', yamBeef),
+      makeRevision('rev-yam-1', 'm-mom', ago(21), '初次收录', yamBeef, ['牛肉逆纹剁碎加淀粉抓匀，粥快好时下锅焖 5 分钟，肉末不柴。']),
+      makeRevision('rev-yam-2', 'm-grandma', ago(6), '补充山药的处理方式', yamBeef, [yamBeef.successKeys[0]]),
+      makeRevision('rev-yam-3', 'm-mom', ago(2, 3), '完善步骤，拆分成功关键', yamBeef),
     ],
   },
   {
     ...tomatoEgg,
-    id: 'r-tomato-egg', family: FAMILY_NAME,
-    createdBy: '爸爸', createdAt: ago(15), updatedBy: '爸爸', updatedAt: ago(15),
-    revisions: [makeRevision('rev-egg-1', '爸爸', ago(15), '初次收录', tomatoEgg, [tomatoEgg.successKeys[0]])],
+    id: 'r-tomato-egg', familyId: FAMILY_ID,
+    createdById: 'm-dad', createdAt: ago(15), updatedById: 'm-dad', updatedAt: ago(15),
+    revisions: [makeRevision('rev-egg-1', 'm-dad', ago(15), '初次收录', tomatoEgg, [tomatoEgg.successKeys[0]])],
   },
   {
     ...pumpkinMillet,
-    id: 'r-pumpkin-millet', family: FAMILY_NAME,
-    createdBy: '奶奶', createdAt: ago(30), updatedBy: '妈妈', updatedAt: ago(4),
+    id: 'r-pumpkin-millet', familyId: FAMILY_ID,
+    createdById: 'm-grandma', createdAt: ago(30), updatedById: 'm-mom', updatedAt: ago(4),
     revisions: [
-      makeRevision('rev-pumpkin-1', '奶奶', ago(30), '初次收录', pumpkinMillet, ['小米泡 20 分钟再煮更烂，南瓜要蒸透。']),
-      makeRevision('rev-pumpkin-2', '妈妈', ago(4), '补充过筛的细节', pumpkinMillet),
+      makeRevision('rev-pumpkin-1', 'm-grandma', ago(30), '初次收录', pumpkinMillet, ['小米泡 20 分钟再煮更烂，南瓜要蒸透。']),
+      makeRevision('rev-pumpkin-2', 'm-mom', ago(4), '补充过筛的细节', pumpkinMillet),
     ],
   },
   {
     ...bananaPancake,
-    id: 'r-banana-pancake', family: FAMILY_NAME,
-    createdBy: '妈妈', createdAt: ago(9), updatedBy: '奶奶', updatedAt: ago(1),
+    id: 'r-banana-pancake', familyId: FAMILY_ID,
+    createdById: 'm-mom', createdAt: ago(9), updatedById: 'm-grandma', updatedAt: ago(1),
     revisions: [
-      makeRevision('rev-banana-1', '妈妈', ago(9), '初次收录', bananaPancake, ['香蕉泥加蛋黄面粉调稠糊，小火少油煎，不加水。']),
-      makeRevision('rev-banana-2', '奶奶', ago(1), '补充翻面的时机', bananaPancake),
+      makeRevision('rev-banana-1', 'm-mom', ago(9), '初次收录', bananaPancake, ['香蕉泥加蛋黄面粉调稠糊，小火少油煎，不加水。']),
+      makeRevision('rev-banana-2', 'm-grandma', ago(1), '补充翻面的时机', bananaPancake),
     ],
   },
   {
     ...wintermelonNoodle,
-    id: 'r-wintermelon-noodle', family: FAMILY_NAME,
-    createdBy: '爸爸', createdAt: ago(11), updatedBy: '爸爸', updatedAt: ago(3),
+    id: 'r-wintermelon-noodle', familyId: FAMILY_ID,
+    createdById: 'm-dad', createdAt: ago(11), updatedById: 'm-dad', updatedAt: ago(3),
     revisions: [
-      makeRevision('rev-noodle-1', '爸爸', ago(11), '初次收录', wintermelonNoodle, ['面先单独煮软再入汤；冬瓜切小丁和肉末煨入味。']),
-      makeRevision('rev-noodle-2', '爸爸', ago(3), '补充勾芡步骤', wintermelonNoodle),
+      makeRevision('rev-noodle-1', 'm-dad', ago(11), '初次收录', wintermelonNoodle, ['面先单独煮软再入汤；冬瓜切小丁和肉末煨入味。']),
+      makeRevision('rev-noodle-2', 'm-dad', ago(3), '补充勾芡步骤', wintermelonNoodle),
     ],
   },
   {
     ...broccoliPotato,
-    id: 'r-broccoli-potato', family: FAMILY_NAME,
-    createdBy: '妈妈', createdAt: ago(18), updatedBy: '妈妈', updatedAt: ago(7),
+    id: 'r-broccoli-potato', familyId: FAMILY_ID,
+    createdById: 'm-mom', createdAt: ago(18), updatedById: 'm-mom', updatedAt: ago(7),
     revisions: [
-      makeRevision('rev-broccoli-1', '妈妈', ago(18), '初次收录', broccoliPotato, ['西兰花只取花朵蒸 8 分钟；土豆趁热压泥不会返生。']),
-      makeRevision('rev-broccoli-2', '妈妈', ago(7), '补充配方奶调顺滑的做法', broccoliPotato),
+      makeRevision('rev-broccoli-1', 'm-mom', ago(18), '初次收录', broccoliPotato, ['西兰花只取花朵蒸 8 分钟；土豆趁热压泥不会返生。']),
+      makeRevision('rev-broccoli-2', 'm-mom', ago(7), '补充配方奶调顺滑的做法', broccoliPotato),
     ],
   },
   {
-    id: 'r-pending-liver', family: FAMILY_NAME, name: '自制猪肝粉',
+    id: 'r-pending-liver', familyId: FAMILY_ID, name: '自制猪肝粉',
     successKeys: [], ingredients: [], steps: [], tags: [],
-    createdBy: '奶奶', createdAt: ago(1, 5), updatedBy: '奶奶', updatedAt: ago(1, 5), revisions: [],
+    createdById: 'm-grandma', createdAt: ago(1, 5), updatedById: 'm-grandma', updatedAt: ago(1, 5), revisions: [],
   },
   {
-    id: 'r-pending-shrimp', family: FAMILY_NAME, name: '番茄虾仁碎碎面',
+    id: 'r-pending-shrimp', familyId: FAMILY_ID, name: '番茄虾仁碎碎面',
     successKeys: [], ingredients: [], steps: [], tags: [],
-    createdBy: '妈妈', createdAt: ago(5), updatedBy: '妈妈', updatedAt: ago(5), revisions: [],
+    createdById: 'm-mom', createdAt: ago(5), updatedById: 'm-mom', updatedAt: ago(5), revisions: [],
   },
 ]
