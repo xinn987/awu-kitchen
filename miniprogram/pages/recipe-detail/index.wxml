@@ -1,0 +1,68 @@
+<view class="page-shell">
+  <page-navbar left-text="食谱库" right-text="✎ 编辑" bindleft="backToLibrary" bindright="editRecipe"></page-navbar>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
+    <view wx:elif="{{recipe}}" class="detail-content">
+      <view class="title-section">
+        <view class="title-row">
+          <text class="recipe-title font-serif">{{recipe.name}}</text>
+          <text wx:if="{{recipe.isDraft}}" class="draft-badge">待补充</text>
+          <text wx:elif="{{recipe.type}}" class="pill title-type">{{recipe.type}}</text>
+        </view>
+        <view class="meta-row">
+          <view class="author-row">
+            <member-avatar name="{{recipe.updatedBy}}" size="38" color="{{recipe.avatarColor}}"></member-avatar>
+            <text>{{recipe.updatedBy}} 修改于 {{recipe.updatedDate}}</text>
+          </view>
+          <text class="dot">·</text>
+          <view class="history-link" role="button" bindtap="openHistory">◷ 修订记录</view>
+        </view>
+        <view wx:if="{{recipe.stage || recipe.tags.length > 0}}" class="tag-row">
+          <text wx:if="{{recipe.stage}}" class="pill">{{recipe.stage}}</text>
+          <text wx:for="{{recipe.tags}}" wx:key="*this" class="pill">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="detail-section">
+        <view class="section-label">成功关键</view>
+        <view wx:if="{{recipe.isDraft}}" class="draft-warning">
+          <text class="warning-icon">!</text>
+          <view>
+            <text class="warning-title">还没有记录成功关键</text>
+            <text class="warning-copy">补充至少一条，这道做法才能正式存入食谱库。</text>
+            <view class="warning-link" role="button" bindtap="editRecipe">现在补充 →</view>
+          </view>
+        </view>
+        <view wx:else class="success-list">
+          <view wx:for="{{recipe.successKeys}}" wx:key="index" class="success-key">
+            <text class="font-serif">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{recipe.ingredients.length > 0}}" class="detail-section">
+        <view class="section-label">食材</view>
+        <view class="ingredient-row" wx:for="{{recipe.ingredients}}" wx:key="index">
+          <text>{{item.name}}</text><text class="ingredient-amount">{{item.amount || '—'}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{recipe.steps.length > 0}}" class="detail-section steps-section">
+        <view class="section-label">步骤</view>
+        <view wx:for="{{recipe.steps}}" wx:key="index" class="step-row">
+          <text class="step-number">{{index + 1}}</text>
+          <text class="step-copy">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="footnote">由 {{recipe.createdBy}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{found && recipe}}" class="action-bar">
+    <view class="secondary-button copy-button" role="button" bindtap="duplicate">▣ 复制</view>
+    <view class="primary-button edit-button" role="button" bindtap="editRecipe">✎ {{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
+  </view>
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

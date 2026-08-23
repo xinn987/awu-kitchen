@@ -1,0 +1,101 @@
+<view class="page-shell">
+  <page-navbar left-text="取消" title="编辑食谱" bindleft="cancel"></page-navbar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
+    <view wx:else class="edit-form">
+      <view wx:if="{{formalizing}}" class="formal-alert">
+        <text class="check-icon">✓</text><text>补充了成功关键，保存后将正式存入食谱库</text>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">食谱名称</view>
+        <input class="field-input name-field" value="{{name}}" bindinput="onNameInput" />
+      </view>
+
+      <view class="form-section">
+        <view class="label-row">
+          <text class="field-label">成功关键 <text class="required">*</text></text>
+          <text class="label-note">至少一条才能正式存入</text>
+        </view>
+        <view class="repeat-list">
+          <view wx:for="{{keys}}" wx:key="index" class="key-editor">
+            <view class="key-accent"></view>
+            <textarea
+              class="field-textarea key-textarea"
+              value="{{item}}"
+              data-index="{{index}}"
+              placeholder="比如：蒸到筷子能轻松穿过才够烂"
+              placeholder-class="field-placeholder"
+              maxlength="-1"
+              auto-height
+              bindinput="onKeyInput"
+            ></textarea>
+            <view class="remove-button" role="button" aria-label="删除成功关键" data-index="{{index}}" bindtap="removeKey">×</view>
+          </view>
+        </view>
+        <view class="add-button" role="button" bindtap="addKey">＋ 添加成功关键</view>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">食材 <text class="optional">（可选）</text></view>
+        <view class="repeat-list">
+          <view wx:for="{{ingredients}}" wx:key="index" class="ingredient-editor">
+            <input class="field-input ingredient-name" value="{{item.name}}" placeholder="食材名" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
+            <input class="field-input amount-input" value="{{item.amount}}" placeholder="用量" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
+            <view class="remove-button" role="button" aria-label="删除食材" data-index="{{index}}" bindtap="removeIngredient">×</view>
+          </view>
+        </view>
+        <view class="add-button" role="button" bindtap="addIngredient">＋ 添加食材</view>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">步骤 <text class="optional">（可选）</text></view>
+        <view class="repeat-list">
+          <view wx:for="{{steps}}" wx:key="index" class="step-editor">
+            <text class="step-index">{{index + 1}}</text>
+            <textarea class="field-textarea step-textarea" value="{{item}}" placeholder="第 {{index + 1}} 步" maxlength="-1" auto-height data-index="{{index}}" bindinput="onStepInput"></textarea>
+            <view class="step-actions">
+              <view class="small-action {{index === 0 ? 'disabled' : ''}}" role="button" aria-label="上移步骤" data-index="{{index}}" data-offset="-1" bindtap="moveStep">↑</view>
+              <view class="small-action {{index === steps.length - 1 ? 'disabled' : ''}}" role="button" aria-label="下移步骤" data-index="{{index}}" data-offset="1" bindtap="moveStep">↓</view>
+              <view class="small-action" role="button" aria-label="删除步骤" data-index="{{index}}" bindtap="removeStep">×</view>
+            </view>
+          </view>
+        </view>
+        <view class="add-button" role="button" bindtap="addStep">＋ 添加步骤</view>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">辅食类型</view>
+        <view class="option-row">
+          <view wx:for="{{typeOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">适用阶段</view>
+        <view class="option-row">
+          <view wx:for="{{stageOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectStage">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="form-section">
+        <view class="field-label">核心原料标签 <text class="optional">（最多 {{maxTags}} 个）</text></view>
+        <view class="tag-editor-row">
+          <view wx:for="{{tags}}" wx:key="*this" class="tag-item">
+            <text>{{item}}</text><view class="tag-remove" role="button" aria-label="删除标签" data-tag="{{item}}" bindtap="removeTag">×</view>
+          </view>
+          <view wx:if="{{tags.length < maxTags}}" class="tag-input-wrap">
+            <input value="{{tagDraft}}" placeholder="{{tags.length === 0 ? '如：牛肉' : '再加一个'}}" bindinput="onTagInput" bindconfirm="addTag" />
+            <view class="tag-add" role="button" aria-label="添加标签" bindtap="addTag">＋</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="save-warning"><text class="warning-mark">!</text><text>涉及食材、比例或关键步骤的实质修改，确认做成功后再保存。</text></view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{found}}" class="action-bar">
+    <view class="primary-button save-button {{!canSave ? 'disabled' : ''}}" role="button" bindtap="save">保存{{formalizing ? '并转为正式食谱' : '修改'}}</view>
+  </view>
+</view>

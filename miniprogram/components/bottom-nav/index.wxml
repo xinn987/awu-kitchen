@@ -1,0 +1,13 @@
+<view class="tabbar">
+  <view class="tab {{active === 'library' ? 'active' : ''}}" bindtap="goLibrary">
+    <view class="books-icon"><view></view><view></view></view>
+    <text>食谱库</text>
+  </view>
+  <view class="tab-center">
+    <view class="capture-button" bindtap="capture" aria-label="收录新做法">＋</view>
+  </view>
+  <view class="tab {{active === 'family' ? 'active' : ''}}" bindtap="goFamily">
+    <view class="users-icon"><view class="user-head"></view><view class="user-body"></view></view>
+    <text>家庭</text>
+  </view>
+</view>

@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "member-avatar": "/components/member-avatar/index",
+    "bottom-nav": "/components/bottom-nav/index",
+    "quick-capture": "/components/quick-capture/index",
+    "app-toast": "/components/app-toast/index"
+  }
+}

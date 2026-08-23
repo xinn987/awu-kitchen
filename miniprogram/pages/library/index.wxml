@@ -1,0 +1,82 @@
+<view class="page-shell">
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="library-header" style="padding-top: {{statusBarHeight + 20}}px;">
+      <view class="header-row">
+        <view>
+          <text class="page-title font-serif">家庭食谱</text>
+          <text class="page-meta">{{formalCount}} 份食谱 · {{pendingCount}} 个待补条目</text>
+        </view>
+        <view class="avatar-stack">
+          <view wx:for="{{members}}" wx:key="id" class="avatar-ring">
+            <member-avatar name="{{item.name}}" size="54" color="{{item.color}}"></member-avatar>
+          </view>
+        </view>
+      </view>
+      <view class="search-box">
+        <view class="search-icon"></view>
+        <input value="{{query}}" placeholder="搜索食谱名或食材" placeholder-class="search-placeholder" bindinput="onSearchInput" />
+      </view>
+    </view>
+
+    <scroll-view class="chip-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="chip-row">
+        <view
+          wx:for="{{chips}}"
+          wx:key="label"
+          class="filter-chip {{item.active ? 'active' : ''}}"
+          data-label="{{item.label}}"
+          bindtap="selectFilter"
+        >{{item.label}} {{item.count}}</view>
+      </view>
+    </scroll-view>
+
+    <view class="recipe-list">
+      <view wx:for="{{formal}}" wx:key="id" class="recipe-card" data-id="{{item.id}}" bindtap="openRecipe">
+        <view class="card-heading">
+          <text class="card-title font-serif">{{item.name}}</text>
+          <text wx:if="{{item.type}}" class="type-badge">{{item.type}}</text>
+        </view>
+        <view class="key-preview">
+          <text class="key-text font-serif">{{item.firstKey}}</text>
+          <text wx:if="{{item.moreCount > 0}}" class="more-key">+{{item.moreCount}} 条关键</text>
+        </view>
+        <view class="card-footer">
+          <view class="tag-row">
+            <text wx:for="{{item.visibleTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+          </view>
+          <view class="update-row">
+            <member-avatar name="{{item.updatedBy}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+            <text>{{item.updatedLabel}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{drafts.length > 0 && formal.length > 0}}" class="draft-divider">
+        <view></view><text>待补条目</text><view></view>
+      </view>
+
+      <view wx:for="{{drafts}}" wx:key="id" class="recipe-card draft-card" data-id="{{item.id}}" bindtap="openRecipe">
+        <view class="card-heading">
+          <text class="card-title font-serif">{{item.name}}</text>
+          <text class="draft-badge">待补充</text>
+        </view>
+        <text class="draft-help">尚无成功关键——补充后可正式存入</text>
+        <view class="card-footer">
+          <view></view>
+          <view class="update-row">
+            <member-avatar name="{{item.updatedBy}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+            <text>{{item.updatedLabel}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{formal.length === 0 && drafts.length === 0}}" class="empty-state">
+        {{query ? '没有找到相关的食谱' : '这里还没有食谱'}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <bottom-nav active="library" bindcapture="openCapture"></bottom-nav>
+  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindsaved="onCaptured"></quick-capture>
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

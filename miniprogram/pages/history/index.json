@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "page-navbar": "/components/page-navbar/index",
+    "member-avatar": "/components/member-avatar/index"
+  }
+}

@@ -1,0 +1,14 @@
+<view class="navbar" style="padding-top: {{statusBarHeight}}px;">
+  <view class="navbar-row" style="height: {{barHeight}}px;">
+    <view class="navbar-side navbar-left" role="button" bindtap="onLeft">
+      <text class="chevron">‹</text><text>{{leftText}}</text>
+    </view>
+    <view class="navbar-center">
+      <text wx:if="{{title}}" class="navbar-title">{{title}}</text>
+      <text wx:if="{{subtitle}}" class="navbar-subtitle">{{subtitle}}</text>
+    </view>
+    <view class="navbar-side navbar-right" role="button" bindtap="onRight">
+      <text wx:if="{{rightText}}">{{rightText}}</text>
+    </view>
+  </view>
+</view>

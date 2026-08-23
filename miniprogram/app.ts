@@ -1,18 +1,10 @@
-// app.ts
+/** 小程序入口：首版不主动登录，避免把演示 UI 与账号系统耦合。 */
+import { getState } from './services/recipe-store'
+
 App<IAppOption>({
   globalData: {},
   onLaunch() {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
-
-    // 登录
-    wx.login({
-      success: res => {
-        console.log(res.code)
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      },
-    })
+    // 首次打开时初始化 HTTP demo 的种子数据。
+    getState()
   },
 })

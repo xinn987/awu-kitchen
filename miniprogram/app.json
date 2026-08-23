@@ -1,11 +1,16 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/logs/logs"
+    "pages/library/index",
+    "pages/recipe-detail/index",
+    "pages/recipe-edit/index",
+    "pages/history/index",
+    "pages/family/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationStyle": "custom"
+    "navigationStyle": "custom",
+    "backgroundColor": "#F4EFE6",
+    "backgroundTextStyle": "dark"
   },
   "style": "v2",
   "rendererOptions": {

@@ -1,0 +1,6 @@
+<view
+  class="member-avatar"
+  style="width: {{size}}rpx; height: {{size}}rpx; font-size: {{size * 0.42}}rpx; background-color: {{color}};"
+>
+  {{initial}}
+</view>
