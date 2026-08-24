@@ -165,7 +165,7 @@ async function listMembers(userId) {
     const memberResult = memberRaw;
     const recipeResult = recipeRaw;
     const family = familyResult.data;
-    const recipes = recipeResult.data;
+    const recipes = recipeResult.data.filter((recipe) => !recipe.archivedAt);
     const members = memberResult.data.map((item) => ({
         ...viewMember(item),
         contributionCount: recipes.filter((recipe) => recipe.createdById === item._id || recipe.updatedById === item._id).length,

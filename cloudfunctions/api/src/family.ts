@@ -163,9 +163,11 @@ export async function listMembers(userId: string) {
   ])
   const familyResult = familyRaw as unknown as { data: { _id: string; name: string } }
   const memberResult = memberRaw as unknown as { data: MemberRecord[] }
-  const recipeResult = recipeRaw as unknown as { data: Array<{ createdById: string; updatedById: string }> }
+  const recipeResult = recipeRaw as unknown as {
+    data: Array<{ createdById: string; updatedById: string; archivedAt?: string }>
+  }
   const family = familyResult.data
-  const recipes = recipeResult.data
+  const recipes = recipeResult.data.filter((recipe) => !recipe.archivedAt)
   const members = memberResult.data.map((item) => ({
     ...viewMember(item),
     contributionCount: recipes.filter((recipe) =>

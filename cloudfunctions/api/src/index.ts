@@ -4,7 +4,9 @@ import { DomainError } from './errors'
 import {
   bootstrap, createFamily, createInvite, joinFamily, listMembers, previewInvite, removeMember,
 } from './family'
-import { createRecipe, duplicateRecipe, listRecipeState, restoreRevision, updateRecipe } from './recipe'
+import {
+  archiveRecipe, createRecipe, duplicateRecipe, listRecipeState, restoreRevision, updateRecipe,
+} from './recipe'
 
 interface ApiEvent {
   action?: string
@@ -22,6 +24,7 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipe.list': (userId) => listRecipeState(userId),
   'recipe.create': createRecipe,
   'recipe.update': updateRecipe,
+  'recipe.archive': archiveRecipe,
   'recipe.duplicate': duplicateRecipe,
   'recipe.restoreRevision': restoreRevision,
 }

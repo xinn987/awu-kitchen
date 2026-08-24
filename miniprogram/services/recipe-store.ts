@@ -97,6 +97,18 @@ export async function duplicateRecipe(recipeId: string): Promise<Recipe> {
   return recipe
 }
 
+export async function archiveRecipe(
+  recipeId: string,
+  expectedVersion: number,
+): Promise<{ archivedRecipeId: string; version: number }> {
+  const result = await callApi<{ archivedRecipeId: string; version: number }>('recipe.archive', {
+    recipeId,
+    expectedVersion,
+  })
+  invalidateState()
+  return result
+}
+
 export async function restoreRevision(
   recipeId: string,
   revisionId: string,

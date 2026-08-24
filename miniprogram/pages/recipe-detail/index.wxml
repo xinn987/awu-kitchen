@@ -60,6 +60,9 @@
       </view>
 
       <view class="footnote">由 {{recipe.createdName}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
+      <view class="archive-row">
+        <view class="archive-link" role="button" bindtap="askArchive">{{archiving ? '正在移入…' : '移入废纸篓'}}</view>
+      </view>
     </view>
   </scroll-view>
 

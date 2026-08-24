@@ -47,6 +47,9 @@ export interface Recipe extends RecipeContent {
   version?: number
   state?: 'pending' | 'formal'
   revisions: Revision[]
+  /** 软删除标记；存在时不再出现在家庭食谱列表中。 */
+  archivedAt?: string
+  archivedById?: string
 }
 
 /** 家庭内的成员：微信身份 + 家庭称谓 + 角色。 */

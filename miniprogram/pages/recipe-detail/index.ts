@@ -1,6 +1,6 @@
 /** 食谱详情：优先呈现成功关键，其次才是食材和步骤。 */
 import type { Recipe } from '../../models/recipe'
-import { duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
+import { archiveRecipe, duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
 
 interface DetailView extends Recipe {
@@ -18,6 +18,7 @@ Page({
     recipe: null as DetailView | null,
     found: true,
     duplicating: false,
+    archiving: false,
     toastVisible: false,
     toastMessage: '',
   },
@@ -86,6 +87,35 @@ Page({
     } catch (error) {
       this.setData({ duplicating: false })
       this.showToast(error instanceof Error ? error.message : '复制失败，请重试')
+    }
+  },
+
+  askArchive() {
+    if (this.data.archiving) return
+    wx.showModal({
+      title: '移入废纸篓？',
+      content: '食谱会从家庭列表隐藏，正文和修订记录仍会保留。当前版本暂不支持自行恢复。',
+      confirmText: '确认移入',
+      confirmColor: '#b3402a',
+      cancelText: '取消',
+      success: (result) => { if (result.confirm) void this.archive() },
+      fail: () => this.showToast('无法打开确认框，请重试'),
+    })
+  },
+
+  async archive() {
+    const recipe = this.data.recipe
+    if (!recipe || this.data.archiving) return
+    this.setData({ archiving: true })
+    try {
+      await archiveRecipe(recipe.id, recipe.version || 1)
+      wx.reLaunch({
+        url: '/pages/library/index',
+        success: () => wx.showToast({ title: '已移入废纸篓', icon: 'none' }),
+      })
+    } catch (error) {
+      this.setData({ archiving: false })
+      this.showToast(error instanceof Error ? error.message : '删除失败，请重试')
     }
   },
 

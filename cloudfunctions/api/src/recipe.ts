@@ -42,6 +42,7 @@ export async function listRecipeState(userId: string) {
   const recipeResult = recipeRaw as unknown as { data: Array<Record<string, unknown>> }
   const family = familyResult.data
   const recipes = recipeResult.data
+    .filter((recipe) => !recipe.archivedAt)
     .map((recipe) => ({ ...recipe, id: String(recipe._id) }))
   return {
     family: { id: family._id, name: family.name },
@@ -85,6 +86,7 @@ async function ownedRecipe(familyId: string, recipeId: string): Promise<Record<s
     }
     const recipe = result.data as Record<string, unknown>
     assertDomain(recipe.familyId === familyId, 'FORBIDDEN', '无权访问这份食谱')
+    assertDomain(!recipe.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
     return recipe
   } catch (error) {
     if (error instanceof DomainError) throw error
@@ -106,6 +108,7 @@ export async function updateRecipe(userId: string, payload: Record<string, unkno
     const result = await transaction.collection('recipes').doc(recipeId).get()
     const current = result.data as Record<string, unknown>
     assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱')
+    assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
     assertDomain(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入')
     const version = expectedVersion + 1
     const revisions = Array.isArray(current.revisions) ? [...current.revisions] : []
@@ -134,6 +137,37 @@ export async function duplicateRecipe(userId: string, payload: Record<string, un
   })
 }
 
+/**
+ * 将食谱软删除：只增加归档标记并从正常列表隐藏，正文和修订历史全部保留。
+ * 使用版本校验，避免在家人刚完成修改后由旧页面误归档新版本。
+ */
+export async function archiveRecipe(userId: string, payload: Record<string, unknown>) {
+  const { member } = await getActiveContext(userId)
+  const recipeId = requiredText(payload.recipeId, '食谱', 80)
+  const expectedVersion = Number(payload.expectedVersion)
+  const now = new Date().toISOString()
+  let version = expectedVersion
+
+  await db.runTransaction(async (transaction: any) => {
+    const result = await transaction.collection('recipes').doc(recipeId).get()
+    const current = result.data as Record<string, unknown>
+    assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权删除这份食谱')
+    assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
+    assertDomain(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入')
+    version = expectedVersion + 1
+    await transaction.collection('recipes').doc(recipeId).update({
+      data: {
+        archivedAt: now,
+        archivedById: member._id,
+        updatedById: member._id,
+        updatedAt: now,
+        version,
+      },
+    })
+  })
+  return { archivedRecipeId: recipeId, version }
+}
+
 export async function restoreRevision(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
   const recipeId = requiredText(payload.recipeId, '食谱', 80)
@@ -146,6 +180,7 @@ export async function restoreRevision(userId: string, payload: Record<string, un
     const result = await transaction.collection('recipes').doc(recipeId).get()
     const current = result.data as Record<string, unknown>
     assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱')
+    assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
     assertDomain(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入')
     const revisions = Array.isArray(current.revisions)
       ? [...current.revisions] as Array<Record<string, unknown>> : []

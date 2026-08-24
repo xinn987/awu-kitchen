@@ -17,6 +17,7 @@ const handlers = {
     'recipe.list': (userId) => (0, recipe_1.listRecipeState)(userId),
     'recipe.create': recipe_1.createRecipe,
     'recipe.update': recipe_1.updateRecipe,
+    'recipe.archive': recipe_1.archiveRecipe,
     'recipe.duplicate': recipe_1.duplicateRecipe,
     'recipe.restoreRevision': recipe_1.restoreRevision,
 };

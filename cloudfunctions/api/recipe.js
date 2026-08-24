@@ -7,6 +7,7 @@ exports.listRecipeState = listRecipeState;
 exports.createRecipe = createRecipe;
 exports.updateRecipe = updateRecipe;
 exports.duplicateRecipe = duplicateRecipe;
+exports.archiveRecipe = archiveRecipe;
 exports.restoreRevision = restoreRevision;
 const crypto_1 = __importDefault(require("crypto"));
 const auth_1 = require("./auth");
@@ -47,6 +48,7 @@ async function listRecipeState(userId) {
     const recipeResult = recipeRaw;
     const family = familyResult.data;
     const recipes = recipeResult.data
+        .filter((recipe) => !recipe.archivedAt)
         .map((recipe) => ({ ...recipe, id: String(recipe._id) }));
     return {
         family: { id: family._id, name: family.name },
@@ -86,6 +88,7 @@ async function ownedRecipe(familyId, recipeId) {
         const result = await cloud_1.db.collection('recipes').doc(recipeId).get();
         const recipe = result.data;
         (0, errors_1.assertDomain)(recipe.familyId === familyId, 'FORBIDDEN', '无权访问这份食谱');
+        (0, errors_1.assertDomain)(!recipe.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
         return recipe;
     }
     catch (error) {
@@ -107,6 +110,7 @@ async function updateRecipe(userId, payload) {
         const result = await transaction.collection('recipes').doc(recipeId).get();
         const current = result.data;
         (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱');
+        (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
         (0, errors_1.assertDomain)(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入');
         const version = expectedVersion + 1;
         const revisions = Array.isArray(current.revisions) ? [...current.revisions] : [];
@@ -133,6 +137,35 @@ async function duplicateRecipe(userId, payload) {
         content: { ...contentOf(source), name: `${String(source.name)}（副本）` },
     });
 }
+/**
+ * 将食谱软删除：只增加归档标记并从正常列表隐藏，正文和修订历史全部保留。
+ * 使用版本校验，避免在家人刚完成修改后由旧页面误归档新版本。
+ */
+async function archiveRecipe(userId, payload) {
+    const { member } = await (0, auth_1.getActiveContext)(userId);
+    const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
+    const expectedVersion = Number(payload.expectedVersion);
+    const now = new Date().toISOString();
+    let version = expectedVersion;
+    await cloud_1.db.runTransaction(async (transaction) => {
+        const result = await transaction.collection('recipes').doc(recipeId).get();
+        const current = result.data;
+        (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权删除这份食谱');
+        (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
+        (0, errors_1.assertDomain)(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入');
+        version = expectedVersion + 1;
+        await transaction.collection('recipes').doc(recipeId).update({
+            data: {
+                archivedAt: now,
+                archivedById: member._id,
+                updatedById: member._id,
+                updatedAt: now,
+                version,
+            },
+        });
+    });
+    return { archivedRecipeId: recipeId, version };
+}
 async function restoreRevision(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
     const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
@@ -144,6 +177,7 @@ async function restoreRevision(userId, payload) {
         const result = await transaction.collection('recipes').doc(recipeId).get();
         const current = result.data;
         (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱');
+        (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
         (0, errors_1.assertDomain)(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入');
         const revisions = Array.isArray(current.revisions)
             ? [...current.revisions] : [];

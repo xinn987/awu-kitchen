@@ -88,7 +88,7 @@ CloudBase 文档型数据库
 | --- | --- |
 | 归属 | `_id`、`familyId` |
 | 内容 | `name`、`successKeys`、`ingredients`、`steps`、`stage`、`type`、`tags` |
-| 状态 | `state: pending / formal` |
+| 状态 | `state: pending / formal`、`archivedAt`、`archivedById` |
 | 归因 | `createdById`、`updatedById`，均为成员 ID |
 | 时间 | `createdAt`、`updatedAt` |
 | 并发 | `version` |
@@ -104,7 +104,7 @@ CloudBase 文档型数据库
 | --- | --- |
 | 会话 | `session.bootstrap` |
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
-| 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.duplicate`、`recipe.restoreRevision` |
+| 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.duplicate`、`recipe.restoreRevision` |
 
 所有接口统一返回：
 
@@ -163,6 +163,8 @@ type ApiResponse<T> =
 首版单次最多加载当前家庭的 1000 份食谱，在小程序内完成搜索和类型筛选。家庭数据接近此规模前就应增加分页和服务端搜索。
 
 修改食谱时提交 `expectedVersion`。版本不一致返回 `VERSION_CONFLICT`；首版提示重新载入，不做自动合并。保存与恢复都把完整快照追加进当前食谱的 `revisions[]`。
+
+删除食谱使用软删除：`recipe.archive` 校验家庭归属和 `expectedVersion` 后写入归档标记，正常列表不再返回该食谱，但正文和修订历史仍保留。首版暂不提供废纸篓列表、恢复或永久删除。
 
 ## 6. 前端迁移
 
