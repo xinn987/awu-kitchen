@@ -84,6 +84,8 @@ button::after { border: 0; }
 .secondary-button { background: #fff; color: #7c6f63; border: 1rpx solid rgba(26, 23, 20, 0.12); }
 
 .action-bar {
+  position: relative;
+  z-index: 20;
   flex-shrink: 0;
   display: flex;
   align-items: center;

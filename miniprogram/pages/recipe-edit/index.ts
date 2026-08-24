@@ -260,7 +260,21 @@ Page({
   },
 
   save() {
-    if (!this.data.canSave || this.data.saving) return
+    if (this.data.saving) return
+
+    // 真机上不能让按钮静默失效；即使 setData 回调稍有延迟，也按当前输入重新校验。
+    if (!this.data.name.trim()) {
+      wx.showToast({ title: '请填写食谱名称', icon: 'none' })
+      return
+    }
+    if (!this.data.keys.some((key) => key.trim().length > 0)) {
+      this.setData({ showKeysHint: true })
+      wx.showToast({ title: '请先写一条成功关键', icon: 'none' })
+      return
+    }
+
+    // 先收起真机键盘，避免 iOS 原生输入层吞掉确认框或底部按钮的后续交互。
+    wx.hideKeyboard()
     // 正式食谱发生实质修改时，在保存这一刻提醒「做成功再更新」，替代常驻警示框。
     const substantiveChanged = originalCore !== undefined
       && JSON.stringify(coreOf(this.data.keys, this.data.ingredients, this.data.steps)) !== JSON.stringify(originalCore)
@@ -280,6 +294,7 @@ Page({
   async doSave() {
     if (this.data.saving) return
     this.setData({ saving: true })
+    wx.showLoading({ title: '正在保存', mask: true })
     const content = {
       name: this.data.name.trim(),
       successKeys: this.data.keys.map((key) => key.trim()).filter(Boolean),
@@ -309,6 +324,8 @@ Page({
         return
       }
       wx.showToast({ title: error instanceof Error ? error.message : '保存失败，请重试', icon: 'none' })
+    } finally {
+      wx.hideLoading()
     }
   },
 })

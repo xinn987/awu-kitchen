@@ -171,6 +171,7 @@
   </scroll-view>
 
   <view wx:if="{{found}}" class="action-bar">
-    <view class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" role="button" bindtap="save">{{saving ? '正在保存…' : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</view>
+    <!-- 真机保存使用原生 button，避免 scroll-view/输入框原生层影响点击命中。 -->
+    <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" bindtap="save">{{saving ? '正在保存…' : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
   </view>
 </view>
