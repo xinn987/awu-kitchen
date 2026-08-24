@@ -79,6 +79,20 @@ Page({
     }
   },
 
+  /** 体验版暂不依赖原生分享能力，复制单次邀请码后通过微信文字发送。 */
+  copyInvite() {
+    if (!this.data.inviteToken) {
+      this.showToast(this.data.renewingInvite ? '邀请码生成中…' : '请先重新生成邀请码')
+      return
+    }
+    wx.setClipboardData({
+      data: this.data.inviteToken,
+      success: () => this.showToast('邀请码已复制'),
+      fail: () => this.showToast('复制失败，请重试'),
+    })
+  },
+
+  // 保留邀请链接兼容能力，正式发布后可继续使用微信分享卡片。
   onShareAppMessage(): WechatMiniprogram.Page.ICustomShareContent {
     return {
       title: `阿呜厨房 · 邀请你加入「${this.data.familyName || '家庭食谱'}」`,

@@ -16,10 +16,14 @@
   </view>
 
   <view wx:else class="form-card">
-    <view wx:if="{{inviteToken}}">
+    <view wx:if="{{joining}}">
       <text class="eyebrow">家庭邀请</text>
-      <text class="form-title font-serif">加入「{{inviteFamilyName}}」</text>
-      <text class="form-copy">填写家人熟悉的称谓。它只在这个家庭里显示，不读取微信昵称。</text>
+      <text class="form-title font-serif">{{inviteFamilyName ? '加入「' + inviteFamilyName + '」' : '通过邀请码加入家庭'}}</text>
+      <text class="form-copy">粘贴家庭管理员发来的邀请码，再填写家人熟悉的称谓。</text>
+      <block wx:if="{{!inviteFromLink}}">
+        <text class="field-label">邀请码</text>
+        <input class="text-input invite-input" value="{{inviteToken}}" maxlength="200" placeholder="长按粘贴邀请码" bindinput="onInviteTokenInput" />
+      </block>
     </view>
     <view wx:else>
       <text class="eyebrow">第一次使用</text>
@@ -33,8 +37,10 @@
     <input class="text-input" value="{{displayName}}" maxlength="20" placeholder="如：妈妈、爸爸、奶奶" bindinput="onDisplayNameInput" />
 
     <view class="primary-button {{canSubmit && !saving ? '' : 'disabled'}}" role="button" bindtap="submit">
-      {{saving ? '正在保存…' : (inviteToken ? '确认加入' : '创建家庭')}}
+      {{saving ? '正在保存…' : (joining ? '确认加入' : '创建家庭')}}
     </view>
+    <view wx:if="{{joining && !inviteFromLink}}" class="mode-switch" role="button" bindtap="chooseCreate">没有邀请码，创建新家庭</view>
+    <view wx:elif="{{!joining}}" class="mode-switch" role="button" bindtap="chooseJoin">已有邀请码，加入家庭</view>
   </view>
 
   <text class="privacy-note">微信身份只用于识别家庭成员，不要求授权头像、昵称或手机号。</text>

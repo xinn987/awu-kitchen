@@ -7,6 +7,8 @@ Page({
     statusBarHeight: 20,
     loading: true,
     saving: false,
+    joining: false,
+    inviteFromLink: false,
     inviteToken: '',
     inviteFamilyName: '',
     familyName: '我们的家庭食谱',
@@ -18,9 +20,12 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
+    const inviteToken = options.invite || ''
     this.setData({
       statusBarHeight: wx.getWindowInfo().statusBarHeight || 20,
-      inviteToken: options.invite || '',
+      joining: Boolean(inviteToken),
+      inviteFromLink: Boolean(inviteToken),
+      inviteToken,
     })
     void this.initialize()
   },
@@ -50,10 +55,36 @@ Page({
     this.setData({ displayName: event.detail.value }, () => this.recompute())
   },
 
+  onInviteTokenInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
+    this.setData({ inviteToken: event.detail.value.trim(), inviteFamilyName: '' }, () => this.recompute())
+  },
+
+  chooseJoin() {
+    this.setData({
+      joining: true,
+      inviteFromLink: false,
+      inviteToken: '',
+      inviteFamilyName: '',
+      errorMessage: '',
+    }, () => this.recompute())
+  },
+
+  chooseCreate() {
+    this.setData({
+      joining: false,
+      inviteFromLink: false,
+      inviteToken: '',
+      inviteFamilyName: '',
+      errorMessage: '',
+    }, () => this.recompute())
+  },
+
   recompute() {
     this.setData({
       canSubmit: this.data.displayName.trim().length > 0
-        && (Boolean(this.data.inviteToken) || this.data.familyName.trim().length > 0),
+        && (this.data.joining
+          ? this.data.inviteToken.trim().length > 0
+          : this.data.familyName.trim().length > 0),
     })
   },
 
@@ -61,7 +92,7 @@ Page({
     if (!this.data.canSubmit || this.data.saving) return
     this.setData({ saving: true, errorMessage: '' })
     try {
-      const session = this.data.inviteToken
+      const session = this.data.joining
         ? await joinFamily(this.data.inviteToken, this.data.displayName)
         : await createFamily(this.data.familyName, this.data.displayName)
       if (session.status !== 'ready') throw new ApiError('SERVICE_UNAVAILABLE', '家庭初始化没有完成')

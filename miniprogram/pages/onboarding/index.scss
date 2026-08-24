@@ -51,4 +51,6 @@
 
 .primary-button.disabled { opacity: .42; }
 .error-card .primary-button { margin-top: 28rpx; }
+.mode-switch { display: flex; align-items: center; justify-content: center; min-height: 72rpx; margin-top: 18rpx; color: #7c6f63; font-size: 25rpx; }
+.mode-switch:active { opacity: .55; }
 .privacy-note { display: block; margin: 30rpx 20rpx 0; color: #93877c; font-size: 21rpx; line-height: 1.6; text-align: center; }

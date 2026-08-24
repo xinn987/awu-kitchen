@@ -282,9 +282,14 @@ Page({
       wx.showModal({
         title: '确认做成功了吗？',
         content: '这次修改涉及关键经验、食材或步骤。建议实际做成功后再更新当前食谱。',
-        confirmText: '已成功，保存',
+        // 微信限制确认按钮文案最多 4 个汉字，超长会导致 showModal 直接失败。
+        confirmText: '确认保存',
         cancelText: '再看看',
         success: (result) => { if (result.confirm) void this.doSave() },
+        fail: (error) => {
+          console.error('打开保存确认框失败', error)
+          wx.showToast({ title: '无法打开确认框，请重试', icon: 'none' })
+        },
       })
       return
     }
