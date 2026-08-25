@@ -5,7 +5,8 @@
     "pages/recipe-detail/index",
     "pages/recipe-edit/index",
     "pages/history/index",
-    "pages/family/index"
+    "pages/family/index",
+    "pages/settings/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

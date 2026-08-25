@@ -1,8 +1,14 @@
 <view class="page-shell">
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="family-header" style="padding-top: {{statusBarHeight + 20}}px;">
-      <text class="family-title font-serif">{{familyName}}</text>
-      <text class="family-meta">{{memberCount}} 位成员 · 家庭共同维护</text>
+      <view class="family-heading">
+        <text class="family-title font-serif">{{familyName}}</text>
+        <text class="family-meta">{{memberCount}} 位成员 · 家庭共同维护</text>
+      </view>
+      <view class="settings-entry" role="button" aria-label="设置" bindtap="openSettings">
+        <app-icon name="settings" size="30"></app-icon>
+        <text>设置</text>
+      </view>
     </view>
 
     <view class="member-list">

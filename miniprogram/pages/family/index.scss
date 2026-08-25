@@ -1,6 +1,9 @@
-.family-header { padding: 40rpx 40rpx 28rpx; }
+.family-header { display: flex; align-items: flex-start; gap: 20rpx; padding: 40rpx 40rpx 28rpx; }
+.family-heading { flex: 1; min-width: 0; }
 .family-title { display: block; color: #1a1714; font-size: 46rpx; font-weight: 600; }
 .family-meta { display: block; margin-top: 10rpx; color: #7c6f63; font-size: 24rpx; }
+.settings-entry { flex-shrink: 0; height: 64rpx; margin-top: 48rpx; padding: 0 20rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 20rpx; background: rgba(255, 255, 255, 0.72); color: #7c6f63; font-size: 23rpx; }
+.settings-entry:active { opacity: 0.6; transform: scale(0.97); }
 .member-list { display: flex; flex-direction: column; gap: 20rpx; padding: 0 32rpx 48rpx; }
 .member-card { display: flex; align-items: center; gap: 26rpx; padding: 30rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 28rpx; background: #fff; box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
 .member-copy { flex: 1; min-width: 0; }

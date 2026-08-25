@@ -33,6 +33,10 @@ Page({
     this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
   },
 
+  openSettings() {
+    wx.navigateTo({ url: '/pages/settings/index' })
+  },
+
   onShow() { void this.refresh() },
 
   async refresh() {

@@ -1,0 +1,11 @@
+<view class="page-shell">
+  <page-navbar left-text="返回" title="设置" bindleft="back"></page-navbar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="settings-content">
+      <view class="version-card">
+        <text class="version-label">当前版本</text>
+        <text class="version-number font-serif">{{versionLabel}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>
