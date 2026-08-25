@@ -1,5 +1,5 @@
 <view class="page-shell">
-  <page-navbar left-text="食谱库" right-text="编辑" right-icon="pencil" bindleft="backToLibrary" bindright="editRecipe"></page-navbar>
+  <page-navbar left-text="食谱库" bindleft="backToLibrary"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
@@ -34,7 +34,6 @@
           <view>
             <text class="warning-title">还没有记录成功关键</text>
             <text class="warning-copy">补充至少一条，这道做法才能正式存入食谱库。</text>
-            <view class="warning-link" role="button" bindtap="editRecipe">现在补充 →</view>
           </view>
         </view>
         <view wx:else class="success-list">

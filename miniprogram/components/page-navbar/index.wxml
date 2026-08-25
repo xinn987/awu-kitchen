@@ -7,17 +7,7 @@
       <text wx:if="{{title}}" class="navbar-title">{{title}}</text>
       <text wx:if="{{subtitle}}" class="navbar-subtitle">{{subtitle}}</text>
     </view>
-    <view
-      wx:if="{{rightText}}"
-      class="navbar-side navbar-right"
-      style="margin-right: {{rightInset}}px;"
-      role="button"
-      bindtap="onRight"
-    >
-      <app-icon wx:if="{{rightIcon}}" name="{{rightIcon}}" size="28"></app-icon>
-      <text>{{rightText}}</text>
-    </view>
-    <!-- 无右侧操作时仍保留等宽槽位，保证标题以屏幕为基准居中。 -->
-    <view wx:else class="navbar-side navbar-placeholder"></view>
+    <!-- 顶部右侧不放业务操作，并保留等宽槽位让标题以屏幕为基准居中。 -->
+    <view class="navbar-side navbar-placeholder"></view>
   </view>
 </view>
