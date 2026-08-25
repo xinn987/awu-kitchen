@@ -2,6 +2,8 @@ import crypto from 'crypto'
 import cloud, { nullableDb as db } from './cloud'
 import { DomainError } from './errors'
 
+const LAST_SEEN_TOUCH_INTERVAL = 60 * 60 * 1000
+
 export interface UserRecord {
   _id: string
   activeMemberId?: string | null
@@ -35,8 +37,13 @@ export async function ensureUser(userId: string): Promise<UserRecord> {
   const result = await db.collection('users').doc(userId).get() as unknown as { data: UserRecord | null }
   const user = result.data
   if (user) {
-    await db.collection('users').doc(userId).update({ data: { lastSeenAt: now } })
-    return { ...user, lastSeenAt: now }
+    // lastSeenAt 目前只用于运维观察，无需让每个读接口都多等待一次数据库写入。
+    const lastSeenTime = Date.parse(user.lastSeenAt)
+    if (!Number.isFinite(lastSeenTime) || Date.now() - lastSeenTime >= LAST_SEEN_TOUCH_INTERVAL) {
+      await db.collection('users').doc(userId).update({ data: { lastSeenAt: now } })
+      return { ...user, lastSeenAt: now }
+    }
+    return user
   }
   const created: UserRecord = { _id: userId, activeMemberId: null, createdAt: now, lastSeenAt: now }
   // doc(userId) 已经决定了 _id；CloudBase 禁止在 set 的 data 中再次写入 _id。
@@ -46,8 +53,12 @@ export async function ensureUser(userId: string): Promise<UserRecord> {
   return created
 }
 
-export async function getActiveContext(userId: string): Promise<{ user: UserRecord; member: MemberRecord }> {
-  const user = await ensureUser(userId)
+export async function getActiveContext(
+  userId: string,
+  knownUser?: UserRecord,
+): Promise<{ user: UserRecord; member: MemberRecord }> {
+  // bootstrap 已经读取过用户时直接复用，避免同一次请求内重复查询和更新 lastSeenAt。
+  const user = knownUser || await ensureUser(userId)
   if (!user.activeMemberId) throw new DomainError('NO_MEMBERSHIP', '你还没有加入家庭')
   const result = await db.collection('family_members').doc(user.activeMemberId).get() as unknown as {
     data: MemberRecord | null

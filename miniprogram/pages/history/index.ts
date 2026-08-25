@@ -32,7 +32,8 @@ Page({
 
   async refresh() {
     try {
-      const state = await getState(true)
+      // 历史页通常紧接详情页打开，无需再次拉取整个家庭食谱状态。
+      const state = await getState()
       const recipe = state.recipes.find((item) => item.id === this.data.id)
       if (!recipe) {
         this.setData({ found: false, recipeName: '', revisions: [] })

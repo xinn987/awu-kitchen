@@ -31,11 +31,11 @@
           <text class="invite-link-copy">复制邀请码并通过微信发给家人。对方进入体验版后，选择“已有邀请码”并粘贴即可加入。每个邀请码只能使用一次。</text>
         </view>
         <view class="invite-actions">
-          <view class="invite-share {{!inviteToken ? 'disabled' : ''}}" role="button" bindtap="copyInvite">
+          <view class="invite-share" role="button" bindtap="copyInvite">
             <app-icon name="copy" size="30"></app-icon>
-            <text>{{inviteToken ? '复制邀请码' : '正在生成…'}}</text>
+            <text>{{renewingInvite ? '正在生成…' : (inviteToken ? '复制邀请码' : '生成并复制')}}</text>
           </view>
-          <view class="invite-renew" role="button" bindtap="renewInvite">{{renewingInvite ? '生成中…' : '重新生成'}}</view>
+          <view wx:if="{{inviteToken}}" class="invite-renew" role="button" bindtap="renewInvite">{{renewingInvite ? '生成中…' : '重新生成'}}</view>
         </view>
       </view>
 

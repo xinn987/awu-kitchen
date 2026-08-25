@@ -33,7 +33,8 @@ Page({
 
   async refresh() {
     try {
-      const state = await getState(true)
+      // 从食谱库进入时直接复用刚加载的数据；写入成功后仓库会更新或清空缓存。
+      const state = await getState()
       const recipe = state.recipes.find((item) => item.id === this.data.id)
       if (!recipe) {
         this.setData({ found: false, recipe: null })

@@ -43,6 +43,7 @@ exports.requireAdmin = requireAdmin;
 const crypto_1 = __importDefault(require("crypto"));
 const cloud_1 = __importStar(require("./cloud"));
 const errors_1 = require("./errors");
+const LAST_SEEN_TOUCH_INTERVAL = 60 * 60 * 1000;
 /** OpenID 只在云函数内出现；稳定摘要作为内部用户 ID，数据库不保存 OpenID 明文。 */
 function currentUserId() {
     const { OPENID } = cloud_1.default.getWXContext();
@@ -57,8 +58,13 @@ async function ensureUser(userId) {
     const result = await cloud_1.nullableDb.collection('users').doc(userId).get();
     const user = result.data;
     if (user) {
-        await cloud_1.nullableDb.collection('users').doc(userId).update({ data: { lastSeenAt: now } });
-        return { ...user, lastSeenAt: now };
+        // lastSeenAt 目前只用于运维观察，无需让每个读接口都多等待一次数据库写入。
+        const lastSeenTime = Date.parse(user.lastSeenAt);
+        if (!Number.isFinite(lastSeenTime) || Date.now() - lastSeenTime >= LAST_SEEN_TOUCH_INTERVAL) {
+            await cloud_1.nullableDb.collection('users').doc(userId).update({ data: { lastSeenAt: now } });
+            return { ...user, lastSeenAt: now };
+        }
+        return user;
     }
     const created = { _id: userId, activeMemberId: null, createdAt: now, lastSeenAt: now };
     // doc(userId) 已经决定了 _id；CloudBase 禁止在 set 的 data 中再次写入 _id。
@@ -67,8 +73,9 @@ async function ensureUser(userId) {
     });
     return created;
 }
-async function getActiveContext(userId) {
-    const user = await ensureUser(userId);
+async function getActiveContext(userId, knownUser) {
+    // bootstrap 已经读取过用户时直接复用，避免同一次请求内重复查询和更新 lastSeenAt。
+    const user = knownUser || await ensureUser(userId);
     if (!user.activeMemberId)
         throw new errors_1.DomainError('NO_MEMBERSHIP', '你还没有加入家庭');
     const result = await cloud_1.nullableDb.collection('family_members').doc(user.activeMemberId).get();

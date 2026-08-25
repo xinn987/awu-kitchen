@@ -38,7 +38,7 @@ async function bootstrap(userId) {
     if (!user.activeMemberId)
         return { status: 'onboarding' };
     try {
-        const { member } = await (0, auth_1.getActiveContext)(userId);
+        const { member } = await (0, auth_1.getActiveContext)(userId, user);
         const familyResult = await cloud_1.db.collection('families').doc(member.familyId).get();
         const family = familyResult.data;
         return {
@@ -159,7 +159,9 @@ async function listMembers(userId) {
     const [familyRaw, memberRaw, recipeRaw] = await Promise.all([
         cloud_1.db.collection('families').doc(current.familyId).get(),
         cloud_1.db.collection('family_members').where({ familyId: current.familyId, status: 'active' }).limit(100).get(),
-        cloud_1.db.collection('recipes').where({ familyId: current.familyId }).limit(100).get(),
+        // 成员贡献只需要归因字段，不把食谱正文和完整修订历史带进成员页。
+        cloud_1.db.collection('recipes').where({ familyId: current.familyId })
+            .field({ createdById: true, updatedById: true, archivedAt: true }).limit(100).get(),
     ]);
     const familyResult = familyRaw;
     const memberResult = memberRaw;

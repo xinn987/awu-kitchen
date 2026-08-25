@@ -29,7 +29,7 @@ export async function bootstrap(userId: string) {
   const user = await ensureUser(userId)
   if (!user.activeMemberId) return { status: 'onboarding' as const }
   try {
-    const { member } = await getActiveContext(userId)
+    const { member } = await getActiveContext(userId, user)
     const familyResult = await db.collection('families').doc(member.familyId).get() as unknown as {
       data: { _id: string; name: string }
     }
@@ -159,7 +159,9 @@ export async function listMembers(userId: string) {
   const [familyRaw, memberRaw, recipeRaw] = await Promise.all([
     db.collection('families').doc(current.familyId).get(),
     db.collection('family_members').where({ familyId: current.familyId, status: 'active' }).limit(100).get(),
-    db.collection('recipes').where({ familyId: current.familyId }).limit(100).get(),
+    // 成员贡献只需要归因字段，不把食谱正文和完整修订历史带进成员页。
+    db.collection('recipes').where({ familyId: current.familyId })
+      .field({ createdById: true, updatedById: true, archivedAt: true }).limit(100).get(),
   ])
   const familyResult = familyRaw as unknown as { data: { _id: string; name: string } }
   const memberResult = memberRaw as unknown as { data: MemberRecord[] }

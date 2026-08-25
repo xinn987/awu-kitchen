@@ -75,7 +75,8 @@ Page({
 
   async loadRecipe(id: string) {
     try {
-      const state = await getState(true)
+      // 编辑页复用详情/列表快照；真正保存时仍由 expectedVersion 防止覆盖家人的新版本。
+      const state = await getState()
       const recipe = state.recipes.find((item) => item.id === id)
       if (!recipe) {
         this.setData({ id, found: false })

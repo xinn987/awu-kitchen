@@ -10,6 +10,7 @@ import { isFormalRecipe } from '../utils/recipe-utils'
 import { callApi } from './cloud-client'
 
 let cachedState: RecipeState | undefined
+let pendingState: Promise<RecipeState> | undefined
 
 function normalizeState(state: RecipeState): RecipeState {
   return {
@@ -24,12 +25,36 @@ function normalizeState(state: RecipeState): RecipeState {
 
 export async function getState(force = false): Promise<RecipeState> {
   if (!force && cachedState) return cachedState
-  cachedState = normalizeState(await callApi<RecipeState>('recipe.list'))
+  // 页面生命周期可能在短时间内重复触发，复用正在进行的请求，避免并发拉取同一份家庭数据。
+  if (pendingState) return pendingState
+  pendingState = callApi<RecipeState>('recipe.list')
+    .then((state) => {
+      cachedState = normalizeState(state)
+      return cachedState
+    })
+    .finally(() => { pendingState = undefined })
+  return pendingState
+}
+
+/** 只读取当前内存快照，不触发网络请求；用于页面先显示旧数据再后台校准。 */
+export function getCachedState(): RecipeState | undefined {
   return cachedState
 }
 
 export function invalidateState(): void {
   cachedState = undefined
+}
+
+/** 写入成功后直接接入服务端返回值，避免跳转后的页面再次空等整库刷新。 */
+function upsertCachedRecipe(recipe: Recipe): void {
+  if (!cachedState) return
+  const exists = cachedState.recipes.some((item) => item.id === recipe.id)
+  cachedState = {
+    ...cachedState,
+    recipes: exists
+      ? cachedState.recipes.map((item) => item.id === recipe.id ? recipe : item)
+      : [...cachedState.recipes, recipe],
+  }
 }
 
 export function getCurrentUser(state: RecipeState): Member {
@@ -60,7 +85,7 @@ export function getPendingRecipes(state: RecipeState): Recipe[] {
 
 async function createRecipe(content: RecipeContent): Promise<Recipe> {
   const recipe = await callApi<Recipe>('recipe.create', { content })
-  invalidateState()
+  upsertCachedRecipe(recipe)
   return recipe
 }
 
@@ -87,13 +112,13 @@ export async function updateRecipe(
   const recipe = await callApi<Recipe>('recipe.update', {
     recipeId, content, summary, expectedVersion: version,
   })
-  invalidateState()
+  upsertCachedRecipe(recipe)
   return recipe
 }
 
 export async function duplicateRecipe(recipeId: string): Promise<Recipe> {
   const recipe = await callApi<Recipe>('recipe.duplicate', { recipeId })
-  invalidateState()
+  upsertCachedRecipe(recipe)
   return recipe
 }
 
@@ -105,7 +130,12 @@ export async function archiveRecipe(
     recipeId,
     expectedVersion,
   })
-  invalidateState()
+  if (cachedState) {
+    cachedState = {
+      ...cachedState,
+      recipes: cachedState.recipes.filter((recipe) => recipe.id !== result.archivedRecipeId),
+    }
+  }
   return result
 }
 
@@ -119,7 +149,7 @@ export async function restoreRevision(
   const recipe = await callApi<Recipe>('recipe.restoreRevision', {
     recipeId, revisionId, expectedVersion: version,
   })
-  invalidateState()
+  upsertCachedRecipe(recipe)
   return recipe
 }
 

@@ -2,8 +2,8 @@
 import {
   createInvite, listMembers, removeMember, type MemberViewData,
 } from '../../services/family-service'
+import { ApiError } from '../../services/cloud-client'
 import { invalidateState } from '../../services/recipe-store'
-import { bootstrapSession } from '../../services/session-service'
 
 interface MemberView extends MemberViewData {
   roleLabel: string
@@ -37,11 +37,7 @@ Page({
 
   async refresh() {
     try {
-      const session = await bootstrapSession()
-      if (session.status !== 'ready') {
-        wx.reLaunch({ url: '/pages/onboarding/index' })
-        return
-      }
+      // 成员接口本身已经校验微信身份和家庭资格，不再串行等待 session.bootstrap。
       const data = await listMembers()
       const current = data.members.find((member) => member.id === data.currentMemberId)
       const isCurrentAdmin = Boolean(current && current.role === 'admin')
@@ -58,35 +54,41 @@ Page({
         memberCount: members.length,
         canInvite: Boolean(isCurrentAdmin),
       })
-      if (isCurrentAdmin && !this.data.inviteToken) await this.renewInvite(false)
     } catch (error) {
+      if (error instanceof ApiError
+        && (error.code === 'NO_MEMBERSHIP' || error.code === 'MEMBERSHIP_REMOVED')) return
       this.showToast(error instanceof Error ? error.message : '家庭成员加载失败')
     }
   },
 
-  async renewInvite(showMessage = true) {
-    if (this.data.renewingInvite) return
+  /** 邀请码只有在用户主动操作时才创建，避免每次打开家庭页都产生云端写入。 */
+  async issueInvite(showMessage: boolean): Promise<string | undefined> {
+    if (this.data.renewingInvite) return undefined
     this.setData({ renewingInvite: true })
     try {
       const invite = await createInvite()
       const hoursLeft = Math.max(1, Math.ceil((invite.expiresAt - Date.now()) / 3600000))
       this.setData({ inviteToken: invite.token, inviteExpireLabel: `${hoursLeft} 小时内有效` })
       if (showMessage) this.showToast('已生成新的单次邀请')
+      return invite.token
     } catch (error) {
       this.showToast(error instanceof Error ? error.message : '邀请生成失败')
+      return undefined
     } finally {
       this.setData({ renewingInvite: false })
     }
   },
 
+  async renewInvite() {
+    await this.issueInvite(true)
+  },
+
   /** 体验版暂不依赖原生分享能力，复制单次邀请码后通过微信文字发送。 */
-  copyInvite() {
-    if (!this.data.inviteToken) {
-      this.showToast(this.data.renewingInvite ? '邀请码生成中…' : '请先重新生成邀请码')
-      return
-    }
+  async copyInvite() {
+    const token = this.data.inviteToken || await this.issueInvite(false)
+    if (!token) return
     wx.setClipboardData({
-      data: this.data.inviteToken,
+      data: token,
       success: () => this.showToast('邀请码已复制'),
       fail: () => this.showToast('复制失败，请重试'),
     })

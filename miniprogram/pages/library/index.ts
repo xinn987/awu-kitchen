@@ -1,7 +1,9 @@
 /** 家庭食谱库：首页、搜索、轻量筛选和待补条目入口。 */
-import { FOOD_TYPES, type Recipe } from '../../models/recipe'
-import { getFormalRecipes, getMemberById, getPendingRecipes, getState } from '../../services/recipe-store'
-import { bootstrapSession } from '../../services/session-service'
+import { FOOD_TYPES, type Recipe, type RecipeState } from '../../models/recipe'
+import {
+  getCachedState, getFormalRecipes, getMemberById, getPendingRecipes, getState,
+} from '../../services/recipe-store'
+import { ApiError } from '../../services/cloud-client'
 import { isFormalRecipe, relativeTime } from '../../utils/recipe-utils'
 
 interface RecipeCardView extends Recipe {
@@ -48,69 +50,73 @@ Page({
 
   onShow() { void this.refresh(true) },
 
-  /** 从云端仓库重新派生所有列表，保证其他页面修改后返回即可看到最新状态。 */
+  /** 有缓存时先完成首屏渲染，再在后台校准云端权威数据。 */
   async refresh(force = false) {
     try {
-      const session = await bootstrapSession()
-      if (session.status !== 'ready') {
-        wx.reLaunch({ url: '/pages/onboarding/index' })
-        return
-      }
+      const cached = force ? getCachedState() : undefined
+      if (cached) this.renderState(cached)
       const state = await getState(force)
-      const formalRecipes = getFormalRecipes(state)
-      const pendingRecipes = getPendingRecipes(state)
-      const query = this.data.query.trim().toLowerCase()
-      const filter = this.data.filter
-      const memberOf = (memberId: string) => getMemberById(state, memberId)
-      const nameOf = (memberId: string): string => {
-        const member = memberOf(memberId)
-        return member ? member.name : '家人'
-      }
-      const colorOf = (memberId: string) => {
-        const member = memberOf(memberId)
-        return (member && member.color) || '#8A7E74'
-      }
-      const matchesQuery = (recipe: Recipe) => {
-        if (!query) return true
-        return [
-          recipe.name, ...recipe.successKeys, recipe.type || '', recipe.stage || '',
-          ...recipe.tags, ...recipe.ingredients.map((item) => item.name),
-        ].join(' ').toLowerCase().includes(query)
-      }
-      const matchesType = (recipe: Recipe) =>
-        filter === '全部' || filter === '待补充' || recipe.type === filter
-      const toCard = (recipe: Recipe): RecipeCardView => ({
-        ...recipe,
-        isDraft: !isFormalRecipe(recipe),
-        firstKey: recipe.successKeys[0] || '',
-        moreCount: Math.max(0, recipe.successKeys.length - 1),
-        visibleTags: recipe.tags.slice(0, 3),
-        updatedName: nameOf(recipe.updatedById),
-        updatedLabel: relativeTime(recipe.updatedAt),
-        avatarColor: colorOf(recipe.updatedById),
-      })
-      const typeCounts = new Map<string, number>()
-      formalRecipes.forEach((recipe) => {
-        if (recipe.type) typeCounts.set(recipe.type, (typeCounts.get(recipe.type) || 0) + 1)
-      })
-      const baseChips = [
-        { label: '全部', count: formalRecipes.length },
-        ...FOOD_TYPES.filter((type) => (typeCounts.get(type) || 0) > 0)
-          .map((type) => ({ label: type, count: typeCounts.get(type) || 0 })),
-        ...(pendingRecipes.length > 0 ? [{ label: '待补充', count: pendingRecipes.length }] : []),
-      ]
-      this.setData({
-        formalCount: formalRecipes.length,
-        pendingCount: pendingRecipes.length,
-        chips: baseChips.map((chip) => ({ ...chip, active: chip.label === filter })),
-        formal: formalRecipes.filter(matchesQuery).filter(matchesType).map(toCard),
-        drafts: filter === '全部' || filter === '待补充'
-          ? pendingRecipes.filter(matchesQuery).map(toCard)
-          : [],
-      })
+      if (state !== cached) this.renderState(state)
     } catch (error) {
+      // 云客户端已经负责跳转首次使用页，这里不再额外显示一次失败提示。
+      if (error instanceof ApiError
+        && (error.code === 'NO_MEMBERSHIP' || error.code === 'MEMBERSHIP_REMOVED')) return
       this.showToast(error instanceof Error ? error.message : '家庭食谱加载失败')
     }
+  },
+
+  renderState(state: RecipeState) {
+    const formalRecipes = getFormalRecipes(state)
+    const pendingRecipes = getPendingRecipes(state)
+    const query = this.data.query.trim().toLowerCase()
+    const filter = this.data.filter
+    const memberOf = (memberId: string) => getMemberById(state, memberId)
+    const nameOf = (memberId: string): string => {
+      const member = memberOf(memberId)
+      return member ? member.name : '家人'
+    }
+    const colorOf = (memberId: string) => {
+      const member = memberOf(memberId)
+      return (member && member.color) || '#8A7E74'
+    }
+    const matchesQuery = (recipe: Recipe) => {
+      if (!query) return true
+      return [
+        recipe.name, ...recipe.successKeys, recipe.type || '', recipe.stage || '',
+        ...recipe.tags, ...recipe.ingredients.map((item) => item.name),
+      ].join(' ').toLowerCase().includes(query)
+    }
+    const matchesType = (recipe: Recipe) =>
+      filter === '全部' || filter === '待补充' || recipe.type === filter
+    const toCard = (recipe: Recipe): RecipeCardView => ({
+      ...recipe,
+      isDraft: !isFormalRecipe(recipe),
+      firstKey: recipe.successKeys[0] || '',
+      moreCount: Math.max(0, recipe.successKeys.length - 1),
+      visibleTags: recipe.tags.slice(0, 3),
+      updatedName: nameOf(recipe.updatedById),
+      updatedLabel: relativeTime(recipe.updatedAt),
+      avatarColor: colorOf(recipe.updatedById),
+    })
+    const typeCounts = new Map<string, number>()
+    formalRecipes.forEach((recipe) => {
+      if (recipe.type) typeCounts.set(recipe.type, (typeCounts.get(recipe.type) || 0) + 1)
+    })
+    const baseChips = [
+      { label: '全部', count: formalRecipes.length },
+      ...FOOD_TYPES.filter((type) => (typeCounts.get(type) || 0) > 0)
+        .map((type) => ({ label: type, count: typeCounts.get(type) || 0 })),
+      ...(pendingRecipes.length > 0 ? [{ label: '待补充', count: pendingRecipes.length }] : []),
+    ]
+    this.setData({
+      formalCount: formalRecipes.length,
+      pendingCount: pendingRecipes.length,
+      chips: baseChips.map((chip) => ({ ...chip, active: chip.label === filter })),
+      formal: formalRecipes.filter(matchesQuery).filter(matchesType).map(toCard),
+      drafts: filter === '全部' || filter === '待补充'
+        ? pendingRecipes.filter(matchesQuery).map(toCard)
+        : [],
+    })
   },
 
   onSearchInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
