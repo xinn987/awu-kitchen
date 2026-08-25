@@ -37,5 +37,5 @@
 .archive-row { display: flex; justify-content: center; padding: 30rpx 0 8rpx; }
 .archive-link { min-height: 64rpx; display: flex; align-items: center; padding: 0 20rpx; color: #a84a37; font-size: 24rpx; }
 .archive-link:active { opacity: 0.55; }
-.copy-button { width: 188rpx; }
+.compact-button { width: 150rpx; flex-shrink: 0; gap: 7rpx; font-size: 25rpx; }
 .edit-button { flex: 1; }

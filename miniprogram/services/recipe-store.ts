@@ -56,6 +56,7 @@ function normalizeState(state: RecipeState): RecipeState {
       mainImage: normalizeImage((recipe as Recipe & { mainImage?: unknown }).mainImage),
       steps: normalizeSteps((recipe as Recipe & { steps: unknown }).steps),
       version: recipe.version || 1,
+      commentCount: Math.max(0, Number(recipe.commentCount) || 0),
       revisions: Array.isArray(recipe.revisions) ? recipe.revisions.map(normalizeRevision) : [],
     })),
   }
@@ -81,6 +82,17 @@ export function getCachedState(): RecipeState | undefined {
 
 export function invalidateState(): void {
   cachedState = undefined
+}
+
+/** 评论独立读写；这里只同步详情入口的轻量计数，避免重新加载整份家庭数据。 */
+export function setCachedCommentCount(recipeId: string, commentCount: number): void {
+  if (!cachedState) return
+  cachedState = {
+    ...cachedState,
+    recipes: cachedState.recipes.map((recipe) => recipe.id === recipeId
+      ? { ...recipe, commentCount: Math.max(0, commentCount) }
+      : recipe),
+  }
 }
 
 /** 写入成功后直接接入服务端返回值，避免跳转后的页面再次空等整库刷新。 */

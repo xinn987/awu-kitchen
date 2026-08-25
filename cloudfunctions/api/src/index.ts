@@ -7,6 +7,9 @@ import {
 import {
   archiveRecipe, createRecipe, duplicateRecipe, listRecipeState, restoreRevision, updateRecipe,
 } from './recipe'
+import {
+  createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
+} from './recipe-comment'
 
 interface ApiEvent {
   action?: string
@@ -27,6 +30,10 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipe.archive': archiveRecipe,
   'recipe.duplicate': duplicateRecipe,
   'recipe.restoreRevision': restoreRevision,
+  'recipeComment.list': listRecipeComments,
+  'recipeComment.create': createRecipeComment,
+  'recipeComment.update': updateRecipeComment,
+  'recipeComment.delete': deleteRecipeComment,
 }
 
 /** 单一入口只负责路由和错误翻译，业务逻辑留在对应模块。 */

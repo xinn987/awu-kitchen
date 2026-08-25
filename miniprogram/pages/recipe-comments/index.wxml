@@ -1,0 +1,92 @@
+<view class="page-shell comments-page">
+  <page-navbar left-text="返回" title="评论" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
+
+  <view wx:if="{{found}}" class="sort-bar">
+    <view
+      class="sort-option {{sort === 'newest' ? 'active' : ''}}"
+      role="button"
+      aria-label="按最新排序"
+      data-sort="newest"
+      bindtap="changeSort"
+    >最新</view>
+    <view
+      class="sort-option {{sort === 'oldest' ? 'active' : ''}}"
+      role="button"
+      aria-label="按最旧排序"
+      data-sort="oldest"
+      bindtap="changeSort"
+    >最旧</view>
+  </view>
+
+  <scroll-view class="comment-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
+    <view wx:elif="{{loading && comments.length === 0}}" class="empty-state">正在加载评论…</view>
+    <view wx:elif="{{comments.length === 0}}" class="empty-state comment-empty">还没有评论，写下这次尝试，或者想问家人的问题。</view>
+    <view wx:else class="comment-list {{loading ? 'refreshing' : ''}}">
+      <view wx:for="{{comments}}" wx:key="id" class="comment-item">
+        <member-avatar name="{{item.authorName}}" size="58" color="{{item.avatarColor}}"></member-avatar>
+        <view class="comment-main">
+          <view class="comment-head">
+            <view class="comment-byline">
+              <text class="comment-author">{{item.authorName}}</text>
+              <text class="comment-time">{{item.timeLabel}}{{item.edited ? ' · 已编辑' : ''}}</text>
+            </view>
+            <view
+              wx:if="{{item.canEdit || item.canDelete}}"
+              class="comment-more"
+              role="button"
+              aria-label="评论操作"
+              data-id="{{item.id}}"
+              bindtap="toggleMenu"
+            >···</view>
+          </view>
+
+          <text class="comment-content">{{item.content}}</text>
+
+          <view wx:if="{{menuId === item.id}}" class="comment-menu">
+            <view wx:if="{{item.canEdit}}" class="menu-link" role="button" data-id="{{item.id}}" bindtap="startEdit">编辑</view>
+            <view wx:if="{{item.canDelete}}" class="menu-link danger" role="button" data-id="{{item.id}}" bindtap="askDelete">删除</view>
+          </view>
+
+          <view wx:if="{{deleteId === item.id}}" class="delete-confirm">
+            <text>删除这条评论？</text>
+            <view class="delete-link" role="button" data-id="{{item.id}}" bindtap="confirmDelete">{{deletingId === item.id ? '删除中…' : '确认删除'}}</view>
+            <view class="cancel-link" role="button" bindtap="cancelDelete">取消</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{found}}" class="comment-composer">
+    <view wx:if="{{editingId}}" class="editing-strip">
+      <text>正在编辑评论</text>
+      <view class="cancel-edit" role="button" bindtap="cancelEdit">取消</view>
+    </view>
+    <view class="composer-row">
+      <textarea
+        class="comment-input"
+        value="{{draft}}"
+        maxlength="500"
+        auto-height
+        fixed
+        focus="{{focusInput}}"
+        cursor-spacing="20"
+        confirm-type="send"
+        confirm-hold
+        placeholder="写下问题或这次尝试…"
+        placeholder-class="comment-placeholder"
+        bindinput="onDraftInput"
+        bindconfirm="submitComment"
+      ></textarea>
+      <view
+        class="send-button {{!draft || submitting ? 'disabled' : ''}}"
+        role="button"
+        bindtap="submitComment"
+      >{{submitting ? '保存中' : (editingId ? '保存' : '发送')}}</view>
+    </view>
+    <text class="character-count">{{draft.length}} / 500</text>
+  </view>
+
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

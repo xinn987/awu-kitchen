@@ -65,6 +65,18 @@ export interface Recipe extends RecipeContent {
   /** 软删除标记；存在时不再出现在家庭食谱列表中。 */
   archivedAt?: string
   archivedById?: string
+  /** 评论独立存储，这里只保留详情入口所需的轻量计数。 */
+  commentCount?: number
+}
+
+export interface RecipeComment {
+  id: string
+  recipeId: string
+  authorMemberId: string
+  content: string
+  createdAt: string
+  updatedAt: string
+  version: number
 }
 
 /** 家庭内的成员：微信身份 + 家庭称谓 + 角色。 */

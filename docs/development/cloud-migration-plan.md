@@ -132,7 +132,7 @@ miniprogram/
 
 ## 7. 云环境部署清单
 
-1. 在微信开发者工具中选择开发用云环境，并创建 `users`、`families`、`family_members`、`family_invites`、`recipes` 五个空集合。
+1. 在微信开发者工具中选择开发用云环境，并创建 `users`、`families`、`family_members`、`family_invites`、`recipes`、`recipe_comments` 六个空集合；评论接口也会在首次使用时兼容性地检查并创建缺失集合。
 2. 五个集合的客户端安全规则都设为 `read: false`、`write: false`；小程序只通过云函数读写。
 3. 至少创建以下索引：`family_invites.tokenHash`，`family_members(familyId, status)`，`family_members(familyId, displayName, status)`，`recipes.familyId`。
 4. 在 `cloudfunctions/api` 执行 `pnpm install` 和 `pnpm run build`。构建会把运行用 JavaScript 平铺到云函数根目录；确认根目录 `index.js` 存在后，在开发者工具中上传并部署 `api`，选择云端安装依赖。

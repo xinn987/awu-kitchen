@@ -22,6 +22,7 @@ interface DetailView extends Omit<Recipe, 'mainImage' | 'steps'> {
   updatedDate: string
   relativeUpdated: string
   avatarColor: string
+  commentCountLabel: string
 }
 
 Page({
@@ -69,6 +70,9 @@ Page({
           updatedDate: shortDate(recipe.updatedAt),
           relativeUpdated: relativeTime(recipe.updatedAt),
           avatarColor: (updatedMember && updatedMember.color) || '#8A7E74',
+          commentCountLabel: recipe.commentCount
+            ? (recipe.commentCount > 99 ? '99+' : String(recipe.commentCount))
+            : '',
         },
       })
     } catch (error) {
@@ -92,6 +96,10 @@ Page({
 
   openHistory() {
     wx.navigateTo({ url: `/pages/history/index?id=${this.data.id}` })
+  },
+
+  openComments() {
+    wx.navigateTo({ url: `/pages/recipe-comments/index?id=${this.data.id}` })
   },
 
   /** 点击任一图片时，按“主图 + 步骤顺序”浏览当前食谱的全部图片。 */

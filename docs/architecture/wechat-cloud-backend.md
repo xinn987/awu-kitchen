@@ -96,6 +96,21 @@
 
 步骤是带稳定 ID 的有序内容对象，文字必填，可选一张步骤图。主图和步骤图只保存云文件引用；图片本体不进入数据库或云函数请求体。旧字符串步骤在读取时兼容，并在下一次确认保存时升级。
 
+### 3.6 `recipe_comments`
+
+评论独立于食谱正文和修订记录存储：
+
+| 字段 | 说明 |
+| --- | --- |
+| `_id` | 评论 ID |
+| `familyId`、`recipeId` | 家庭隔离与目标食谱 |
+| `authorMemberId` | 发布成员 ID |
+| `content` | 1–500 字纯文字 |
+| `createdAt`、`updatedAt` | 创建与最后编辑时间 |
+| `version` | 评论自身的乐观并发版本 |
+
+`recipes` 只增加轻量 `commentCount`，供详情入口显示数量。评论写入不会修改食谱 `version`、`updatedAt` 或修订数组。
+
 ## 4. 最小云函数接口
 
 首版只部署一个 `api` 云函数，用 `action` 区分业务操作，内部按 session、family、recipe 三个模块组织。
@@ -105,6 +120,7 @@
 | 会话 | `session.bootstrap` |
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
 | 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.duplicate`、`recipe.restoreRevision` |
+| 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
 
 所有接口统一返回：
 
@@ -166,6 +182,12 @@ type ApiResponse<T> =
 
 删除食谱使用软删除：`recipe.archive` 校验家庭归属和 `expectedVersion` 后写入归档标记，正常列表不再返回该食谱，但正文和修订历史仍保留。首版暂不提供废纸篓列表、恢复或永久删除。
 
+### 5.6 评论读写
+
+评论列表支持 `newest / oldest`，默认最新。所有有效家庭成员都可查看和发布评论；只有作者能编辑自己的评论，作者或家庭管理员可以删除，管理员不能编辑他人评论。客户端的操作入口只改善交互，最终权限始终由云函数重新判断。
+
+创建和删除在事务中同步食谱 `commentCount`；编辑只更新评论自身版本。食谱归档后评论不可访问，复制食谱和恢复旧修订都不会复制或回滚评论。
+
 ## 6. 前端迁移
 
 `recipe-store.ts` 保留原函数名作为异步云端仓库，以缩小页面改造范围。页面统一使用 `Promise` 接口，并处理：
@@ -176,6 +198,7 @@ type ApiResponse<T> =
 - 请求失败后保留输入并允许重试。
 - 被移出后的会话失效。
 - 版本冲突提示。
+- 评论发布或编辑失败时保留输入；评论排序默认最新。
 
 首版不做持久化本地缓存。云端请求失败就显示错误，避免用户误以为本地内容已经同步。
 

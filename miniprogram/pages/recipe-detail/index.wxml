@@ -101,7 +101,11 @@
   </scroll-view>
 
   <view wx:if="{{found && recipe}}" class="action-bar">
-    <view class="secondary-button copy-button" role="button" bindtap="duplicate">
+    <view class="secondary-button compact-button" role="button" bindtap="openComments">
+      <app-icon name="message-circle" size="30"></app-icon>
+      <text>评论{{recipe.commentCountLabel ? ' ' + recipe.commentCountLabel : ''}}</text>
+    </view>
+    <view class="secondary-button compact-button" role="button" bindtap="duplicate">
       <app-icon name="copy" size="30"></app-icon>
       <text>{{duplicating ? '复制中…' : '复制'}}</text>
     </view>
