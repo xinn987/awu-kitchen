@@ -46,7 +46,32 @@ function memberView(member: MemberRecord) {
   }
 }
 
-export async function listRecipeState(userId: string) {
+function supportsRecipeImages(payload: Record<string, unknown>): boolean {
+  return Number(payload.clientSchemaVersion) >= 2
+}
+
+/** 已发布旧客户端仍接收 string[]，新版才接收稳定步骤对象和图片。 */
+function recipeViewForClient(recipe: Record<string, unknown>, payload: Record<string, unknown>) {
+  if (supportsRecipeImages(payload)) return recipe
+  const result = { ...recipe }
+  delete result.mainImage
+  result.steps = Array.isArray(recipe.steps)
+    ? recipe.steps.map((step) => typeof step === 'string'
+        ? step
+        : String(((step || {}) as Record<string, unknown>).text || ''))
+      .filter(Boolean)
+    : []
+  return result
+}
+
+function hasRecipeImages(recipe: Record<string, unknown>): boolean {
+  if (recipe.mainImage) return true
+  return Array.isArray(recipe.steps) && recipe.steps.some((step) => {
+    return typeof step === 'object' && step !== null && Boolean((step as Record<string, unknown>).image)
+  })
+}
+
+export async function listRecipeState(userId: string, payload: Record<string, unknown>) {
   const { member: current } = await getActiveContext(userId)
   const [familyRaw, memberRaw, recipeRaw] = await Promise.all([
     db.collection('families').doc(current.familyId).get(),
@@ -60,7 +85,9 @@ export async function listRecipeState(userId: string) {
   const recipes = recipeResult.data
     .filter((recipe) => !recipe.archivedAt)
     .map((recipe) => readableRecipe(recipe, current.familyId))
+    .map((recipe) => recipeViewForClient(recipe, payload))
   return {
+    recipeSchemaVersion: 2,
     family: { id: family._id, name: family.name },
     currentMemberId: current._id,
     members: memberResult.data.map(memberView),
@@ -92,7 +119,7 @@ export async function createRecipe(userId: string, payload: Record<string, unkno
     revisions,
   }
   await db.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) })
-  return recipe
+  return recipeViewForClient(recipe, payload)
 }
 
 async function ownedRecipe(familyId: string, recipeId: string): Promise<Record<string, unknown>> {
@@ -125,6 +152,11 @@ export async function updateRecipe(userId: string, payload: Record<string, unkno
     const current = result.data as Record<string, unknown>
     assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱')
     assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
+    assertDomain(
+      supportsRecipeImages(payload) || !hasRecipeImages(current),
+      'CLIENT_UPDATE_REQUIRED',
+      '这份食谱包含图片，请先更新到最新体验版再修改',
+    )
     assertDomain(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入')
     const version = expectedVersion + 1
     const revisions = Array.isArray(current.revisions) ? [...current.revisions] : []
@@ -141,7 +173,7 @@ export async function updateRecipe(userId: string, payload: Record<string, unkno
     }
     await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) })
   })
-  return next
+  return recipeViewForClient(next, payload)
 }
 
 export async function duplicateRecipe(userId: string, payload: Record<string, unknown>) {
@@ -150,6 +182,7 @@ export async function duplicateRecipe(userId: string, payload: Record<string, un
   const source = await ownedRecipe(member.familyId, sourceId)
   const sourceContent = contentOf(source, member.familyId)
   return createRecipe(userId, {
+    clientSchemaVersion: payload.clientSchemaVersion,
     content: {
       ...sourceContent,
       name: `${String(source.name)}（副本）`,
@@ -226,5 +259,5 @@ export async function restoreRevision(userId: string, payload: Record<string, un
     }
     await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) })
   })
-  return next
+  return recipeViewForClient(next, payload)
 }

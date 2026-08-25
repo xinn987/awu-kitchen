@@ -91,4 +91,6 @@ export interface RecipeState {
   recipes: Recipe[]
   members: Member[]
   currentMemberId?: string
+  /** 云端食谱内容结构版本；2 表示支持稳定步骤 ID 和图片引用。 */
+  recipeSchemaVersion?: number
 }

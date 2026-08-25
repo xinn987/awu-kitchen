@@ -51,7 +51,31 @@ function memberView(member) {
         color: member.color,
     };
 }
-async function listRecipeState(userId) {
+function supportsRecipeImages(payload) {
+    return Number(payload.clientSchemaVersion) >= 2;
+}
+/** 已发布旧客户端仍接收 string[]，新版才接收稳定步骤对象和图片。 */
+function recipeViewForClient(recipe, payload) {
+    if (supportsRecipeImages(payload))
+        return recipe;
+    const result = { ...recipe };
+    delete result.mainImage;
+    result.steps = Array.isArray(recipe.steps)
+        ? recipe.steps.map((step) => typeof step === 'string'
+            ? step
+            : String((step || {}).text || ''))
+            .filter(Boolean)
+        : [];
+    return result;
+}
+function hasRecipeImages(recipe) {
+    if (recipe.mainImage)
+        return true;
+    return Array.isArray(recipe.steps) && recipe.steps.some((step) => {
+        return typeof step === 'object' && step !== null && Boolean(step.image);
+    });
+}
+async function listRecipeState(userId, payload) {
     const { member: current } = await (0, auth_1.getActiveContext)(userId);
     const [familyRaw, memberRaw, recipeRaw] = await Promise.all([
         cloud_1.db.collection('families').doc(current.familyId).get(),
@@ -64,8 +88,10 @@ async function listRecipeState(userId) {
     const family = familyResult.data;
     const recipes = recipeResult.data
         .filter((recipe) => !recipe.archivedAt)
-        .map((recipe) => readableRecipe(recipe, current.familyId));
+        .map((recipe) => readableRecipe(recipe, current.familyId))
+        .map((recipe) => recipeViewForClient(recipe, payload));
     return {
+        recipeSchemaVersion: 2,
         family: { id: family._id, name: family.name },
         currentMemberId: current._id,
         members: memberResult.data.map(memberView),
@@ -96,7 +122,7 @@ async function createRecipe(userId, payload) {
         revisions,
     };
     await cloud_1.db.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) });
-    return recipe;
+    return recipeViewForClient(recipe, payload);
 }
 async function ownedRecipe(familyId, recipeId) {
     try {
@@ -126,6 +152,7 @@ async function updateRecipe(userId, payload) {
         const current = result.data;
         (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱');
         (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
+        (0, errors_1.assertDomain)(supportsRecipeImages(payload) || !hasRecipeImages(current), 'CLIENT_UPDATE_REQUIRED', '这份食谱包含图片，请先更新到最新体验版再修改');
         (0, errors_1.assertDomain)(Number(current.version) === expectedVersion, 'VERSION_CONFLICT', '这份食谱已被家人更新，请重新载入');
         const version = expectedVersion + 1;
         const revisions = Array.isArray(current.revisions) ? [...current.revisions] : [];
@@ -142,7 +169,7 @@ async function updateRecipe(userId, payload) {
         };
         await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) });
     });
-    return next;
+    return recipeViewForClient(next, payload);
 }
 async function duplicateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
@@ -150,6 +177,7 @@ async function duplicateRecipe(userId, payload) {
     const source = await ownedRecipe(member.familyId, sourceId);
     const sourceContent = contentOf(source, member.familyId);
     return createRecipe(userId, {
+        clientSchemaVersion: payload.clientSchemaVersion,
         content: {
             ...sourceContent,
             name: `${String(source.name)}（副本）`,
@@ -222,5 +250,5 @@ async function restoreRevision(userId, payload) {
         };
         await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) });
     });
-    return next;
+    return recipeViewForClient(next, payload);
 }

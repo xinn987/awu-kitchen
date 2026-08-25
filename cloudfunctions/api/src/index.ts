@@ -21,7 +21,7 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'family.join': joinFamily,
   'family.listMembers': (userId) => listMembers(userId),
   'family.removeMember': removeMember,
-  'recipe.list': (userId) => listRecipeState(userId),
+  'recipe.list': listRecipeState,
   'recipe.create': createRecipe,
   'recipe.update': updateRecipe,
   'recipe.archive': archiveRecipe,

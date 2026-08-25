@@ -12,7 +12,11 @@ export class ApiError extends Error {
 export async function callApi<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   initCloud()
   try {
-    const result = await wx.cloud.callFunction({ name: 'api', data: { action, payload } })
+    // 版本字段让云函数同时服务旧体验版和新版开发代码，避免步骤结构互相破坏。
+    const result = await wx.cloud.callFunction({
+      name: 'api',
+      data: { action, payload: { ...payload, clientSchemaVersion: 2 } },
+    })
     const response = result.result as ApiResponse<T> | undefined
     if (!response) throw new ApiError('SERVICE_UNAVAILABLE', '服务没有返回结果，请稍后重试')
     if (!response.ok) {

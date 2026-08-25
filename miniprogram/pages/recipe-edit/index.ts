@@ -133,7 +133,9 @@ Page({
   async loadRecipe(id: string) {
     try {
       // 编辑页复用详情/列表快照；保存时仍由 expectedVersion 防止覆盖家人的新版本。
-      const state = await getState()
+      let state = await getState()
+      // 云函数刚升级时，内存里可能还是旧列表响应；只在缺少结构版本时强制校准一次。
+      if (state.recipeSchemaVersion !== 2) state = await getState(true)
       const recipe = state.recipes.find((item) => item.id === id)
       if (!recipe) {
         this.setData({ id, found: false })
@@ -408,6 +410,14 @@ Page({
 
   async doSave() {
     if (this.data.saving || !editingState) return
+    if (editingState.recipeSchemaVersion !== 2) {
+      wx.showModal({
+        title: '云端服务尚未更新',
+        content: '当前服务还不能保存图片和新版步骤。请更新云函数后重新进入小程序，再保存一次。',
+        showCancel: false,
+      })
+      return
+    }
     const uploadItems = [] as Array<{ key: string; image: LocalRecipeImage }>
     if (this.data.mainImage && this.data.mainImage.isNew) {
       uploadItems.push({ key: 'main', image: this.data.mainImage })
