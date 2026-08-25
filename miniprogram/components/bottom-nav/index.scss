@@ -14,4 +14,8 @@
 .tab.active { color: #bf5924; }
 .tab-center { flex: 1; display: flex; justify-content: center; }
 .capture-button { width: 104rpx; height: 104rpx; margin-top: -44rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #bf5924; color: #fff; box-shadow: 0 12rpx 32rpx rgba(191, 89, 36, 0.4); transition: transform 0.15s ease; }
+.capture-plus { position: relative; width: 46rpx; height: 46rpx; flex-shrink: 0; }
+.plus-stroke { position: absolute; left: 50%; top: 50%; border-radius: 999rpx; background: currentColor; transform: translate(-50%, -50%); }
+.plus-horizontal { width: 38rpx; height: 4rpx; }
+.plus-vertical { width: 4rpx; height: 38rpx; }
 .capture-button:active { transform: scale(0.92); }

@@ -5,7 +5,11 @@
   </view>
   <view class="tab-center">
     <view class="capture-button" bindtap="capture" aria-label="收录新做法">
-      <app-icon name="plus" size="46"></app-icon>
+      <!-- 两条等长线段按圆心绝对定位，避免字体或组件行盒造成视觉偏移。 -->
+      <view class="capture-plus" aria-hidden="true">
+        <view class="plus-stroke plus-horizontal"></view>
+        <view class="plus-stroke plus-vertical"></view>
+      </view>
     </view>
   </view>
   <view class="tab {{active === 'family' ? 'active' : ''}}" bindtap="goFamily">
