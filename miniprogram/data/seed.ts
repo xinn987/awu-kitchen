@@ -5,18 +5,22 @@
 
 import type { Member, Recipe, RecipeContent, Revision } from '../models/recipe'
 
+type SeedContent = Omit<RecipeContent, 'steps'> & { steps: string[] }
+
 const DAY = 86400000
 
 function ago(days: number, hours = 0): string {
   return new Date(Date.now() - days * DAY - hours * 3600000).toISOString()
 }
 
-function contentOf(recipe: RecipeContent): RecipeContent {
+function contentOf(recipe: SeedContent | RecipeContent): RecipeContent {
   return {
     name: recipe.name,
     successKeys: [...recipe.successKeys],
     ingredients: recipe.ingredients.map((item) => ({ ...item })),
-    steps: [...recipe.steps],
+    steps: recipe.steps.map((step, index) => typeof step === 'string'
+      ? { id: `seed-step-${index + 1}`, text: step }
+      : { ...step, image: step.image ? { ...step.image } : undefined }),
     stage: recipe.stage,
     type: recipe.type,
     tags: [...recipe.tags],
@@ -28,7 +32,7 @@ function makeRevision(
   authorId: string,
   time: string,
   summary: string,
-  content: RecipeContent,
+  content: SeedContent | RecipeContent,
   successKeys?: string[],
 ): Revision {
   return {
@@ -49,7 +53,7 @@ export const SEED_MEMBERS: Member[] = [
   { id: 'm-grandma', userId: 'local-grandma', name: '奶奶', role: 'member', joinedAt: ago(31), color: '#6B8A4A' },
 ]
 
-const yamBeef: RecipeContent = {
+const yamBeef: SeedContent = {
   name: '山药牛肉末软粥',
   type: '粥类',
   stage: '带小颗粒',
@@ -73,7 +77,7 @@ const yamBeef: RecipeContent = {
   ],
 }
 
-const tomatoEgg: RecipeContent = {
+const tomatoEgg: SeedContent = {
   name: '番茄蛋黄羹',
   type: '蛋羹',
   stage: '细腻泥糊',
@@ -95,7 +99,7 @@ const tomatoEgg: RecipeContent = {
   ],
 }
 
-const pumpkinMillet: RecipeContent = {
+const pumpkinMillet: SeedContent = {
   name: '南瓜小米糊',
   type: '泥糊',
   stage: '细腻泥糊',
@@ -116,7 +120,7 @@ const pumpkinMillet: RecipeContent = {
   ],
 }
 
-const bananaPancake: RecipeContent = {
+const bananaPancake: SeedContent = {
   name: '香蕉蛋黄软饼',
   type: '小饼',
   stage: '手指食物',
@@ -138,7 +142,7 @@ const bananaPancake: RecipeContent = {
   ],
 }
 
-const wintermelonNoodle: RecipeContent = {
+const wintermelonNoodle: SeedContent = {
   name: '冬瓜肉末烂糊面',
   type: '面食',
   stage: '软烂块状',
@@ -160,7 +164,7 @@ const wintermelonNoodle: RecipeContent = {
   ],
 }
 
-const broccoliPotato: RecipeContent = {
+const broccoliPotato: SeedContent = {
   name: '西兰花土豆泥',
   type: '泥糊',
   stage: '细腻泥糊',
@@ -184,7 +188,7 @@ const broccoliPotato: RecipeContent = {
 
 export const SEED_RECIPES: Recipe[] = [
   {
-    ...yamBeef,
+    ...contentOf(yamBeef),
     id: 'r-yam-beef', familyId: FAMILY_ID,
     createdById: 'm-mom', createdAt: ago(21), updatedById: 'm-mom', updatedAt: ago(2, 3),
     revisions: [
@@ -194,13 +198,13 @@ export const SEED_RECIPES: Recipe[] = [
     ],
   },
   {
-    ...tomatoEgg,
+    ...contentOf(tomatoEgg),
     id: 'r-tomato-egg', familyId: FAMILY_ID,
     createdById: 'm-dad', createdAt: ago(15), updatedById: 'm-dad', updatedAt: ago(15),
     revisions: [makeRevision('rev-egg-1', 'm-dad', ago(15), '初次收录', tomatoEgg, [tomatoEgg.successKeys[0]])],
   },
   {
-    ...pumpkinMillet,
+    ...contentOf(pumpkinMillet),
     id: 'r-pumpkin-millet', familyId: FAMILY_ID,
     createdById: 'm-grandma', createdAt: ago(30), updatedById: 'm-mom', updatedAt: ago(4),
     revisions: [
@@ -209,7 +213,7 @@ export const SEED_RECIPES: Recipe[] = [
     ],
   },
   {
-    ...bananaPancake,
+    ...contentOf(bananaPancake),
     id: 'r-banana-pancake', familyId: FAMILY_ID,
     createdById: 'm-mom', createdAt: ago(9), updatedById: 'm-grandma', updatedAt: ago(1),
     revisions: [
@@ -218,7 +222,7 @@ export const SEED_RECIPES: Recipe[] = [
     ],
   },
   {
-    ...wintermelonNoodle,
+    ...contentOf(wintermelonNoodle),
     id: 'r-wintermelon-noodle', familyId: FAMILY_ID,
     createdById: 'm-dad', createdAt: ago(11), updatedById: 'm-dad', updatedAt: ago(3),
     revisions: [
@@ -227,7 +231,7 @@ export const SEED_RECIPES: Recipe[] = [
     ],
   },
   {
-    ...broccoliPotato,
+    ...contentOf(broccoliPotato),
     id: 'r-broccoli-potato', familyId: FAMILY_ID,
     createdById: 'm-mom', createdAt: ago(18), updatedById: 'm-mom', updatedAt: ago(7),
     revisions: [

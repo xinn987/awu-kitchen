@@ -37,6 +37,25 @@
         </view>
       </view>
 
+      <!-- 主图在成功关键之后出现，不把图片抬到核心经验之前。 -->
+      <view class="form-section image-section">
+        <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
+        <view wx:if="{{mainImage}}" class="main-image-editor">
+          <image class="main-image-preview" src="{{mainImage.localPath}}" mode="aspectFill"></image>
+          <view class="image-action-row">
+            <text class="image-link" role="button" bindtap="chooseMainImage">更换</text>
+            <text class="image-link danger" role="button" bindtap="removeMainImage">移除</text>
+          </view>
+        </view>
+        <view wx:else class="image-empty" role="button" bindtap="chooseMainImage">
+          <view class="image-empty-icon"><app-icon name="image" size="38"></app-icon></view>
+          <view>
+            <text class="image-empty-title">添加主图</text>
+            <text class="image-empty-copy">记录做成后的样子</text>
+          </view>
+        </view>
+      </view>
+
       <!-- —— 食材：常用点选 + 名称/用量两框 —— -->
       <view class="form-section">
         <view class="section-head" role="button" data-section="ingredients" bindtap="toggleSection">
@@ -87,7 +106,7 @@
           <view class="step-list">
             <view
               wx:for="{{steps}}"
-              wx:key="index"
+              wx:key="id"
               class="step-item {{stepEditingIndex === index ? 'editing' : ''}}"
               role="button"
               aria-label="修改第 {{index + 1}} 步"
@@ -95,7 +114,8 @@
               bindtap="editStep"
             >
               <text class="step-number">{{index + 1}}</text>
-              <text class="step-copy">{{item}}</text>
+              <text class="step-copy">{{item.text}}</text>
+              <image wx:if="{{item.image}}" class="step-list-thumb" src="{{item.image.localPath}}" mode="aspectFill" lazy-load></image>
               <view class="step-tail"><app-icon name="chevron-right" size="26"></app-icon></view>
             </view>
             <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，在下面写下第一条</view>
@@ -115,6 +135,16 @@
             <view class="quick-add-button {{stepDraft ? '' : 'disabled'}}" role="button" bindtap="commitStepDraft">
               {{stepEditingIndex >= 0 ? '改好' : '加入'}}
             </view>
+          </view>
+          <view wx:if="{{stepImageDraft}}" class="step-image-editor">
+            <image class="step-image-preview" src="{{stepImageDraft.localPath}}" mode="aspectFill"></image>
+            <view class="image-action-row compact">
+              <text class="image-link" role="button" bindtap="chooseStepImage">更换</text>
+              <text class="image-link danger" role="button" bindtap="removeStepImage">移除</text>
+            </view>
+          </view>
+          <view wx:else class="step-image-add {{stepDraft ? '' : 'disabled'}}" role="button" bindtap="chooseStepImage">
+            <app-icon name="image" size="28"></app-icon><text>添加步骤图</text>
           </view>
           <view wx:if="{{stepEditingIndex >= 0}}" class="edit-strip">
             <text class="strip-link" role="button" data-offset="-1" bindtap="moveEditingStep">上移</text>
@@ -171,7 +201,7 @@
 
     <!-- 保存按钮与表单放在同一个滚动层，避免真机/模拟器的 scroll-view 原生层截获点击。 -->
     <view wx:if="{{found}}" class="action-bar inline-action-bar">
-      <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? '正在保存…' : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
+      <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
     </view>
   </scroll-view>
 </view>

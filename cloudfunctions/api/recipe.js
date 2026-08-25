@@ -23,8 +23,23 @@ function writableDocument(record) {
     delete data._id;
     return data;
 }
-function contentOf(recipe) {
-    return (0, validation_1.normalizeRecipeContent)(recipe);
+function contentOf(recipe, familyId) {
+    return (0, validation_1.normalizeRecipeContent)(recipe, familyId);
+}
+/** 列表读取时也清洗旧步骤和旧修订快照，但不会主动改写数据库。 */
+function readableRecipe(recipe, familyId) {
+    const revisions = Array.isArray(recipe.revisions)
+        ? recipe.revisions.map((revision) => {
+            const raw = revision;
+            return { ...raw, snapshot: (0, validation_1.normalizeRecipeContent)(raw.snapshot, familyId) };
+        })
+        : [];
+    return {
+        ...recipe,
+        ...contentOf(recipe, familyId),
+        id: String(recipe._id),
+        revisions,
+    };
 }
 function memberView(member) {
     return {
@@ -49,7 +64,7 @@ async function listRecipeState(userId) {
     const family = familyResult.data;
     const recipes = recipeResult.data
         .filter((recipe) => !recipe.archivedAt)
-        .map((recipe) => ({ ...recipe, id: String(recipe._id) }));
+        .map((recipe) => readableRecipe(recipe, current.familyId));
     return {
         family: { id: family._id, name: family.name },
         currentMemberId: current._id,
@@ -59,7 +74,7 @@ async function listRecipeState(userId) {
 }
 async function createRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
-    const content = (0, validation_1.normalizeRecipeContent)(payload.content);
+    const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId);
     const recipeId = id('r-');
     const now = new Date().toISOString();
     const formal = content.successKeys.length > 0;
@@ -100,7 +115,7 @@ async function ownedRecipe(familyId, recipeId) {
 async function updateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
     const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
-    const content = (0, validation_1.normalizeRecipeContent)(payload.content);
+    const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId);
     (0, errors_1.assertDomain)(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验');
     const expectedVersion = Number(payload.expectedVersion);
     const summary = (0, validation_1.requiredText)(payload.summary, '修改说明', 100);
@@ -133,8 +148,14 @@ async function duplicateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
     const sourceId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
     const source = await ownedRecipe(member.familyId, sourceId);
+    const sourceContent = contentOf(source, member.familyId);
     return createRecipe(userId, {
-        content: { ...contentOf(source), name: `${String(source.name)}（副本）` },
+        content: {
+            ...sourceContent,
+            name: `${String(source.name)}（副本）`,
+            // 副本的步骤是新的内容实体，但同一家庭内可安全复用图片文件。
+            steps: sourceContent.steps.map((step) => ({ ...step, id: id('step-') })),
+        },
     });
 }
 /**
@@ -183,7 +204,7 @@ async function restoreRevision(userId, payload) {
             ? [...current.revisions] : [];
         const target = revisions.find((item) => item.id === revisionId);
         (0, errors_1.assertDomain)(target && target.snapshot, 'VALIDATION_ERROR', '修订记录不存在');
-        const content = (0, validation_1.normalizeRecipeContent)(target.snapshot);
+        const content = (0, validation_1.normalizeRecipeContent)(target.snapshot, member.familyId);
         const version = expectedVersion + 1;
         revisions.push({
             id: id('rev-'), authorId: member._id, time: now,

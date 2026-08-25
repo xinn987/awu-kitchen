@@ -1,9 +1,21 @@
 /** 食谱详情：优先呈现成功关键，其次才是食材和步骤。 */
-import type { Recipe } from '../../models/recipe'
+import type { Recipe, RecipeImage, RecipeStep } from '../../models/recipe'
+import { resolveRecipeImageUrls } from '../../services/recipe-media'
 import { archiveRecipe, duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
 
-interface DetailView extends Recipe {
+interface DetailImage extends RecipeImage {
+  src: string
+  loadError: boolean
+}
+
+interface DetailStep extends Omit<RecipeStep, 'image'> {
+  image?: DetailImage
+}
+
+interface DetailView extends Omit<Recipe, 'mainImage' | 'steps'> {
+  mainImage?: DetailImage
+  steps: DetailStep[]
   isDraft: boolean
   updatedName: string
   createdName: string
@@ -42,10 +54,15 @@ Page({
       }
       const updatedMember = getMemberById(state, recipe.updatedById)
       const createdMember = getMemberById(state, recipe.createdById)
+      const viewImage = (image?: RecipeImage): DetailImage | undefined => image
+        ? { ...image, src: image.fileId, loadError: false }
+        : undefined
       this.setData({
         found: true,
         recipe: {
           ...recipe,
+          mainImage: viewImage(recipe.mainImage),
+          steps: recipe.steps.map((step) => ({ ...step, image: viewImage(step.image) })),
           isDraft: !isFormalRecipe(recipe),
           updatedName: updatedMember ? updatedMember.name : '家人',
           createdName: createdMember ? createdMember.name : '家人',
@@ -75,6 +92,50 @@ Page({
 
   openHistory() {
     wx.navigateTo({ url: `/pages/history/index?id=${this.data.id}` })
+  },
+
+  /** 点击任一图片时，按“主图 + 步骤顺序”浏览当前食谱的全部图片。 */
+  async previewImage(event: WechatMiniprogram.BaseEvent) {
+    const recipe = this.data.recipe
+    if (!recipe) return
+    const currentFileId = String(event.currentTarget.dataset.fileId)
+    const fileIds = [
+      recipe.mainImage && recipe.mainImage.fileId,
+      ...recipe.steps.map((step) => step.image && step.image.fileId),
+    ].filter((fileId): fileId is string => Boolean(fileId))
+    try {
+      const resolved = await resolveRecipeImageUrls(fileIds)
+      const urls = resolved.map((item) => item.url)
+      const current = resolved.find((item) => item.fileId === currentFileId)
+      if (urls.length === 0) throw new Error('图片暂时无法打开')
+      wx.previewImage({ current: current ? current.url : urls[0], urls })
+    } catch (error) {
+      this.showToast(error instanceof Error ? error.message : '图片暂时无法打开')
+    }
+  },
+
+  onImageError(event: WechatMiniprogram.BaseEvent) {
+    const kind = String(event.currentTarget.dataset.kind)
+    if (kind === 'main') {
+      this.setData({ 'recipe.mainImage.loadError': true } as Record<string, boolean>)
+      return
+    }
+    const index = Number(event.currentTarget.dataset.index)
+    this.setData({ [`recipe.steps[${index}].image.loadError`]: true } as Record<string, boolean>)
+  },
+
+  retryImage(event: WechatMiniprogram.BaseEvent) {
+    const recipe = this.data.recipe
+    if (!recipe) return
+    const kind = String(event.currentTarget.dataset.kind)
+    const index = Number(event.currentTarget.dataset.index)
+    const image = kind === 'main' ? recipe.mainImage : recipe.steps[index] && recipe.steps[index].image
+    if (!image) return
+    const srcPath = kind === 'main' ? 'recipe.mainImage' : `recipe.steps[${index}].image`
+    // 先清空 src 再恢复，让原生 image 节点真正发起一次新的加载。
+    this.setData({ [`${srcPath}.loadError`]: false, [`${srcPath}.src`]: '' } as Record<string, string | boolean>, () => {
+      this.setData({ [`${srcPath}.src`]: image.fileId } as Record<string, string>)
+    })
   },
 
   async duplicate() {

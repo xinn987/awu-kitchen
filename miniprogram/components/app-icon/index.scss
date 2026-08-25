@@ -27,6 +27,8 @@ $foot: "%3C/svg%3E";
 
 .icon-x { @include icon-mask("#{$head}%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E#{$foot}"); }
 
+.icon-image { @include icon-mask("#{$head}%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E#{$foot}"); }
+
 .icon-chevron-left { @include icon-mask("#{$head}%3Cpolyline points='15 18 9 12 15 6'/%3E#{$foot}"); }
 
 .icon-chevron-down { @include icon-mask("#{$head}%3Cpolyline points='6 9 12 15 18 9'/%3E#{$foot}"); }

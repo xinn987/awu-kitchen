@@ -43,6 +43,22 @@
         </view>
       </view>
 
+      <view wx:if="{{recipe.mainImage}}" class="main-photo-wrap">
+        <view wx:if="{{recipe.mainImage.loadError}}" class="image-error main-image-error" role="button" data-kind="main" bindtap="retryImage">
+          <text>图片加载失败</text><text class="retry-link">重新加载</text>
+        </view>
+        <image
+          wx:else
+          class="main-photo"
+          src="{{recipe.mainImage.src}}"
+          mode="aspectFill"
+          data-kind="main"
+          data-file-id="{{recipe.mainImage.fileId}}"
+          bindtap="previewImage"
+          binderror="onImageError"
+        ></image>
+      </view>
+
       <view wx:if="{{recipe.ingredients.length > 0}}" class="detail-section">
         <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
         <view class="ingredient-row" wx:for="{{recipe.ingredients}}" wx:key="index">
@@ -52,9 +68,28 @@
 
       <view wx:if="{{recipe.steps.length > 0}}" class="detail-section steps-section">
         <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
-        <view wx:for="{{recipe.steps}}" wx:key="index" class="step-row">
+        <view wx:for="{{recipe.steps}}" wx:key="id" class="step-row">
           <text class="step-number">{{index + 1}}</text>
-          <text class="step-copy">{{item}}</text>
+          <view class="step-body">
+            <text class="step-copy">{{item.text}}</text>
+            <view wx:if="{{item.image}}" class="step-photo-wrap">
+              <view wx:if="{{item.image.loadError}}" class="image-error step-image-error" role="button" data-kind="step" data-index="{{index}}" bindtap="retryImage">
+                <text>图片加载失败</text><text class="retry-link">重新加载</text>
+              </view>
+              <image
+                wx:else
+                class="step-photo"
+                src="{{item.image.src}}"
+                mode="aspectFill"
+                lazy-load
+                data-kind="step"
+                data-index="{{index}}"
+                data-file-id="{{item.image.fileId}}"
+                bindtap="previewImage"
+                binderror="onImageError"
+              ></image>
+            </view>
+          </view>
         </view>
       </view>
 

@@ -17,12 +17,27 @@ export interface Ingredient {
   amount?: string
 }
 
+/** 云存储中的一张食谱图片；数据库只保存引用和展示尺寸。 */
+export interface RecipeImage {
+  fileId: string
+  width: number
+  height: number
+}
+
+/** 步骤拥有稳定身份，移动顺序时图片仍跟随这一步。 */
+export interface RecipeStep {
+  id: string
+  text: string
+  image?: RecipeImage
+}
+
 /** 一次修订保存一份完整快照，恢复时不会破坏旧历史。 */
 export interface RecipeContent {
   name: string
   successKeys: string[]
+  mainImage?: RecipeImage
   ingredients: Ingredient[]
-  steps: string[]
+  steps: RecipeStep[]
   stage?: Stage
   type?: FoodType
   tags: string[]

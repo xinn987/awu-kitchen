@@ -5,20 +5,58 @@
  * 内存缓存只用于页面间复用，云端始终是权威数据源。
  */
 
-import type { Member, Recipe, RecipeContent, RecipeState } from '../models/recipe'
+import type { Member, Recipe, RecipeContent, RecipeImage, RecipeState, RecipeStep, Revision } from '../models/recipe'
 import { isFormalRecipe } from '../utils/recipe-utils'
+import { uid } from '../utils/recipe-utils'
 import { callApi } from './cloud-client'
 
 let cachedState: RecipeState | undefined
 let pendingState: Promise<RecipeState> | undefined
+
+function normalizeImage(value: unknown): RecipeImage | undefined {
+  const raw = (value || {}) as Partial<RecipeImage>
+  if (typeof raw.fileId !== 'string' || !raw.fileId) return undefined
+  const width = Number(raw.width)
+  const height = Number(raw.height)
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return undefined
+  return { fileId: raw.fileId, width, height }
+}
+
+/** 兼容云端尚未升级时返回的旧字符串步骤，并为本次编辑生成稳定身份。 */
+function normalizeSteps(value: unknown): RecipeStep[] {
+  if (!Array.isArray(value)) return []
+  return value.map((item) => {
+    if (typeof item === 'string') return { id: uid('step-'), text: item }
+    const raw = (item || {}) as Partial<RecipeStep>
+    return {
+      id: typeof raw.id === 'string' && raw.id ? raw.id : uid('step-'),
+      text: typeof raw.text === 'string' ? raw.text : '',
+      image: normalizeImage(raw.image),
+    }
+  }).filter((step) => step.text.trim().length > 0)
+}
+
+function normalizeRevision(revision: Revision): Revision {
+  const snapshot = revision.snapshot as RecipeContent & { steps: unknown; mainImage?: unknown }
+  return {
+    ...revision,
+    snapshot: {
+      ...snapshot,
+      mainImage: normalizeImage(snapshot.mainImage),
+      steps: normalizeSteps(snapshot.steps),
+    },
+  }
+}
 
 function normalizeState(state: RecipeState): RecipeState {
   return {
     ...state,
     recipes: state.recipes.map((recipe) => ({
       ...recipe,
+      mainImage: normalizeImage((recipe as Recipe & { mainImage?: unknown }).mainImage),
+      steps: normalizeSteps((recipe as Recipe & { steps: unknown }).steps),
       version: recipe.version || 1,
-      revisions: Array.isArray(recipe.revisions) ? recipe.revisions : [],
+      revisions: Array.isArray(recipe.revisions) ? recipe.revisions.map(normalizeRevision) : [],
     })),
   }
 }

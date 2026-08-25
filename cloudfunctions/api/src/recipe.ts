@@ -15,8 +15,24 @@ function writableDocument(record: Record<string, unknown>): Record<string, unkno
   return data
 }
 
-function contentOf(recipe: Record<string, unknown>): RecipeContent {
-  return normalizeRecipeContent(recipe)
+function contentOf(recipe: Record<string, unknown>, familyId: string): RecipeContent {
+  return normalizeRecipeContent(recipe, familyId)
+}
+
+/** 列表读取时也清洗旧步骤和旧修订快照，但不会主动改写数据库。 */
+function readableRecipe(recipe: Record<string, unknown>, familyId: string) {
+  const revisions = Array.isArray(recipe.revisions)
+    ? recipe.revisions.map((revision) => {
+        const raw = revision as Record<string, unknown>
+        return { ...raw, snapshot: normalizeRecipeContent(raw.snapshot, familyId) }
+      })
+    : []
+  return {
+    ...recipe,
+    ...contentOf(recipe, familyId),
+    id: String(recipe._id),
+    revisions,
+  }
 }
 
 function memberView(member: MemberRecord) {
@@ -43,7 +59,7 @@ export async function listRecipeState(userId: string) {
   const family = familyResult.data
   const recipes = recipeResult.data
     .filter((recipe) => !recipe.archivedAt)
-    .map((recipe) => ({ ...recipe, id: String(recipe._id) }))
+    .map((recipe) => readableRecipe(recipe, current.familyId))
   return {
     family: { id: family._id, name: family.name },
     currentMemberId: current._id,
@@ -54,7 +70,7 @@ export async function listRecipeState(userId: string) {
 
 export async function createRecipe(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
-  const content = normalizeRecipeContent(payload.content)
+  const content = normalizeRecipeContent(payload.content, member.familyId)
   const recipeId = id('r-')
   const now = new Date().toISOString()
   const formal = content.successKeys.length > 0
@@ -97,7 +113,7 @@ async function ownedRecipe(familyId: string, recipeId: string): Promise<Record<s
 export async function updateRecipe(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
   const recipeId = requiredText(payload.recipeId, '食谱', 80)
-  const content = normalizeRecipeContent(payload.content)
+  const content = normalizeRecipeContent(payload.content, member.familyId)
   assertDomain(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验')
   const expectedVersion = Number(payload.expectedVersion)
   const summary = requiredText(payload.summary, '修改说明', 100)
@@ -132,8 +148,14 @@ export async function duplicateRecipe(userId: string, payload: Record<string, un
   const { member } = await getActiveContext(userId)
   const sourceId = requiredText(payload.recipeId, '食谱', 80)
   const source = await ownedRecipe(member.familyId, sourceId)
+  const sourceContent = contentOf(source, member.familyId)
   return createRecipe(userId, {
-    content: { ...contentOf(source), name: `${String(source.name)}（副本）` },
+    content: {
+      ...sourceContent,
+      name: `${String(source.name)}（副本）`,
+      // 副本的步骤是新的内容实体，但同一家庭内可安全复用图片文件。
+      steps: sourceContent.steps.map((step) => ({ ...step, id: id('step-') })),
+    },
   })
 }
 
@@ -186,7 +208,7 @@ export async function restoreRevision(userId: string, payload: Record<string, un
       ? [...current.revisions] as Array<Record<string, unknown>> : []
     const target = revisions.find((item) => item.id === revisionId)
     assertDomain(target && target.snapshot, 'VALIDATION_ERROR', '修订记录不存在')
-    const content = normalizeRecipeContent(target.snapshot)
+    const content = normalizeRecipeContent(target.snapshot, member.familyId)
     const version = expectedVersion + 1
     revisions.push({
       id: id('rev-'), authorId: member._id, time: now,
