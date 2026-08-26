@@ -7,6 +7,7 @@ const errors_1 = require("./errors");
 const family_1 = require("./family");
 const recipe_1 = require("./recipe");
 const recipe_comment_1 = require("./recipe-comment");
+const recipe_options_1 = require("./recipe-options");
 const handlers = {
     'session.bootstrap': (userId) => (0, family_1.bootstrap)(userId),
     'family.create': family_1.createFamily,
@@ -25,6 +26,9 @@ const handlers = {
     'recipeComment.create': recipe_comment_1.createRecipeComment,
     'recipeComment.update': recipe_comment_1.updateRecipeComment,
     'recipeComment.delete': recipe_comment_1.deleteRecipeComment,
+    'recipeOptions.list': recipe_options_1.listRecipeOptions,
+    'recipeOptions.add': recipe_options_1.addRecipeOption,
+    'recipeOptions.remove': recipe_options_1.removeRecipeOption,
 };
 /** 单一入口只负责路由和错误翻译，业务逻辑留在对应模块。 */
 async function main(event) {

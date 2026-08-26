@@ -14,6 +14,7 @@ const auth_1 = require("./auth");
 const cloud_1 = require("./cloud");
 const errors_1 = require("./errors");
 const validation_1 = require("./validation");
+const recipe_option_model_1 = require("./recipe-option-model");
 function id(prefix) {
     return `${prefix}${crypto_1.default.randomBytes(12).toString('hex')}`;
 }
@@ -23,20 +24,20 @@ function writableDocument(record) {
     delete data._id;
     return data;
 }
-function contentOf(recipe, familyId) {
-    return (0, validation_1.normalizeRecipeContent)(recipe, familyId);
+function contentOf(recipe, familyId, recipeOptions) {
+    return (0, validation_1.normalizeRecipeContent)(recipe, familyId, recipeOptions);
 }
 /** 列表读取时也清洗旧步骤和旧修订快照，但不会主动改写数据库。 */
-function readableRecipe(recipe, familyId) {
+function readableRecipe(recipe, familyId, recipeOptions) {
     const revisions = Array.isArray(recipe.revisions)
         ? recipe.revisions.map((revision) => {
             const raw = revision;
-            return { ...raw, snapshot: (0, validation_1.normalizeRecipeContent)(raw.snapshot, familyId) };
+            return { ...raw, snapshot: (0, validation_1.normalizeRecipeContent)(raw.snapshot, familyId, recipeOptions) };
         })
         : [];
     return {
         ...recipe,
-        ...contentOf(recipe, familyId),
+        ...contentOf(recipe, familyId, recipeOptions),
         id: String(recipe._id),
         revisions,
     };
@@ -86,13 +87,15 @@ async function listRecipeState(userId, payload) {
     const memberResult = memberRaw;
     const recipeResult = recipeRaw;
     const family = familyResult.data;
+    const recipeOptions = (0, recipe_option_model_1.optionsFromFamily)(family);
     const recipes = recipeResult.data
         .filter((recipe) => !recipe.archivedAt)
-        .map((recipe) => readableRecipe(recipe, current.familyId))
+        .map((recipe) => readableRecipe(recipe, current.familyId, recipeOptions))
         .map((recipe) => recipeViewForClient(recipe, payload));
     return {
         recipeSchemaVersion: 2,
-        family: { id: family._id, name: family.name },
+        family: { id: String(family._id), name: String(family.name) },
+        recipeOptions,
         currentMemberId: current._id,
         members: memberResult.data.map(memberView),
         recipes,
@@ -100,28 +103,33 @@ async function listRecipeState(userId, payload) {
 }
 async function createRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
-    const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId);
     const recipeId = id('r-');
     const now = new Date().toISOString();
-    const formal = content.successKeys.length > 0;
-    const revisions = formal ? [{
-            id: id('rev-'), authorId: member._id, time: now,
-            summary: '初次收录', snapshot: content,
-        }] : [];
-    const recipe = {
-        ...content,
-        _id: recipeId,
-        id: recipeId,
-        familyId: member.familyId,
-        state: formal ? 'formal' : 'pending',
-        createdById: member._id,
-        createdAt: now,
-        updatedById: member._id,
-        updatedAt: now,
-        version: 1,
-        revisions,
-    };
-    await cloud_1.db.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) });
+    let recipe = {};
+    await cloud_1.db.runTransaction(async (transaction) => {
+        const familyResult = await transaction.collection('families').doc(member.familyId).get();
+        const recipeOptions = (0, recipe_option_model_1.optionsFromFamily)(familyResult.data);
+        const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId, recipeOptions);
+        const formal = content.successKeys.length > 0;
+        const revisions = formal ? [{
+                id: id('rev-'), authorId: member._id, time: now,
+                summary: '初次收录', snapshot: content,
+            }] : [];
+        recipe = {
+            ...content,
+            _id: recipeId,
+            id: recipeId,
+            familyId: member.familyId,
+            state: formal ? 'formal' : 'pending',
+            createdById: member._id,
+            createdAt: now,
+            updatedById: member._id,
+            updatedAt: now,
+            version: 1,
+            revisions,
+        };
+        await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) });
+    });
     return recipeViewForClient(recipe, payload);
 }
 async function ownedRecipe(familyId, recipeId) {
@@ -141,15 +149,17 @@ async function ownedRecipe(familyId, recipeId) {
 async function updateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
     const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
-    const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId);
-    (0, errors_1.assertDomain)(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验');
     const expectedVersion = Number(payload.expectedVersion);
     const summary = (0, validation_1.requiredText)(payload.summary, '修改说明', 100);
     const now = new Date().toISOString();
     let next = {};
     await cloud_1.db.runTransaction(async (transaction) => {
         const result = await transaction.collection('recipes').doc(recipeId).get();
+        const familyResult = await transaction.collection('families').doc(member.familyId).get();
         const current = result.data;
+        const recipeOptions = (0, recipe_option_model_1.optionsFromFamily)(familyResult.data);
+        const content = (0, validation_1.normalizeRecipeContent)(payload.content, member.familyId, recipeOptions);
+        (0, errors_1.assertDomain)(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验');
         (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱');
         (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
         (0, errors_1.assertDomain)(supportsRecipeImages(payload) || !hasRecipeImages(current), 'CLIENT_UPDATE_REQUIRED', '这份食谱包含图片，请先更新到最新体验版再修改');
@@ -174,8 +184,11 @@ async function updateRecipe(userId, payload) {
 async function duplicateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);
     const sourceId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
-    const source = await ownedRecipe(member.familyId, sourceId);
-    const sourceContent = contentOf(source, member.familyId);
+    const [source, familyResult] = await Promise.all([
+        ownedRecipe(member.familyId, sourceId),
+        cloud_1.db.collection('families').doc(member.familyId).get(),
+    ]);
+    const sourceContent = contentOf(source, member.familyId, (0, recipe_option_model_1.optionsFromFamily)(familyResult.data));
     return createRecipe(userId, {
         clientSchemaVersion: payload.clientSchemaVersion,
         content: {
@@ -224,6 +237,7 @@ async function restoreRevision(userId, payload) {
     let next = {};
     await cloud_1.db.runTransaction(async (transaction) => {
         const result = await transaction.collection('recipes').doc(recipeId).get();
+        const familyResult = await transaction.collection('families').doc(member.familyId).get();
         const current = result.data;
         (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱');
         (0, errors_1.assertDomain)(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓');
@@ -232,7 +246,8 @@ async function restoreRevision(userId, payload) {
             ? [...current.revisions] : [];
         const target = revisions.find((item) => item.id === revisionId);
         (0, errors_1.assertDomain)(target && target.snapshot, 'VALIDATION_ERROR', '修订记录不存在');
-        const content = (0, validation_1.normalizeRecipeContent)(target.snapshot, member.familyId);
+        const recipeOptions = (0, recipe_option_model_1.optionsFromFamily)(familyResult.data);
+        const content = (0, validation_1.normalizeRecipeContent)(target.snapshot, member.familyId, recipeOptions);
         const version = expectedVersion + 1;
         revisions.push({
             id: id('rev-'), authorId: member._id, time: now,

@@ -8,8 +8,6 @@ exports.normalizeDisplayName = normalizeDisplayName;
 exports.normalizeRecipeContent = normalizeRecipeContent;
 const crypto_1 = __importDefault(require("crypto"));
 const errors_1 = require("./errors");
-const FOOD_TYPES = ['粥类', '面食', '蛋羹', '泥糊', '汤羹', '小饼'];
-const STAGES = ['细腻泥糊', '带小颗粒', '软烂块状', '手指食物'];
 function text(value, max) {
     return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }
@@ -68,7 +66,7 @@ function normalizeDisplayName(value) {
     return requiredText(value, '家庭称谓', 20);
 }
 /** 云端重新清洗食谱内容，不能直接信任客户端已经做过的校验。 */
-function normalizeRecipeContent(value, familyId) {
+function normalizeRecipeContent(value, familyId, recipeOptions) {
     const raw = (value || {});
     const ingredients = Array.isArray(raw.ingredients)
         ? raw.ingredients.slice(0, 30).map((item) => {
@@ -87,8 +85,8 @@ function normalizeRecipeContent(value, familyId) {
         mainImage,
         ingredients,
         steps: normalizeSteps(raw.steps, familyId),
-        type: FOOD_TYPES.includes(type) ? type : undefined,
-        stage: STAGES.includes(stage) ? stage : undefined,
+        type: recipeOptions.foodTypes.includes(type) ? type : undefined,
+        stage: recipeOptions.stages.includes(stage) ? stage : undefined,
         tags: textList(raw.tags, 3, 20),
     };
 }

@@ -22,4 +22,8 @@ Page({
       fail: () => wx.redirectTo({ url: '/pages/family/index' }),
     })
   },
+
+  openRecipeOptions() {
+    wx.navigateTo({ url: '/pages/recipe-options/index' })
+  },
 })

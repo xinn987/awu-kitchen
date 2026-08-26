@@ -6,11 +6,15 @@
  * userId；正式小程序不在客户端保存或伪造微信身份。
  */
 
-export const FOOD_TYPES = ['粥类', '面食', '蛋羹', '泥糊', '汤羹', '小饼'] as const
-export type FoodType = (typeof FOOD_TYPES)[number]
+/** 辅食类型和适用阶段由家庭共同维护，不再使用客户端固定枚举。 */
+export type FoodType = string
+export type Stage = string
 
-export const STAGES = ['细腻泥糊', '带小颗粒', '软烂块状', '手指食物'] as const
-export type Stage = (typeof STAGES)[number]
+export interface RecipeOptions {
+  foodTypes: FoodType[]
+  stages: Stage[]
+  version: number
+}
 
 export interface Ingredient {
   name: string
@@ -100,6 +104,7 @@ export interface Family {
 
 export interface RecipeState {
   family: Family
+  recipeOptions: RecipeOptions
   recipes: Recipe[]
   members: Member[]
   currentMemberId?: string

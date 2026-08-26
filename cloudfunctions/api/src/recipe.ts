@@ -3,6 +3,7 @@ import { getActiveContext, type MemberRecord } from './auth'
 import { db } from './cloud'
 import { DomainError, assertDomain } from './errors'
 import { normalizeRecipeContent, requiredText, type RecipeContent } from './validation'
+import { optionsFromFamily, type RecipeOptions } from './recipe-option-model'
 
 function id(prefix: string): string {
   return `${prefix}${crypto.randomBytes(12).toString('hex')}`
@@ -15,21 +16,25 @@ function writableDocument(record: Record<string, unknown>): Record<string, unkno
   return data
 }
 
-function contentOf(recipe: Record<string, unknown>, familyId: string): RecipeContent {
-  return normalizeRecipeContent(recipe, familyId)
+function contentOf(
+  recipe: Record<string, unknown>,
+  familyId: string,
+  recipeOptions: RecipeOptions,
+): RecipeContent {
+  return normalizeRecipeContent(recipe, familyId, recipeOptions)
 }
 
 /** 列表读取时也清洗旧步骤和旧修订快照，但不会主动改写数据库。 */
-function readableRecipe(recipe: Record<string, unknown>, familyId: string) {
+function readableRecipe(recipe: Record<string, unknown>, familyId: string, recipeOptions: RecipeOptions) {
   const revisions = Array.isArray(recipe.revisions)
     ? recipe.revisions.map((revision) => {
         const raw = revision as Record<string, unknown>
-        return { ...raw, snapshot: normalizeRecipeContent(raw.snapshot, familyId) }
+        return { ...raw, snapshot: normalizeRecipeContent(raw.snapshot, familyId, recipeOptions) }
       })
     : []
   return {
     ...recipe,
-    ...contentOf(recipe, familyId),
+    ...contentOf(recipe, familyId, recipeOptions),
     id: String(recipe._id),
     revisions,
   }
@@ -78,17 +83,19 @@ export async function listRecipeState(userId: string, payload: Record<string, un
     db.collection('family_members').where({ familyId: current.familyId }).limit(100).get(),
     db.collection('recipes').where({ familyId: current.familyId }).limit(1000).get(),
   ])
-  const familyResult = familyRaw as unknown as { data: { _id: string; name: string } }
+  const familyResult = familyRaw as unknown as { data: Record<string, unknown> }
   const memberResult = memberRaw as unknown as { data: MemberRecord[] }
   const recipeResult = recipeRaw as unknown as { data: Array<Record<string, unknown>> }
   const family = familyResult.data
+  const recipeOptions = optionsFromFamily(family)
   const recipes = recipeResult.data
     .filter((recipe) => !recipe.archivedAt)
-    .map((recipe) => readableRecipe(recipe, current.familyId))
+    .map((recipe) => readableRecipe(recipe, current.familyId, recipeOptions))
     .map((recipe) => recipeViewForClient(recipe, payload))
   return {
     recipeSchemaVersion: 2,
-    family: { id: family._id, name: family.name },
+    family: { id: String(family._id), name: String(family.name) },
+    recipeOptions,
     currentMemberId: current._id,
     members: memberResult.data.map(memberView),
     recipes,
@@ -97,28 +104,33 @@ export async function listRecipeState(userId: string, payload: Record<string, un
 
 export async function createRecipe(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
-  const content = normalizeRecipeContent(payload.content, member.familyId)
   const recipeId = id('r-')
   const now = new Date().toISOString()
-  const formal = content.successKeys.length > 0
-  const revisions = formal ? [{
-    id: id('rev-'), authorId: member._id, time: now,
-    summary: '初次收录', snapshot: content,
-  }] : []
-  const recipe = {
-    ...content,
-    _id: recipeId,
-    id: recipeId,
-    familyId: member.familyId,
-    state: formal ? 'formal' : 'pending',
-    createdById: member._id,
-    createdAt: now,
-    updatedById: member._id,
-    updatedAt: now,
-    version: 1,
-    revisions,
-  }
-  await db.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) })
+  let recipe: Record<string, unknown> = {}
+  await db.runTransaction(async (transaction: any) => {
+    const familyResult = await transaction.collection('families').doc(member.familyId).get()
+    const recipeOptions = optionsFromFamily(familyResult.data as Record<string, unknown>)
+    const content = normalizeRecipeContent(payload.content, member.familyId, recipeOptions)
+    const formal = content.successKeys.length > 0
+    const revisions = formal ? [{
+      id: id('rev-'), authorId: member._id, time: now,
+      summary: '初次收录', snapshot: content,
+    }] : []
+    recipe = {
+      ...content,
+      _id: recipeId,
+      id: recipeId,
+      familyId: member.familyId,
+      state: formal ? 'formal' : 'pending',
+      createdById: member._id,
+      createdAt: now,
+      updatedById: member._id,
+      updatedAt: now,
+      version: 1,
+      revisions,
+    }
+    await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(recipe) })
+  })
   return recipeViewForClient(recipe, payload)
 }
 
@@ -140,8 +152,6 @@ async function ownedRecipe(familyId: string, recipeId: string): Promise<Record<s
 export async function updateRecipe(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
   const recipeId = requiredText(payload.recipeId, '食谱', 80)
-  const content = normalizeRecipeContent(payload.content, member.familyId)
-  assertDomain(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验')
   const expectedVersion = Number(payload.expectedVersion)
   const summary = requiredText(payload.summary, '修改说明', 100)
   const now = new Date().toISOString()
@@ -149,7 +159,11 @@ export async function updateRecipe(userId: string, payload: Record<string, unkno
 
   await db.runTransaction(async (transaction: any) => {
     const result = await transaction.collection('recipes').doc(recipeId).get()
+    const familyResult = await transaction.collection('families').doc(member.familyId).get()
     const current = result.data as Record<string, unknown>
+    const recipeOptions = optionsFromFamily(familyResult.data as Record<string, unknown>)
+    const content = normalizeRecipeContent(payload.content, member.familyId, recipeOptions)
+    assertDomain(content.successKeys.length > 0, 'VALIDATION_ERROR', '正式食谱至少需要一条关键经验')
     assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权编辑这份食谱')
     assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
     assertDomain(
@@ -179,8 +193,11 @@ export async function updateRecipe(userId: string, payload: Record<string, unkno
 export async function duplicateRecipe(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
   const sourceId = requiredText(payload.recipeId, '食谱', 80)
-  const source = await ownedRecipe(member.familyId, sourceId)
-  const sourceContent = contentOf(source, member.familyId)
+  const [source, familyResult] = await Promise.all([
+    ownedRecipe(member.familyId, sourceId),
+    db.collection('families').doc(member.familyId).get() as unknown as Promise<{ data: Record<string, unknown> }>,
+  ])
+  const sourceContent = contentOf(source, member.familyId, optionsFromFamily(familyResult.data))
   return createRecipe(userId, {
     clientSchemaVersion: payload.clientSchemaVersion,
     content: {
@@ -233,6 +250,7 @@ export async function restoreRevision(userId: string, payload: Record<string, un
 
   await db.runTransaction(async (transaction: any) => {
     const result = await transaction.collection('recipes').doc(recipeId).get()
+    const familyResult = await transaction.collection('families').doc(member.familyId).get()
     const current = result.data as Record<string, unknown>
     assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱')
     assertDomain(!current.archivedAt, 'RECIPE_ARCHIVED', '这份食谱已移入废纸篓')
@@ -241,7 +259,8 @@ export async function restoreRevision(userId: string, payload: Record<string, un
       ? [...current.revisions] as Array<Record<string, unknown>> : []
     const target = revisions.find((item) => item.id === revisionId)
     assertDomain(target && target.snapshot, 'VALIDATION_ERROR', '修订记录不存在')
-    const content = normalizeRecipeContent(target.snapshot, member.familyId)
+    const recipeOptions = optionsFromFamily(familyResult.data as Record<string, unknown>)
+    const content = normalizeRecipeContent(target.snapshot, member.familyId, recipeOptions)
     const version = expectedVersion + 1
     revisions.push({
       id: id('rev-'), authorId: member._id, time: now,

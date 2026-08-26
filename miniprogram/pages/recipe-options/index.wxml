@@ -1,0 +1,96 @@
+<view class="page-shell">
+  <page-navbar left-text="返回" title="食谱选项" subtitle="{{familyName}}" bindleft="back"></page-navbar>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="options-content">
+      <view class="shared-note">
+        <app-icon name="users" size="30"></app-icon>
+        <text>所有家庭成员都可以修改，变更会对全家生效。</text>
+      </view>
+
+      <view wx:if="{{loading && foodTypes.length === 0 && stages.length === 0}}" class="empty-state">正在加载食谱选项…</view>
+
+      <view wx:else class="option-sections">
+        <view class="option-section">
+          <view class="section-heading">
+            <view>
+              <text class="section-title font-serif">辅食类型</text>
+              <text class="section-description">每份食谱最多选择一项</text>
+            </view>
+            <text class="section-count">{{foodTypes.length}} 项</text>
+          </view>
+
+          <view class="option-card">
+            <view wx:for="{{foodTypes}}" wx:key="name" class="option-row">
+              <view class="option-copy">
+                <text class="option-name">{{item.name}}</text>
+                <text class="usage-copy">{{item.usageCount > 0 ? item.usageCount + ' 份食谱使用' : '暂未使用'}}</text>
+              </view>
+              <view class="remove-option" role="button" data-kind="foodType" data-name="{{item.name}}" data-count="{{item.usageCount}}" bindtap="askRemove">删除</view>
+            </view>
+            <view wx:if="{{foodTypes.length === 0}}" class="section-empty">还没有辅食类型，食谱会保持未选择。</view>
+            <view class="add-option" role="button" data-kind="foodType" bindtap="startAdd">
+              <app-icon name="plus" size="28"></app-icon><text>添加辅食类型</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="option-section">
+          <view class="section-heading">
+            <view>
+              <text class="section-title font-serif">适用阶段</text>
+              <text class="section-description">用于记录食物最终形态</text>
+            </view>
+            <text class="section-count">{{stages.length}} 项</text>
+          </view>
+
+          <view class="option-card">
+            <view wx:for="{{stages}}" wx:key="name" class="option-row">
+              <view class="option-copy">
+                <text class="option-name">{{item.name}}</text>
+                <text class="usage-copy">{{item.usageCount > 0 ? item.usageCount + ' 份食谱使用' : '暂未使用'}}</text>
+              </view>
+              <view class="remove-option" role="button" data-kind="stage" data-name="{{item.name}}" data-count="{{item.usageCount}}" bindtap="askRemove">删除</view>
+            </view>
+            <view wx:if="{{stages.length === 0}}" class="section-empty">还没有适用阶段，食谱会保持未选择。</view>
+            <view class="add-option" role="button" data-kind="stage" bindtap="startAdd">
+              <app-icon name="plus" size="28"></app-icon><text>添加适用阶段</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{addingKind}}" class="action-panel">
+    <text class="panel-title">添加{{addingLabel}}</text>
+    <input
+      class="option-input"
+      value="{{draft}}"
+      maxlength="20"
+      focus
+      confirm-type="done"
+      placeholder="输入名称"
+      placeholder-class="option-placeholder"
+      bindinput="onDraftInput"
+      bindconfirm="confirmAdd"
+    />
+    <view class="panel-actions">
+      <view class="panel-cancel" role="button" bindtap="cancelAdd">取消</view>
+      <view class="panel-confirm {{!draft || saving ? 'disabled' : ''}}" role="button" bindtap="confirmAdd">{{saving ? '添加中…' : '添加'}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{confirmKind}}" class="action-panel">
+    <text class="panel-title">删除“{{confirmName}}”？</text>
+    <text class="panel-copy" wx:if="{{confirmUsageCount > 0}}">有 {{confirmUsageCount}} 份食谱正在使用。删除后，这些食谱会变为“未选择{{confirmKind === 'foodType' ? '辅食类型' : '适用阶段'}}”。</text>
+    <text class="panel-copy" wx:else>删除后，新食谱将不能再选择这一项。</text>
+    <text class="panel-note">食谱的其他内容不会改变。</text>
+    <view class="panel-actions">
+      <view class="panel-cancel" role="button" bindtap="cancelRemove">取消</view>
+      <view class="panel-delete" role="button" bindtap="confirmRemove">{{saving ? '删除中…' : '确认删除'}}</view>
+    </view>
+  </view>
+
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

@@ -49,16 +49,29 @@ function normalizeRevision(revision: Revision): Revision {
 }
 
 function normalizeState(state: RecipeState): RecipeState {
+  const recipes = state.recipes.map((recipe) => ({
+    ...recipe,
+    mainImage: normalizeImage((recipe as Recipe & { mainImage?: unknown }).mainImage),
+    steps: normalizeSteps((recipe as Recipe & { steps: unknown }).steps),
+    version: recipe.version || 1,
+    commentCount: Math.max(0, Number(recipe.commentCount) || 0),
+    revisions: Array.isArray(recipe.revisions) ? recipe.revisions.map(normalizeRevision) : [],
+  }))
+  const rawOptions = (state as RecipeState & { recipeOptions?: Partial<RecipeState['recipeOptions']> }).recipeOptions
+  const optionNames = (value: unknown, fallback: string[]) => Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : fallback
   return {
     ...state,
-    recipes: state.recipes.map((recipe) => ({
-      ...recipe,
-      mainImage: normalizeImage((recipe as Recipe & { mainImage?: unknown }).mainImage),
-      steps: normalizeSteps((recipe as Recipe & { steps: unknown }).steps),
-      version: recipe.version || 1,
-      commentCount: Math.max(0, Number(recipe.commentCount) || 0),
-      revisions: Array.isArray(recipe.revisions) ? recipe.revisions.map(normalizeRevision) : [],
-    })),
+    recipes,
+    recipeOptions: {
+      // 老云函数响应没有家庭配置时，只用已有食谱值兜底，不重新引入客户端固定白名单。
+      foodTypes: optionNames(rawOptions && rawOptions.foodTypes,
+        [...new Set(recipes.map((recipe) => recipe.type).filter((item): item is string => Boolean(item)))]),
+      stages: optionNames(rawOptions && rawOptions.stages,
+        [...new Set(recipes.map((recipe) => recipe.stage).filter((item): item is string => Boolean(item)))]),
+      version: Math.max(0, Number(rawOptions && rawOptions.version) || 0),
+    },
   }
 }
 

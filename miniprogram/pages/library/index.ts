@@ -1,5 +1,5 @@
 /** 家庭食谱库：首页、搜索、轻量筛选和待补条目入口。 */
-import { FOOD_TYPES, type Recipe, type RecipeState } from '../../models/recipe'
+import type { Recipe, RecipeState } from '../../models/recipe'
 import {
   getCachedState, getFormalRecipes, getMemberById, getPendingRecipes, getState,
 } from '../../services/recipe-store'
@@ -69,7 +69,11 @@ Page({
     const formalRecipes = getFormalRecipes(state)
     const pendingRecipes = getPendingRecipes(state)
     const query = this.data.query.trim().toLowerCase()
-    const filter = this.data.filter
+    const activeTypeFilters = state.recipeOptions.foodTypes
+    const filter = this.data.filter === '全部' || this.data.filter === '待补充'
+      || activeTypeFilters.includes(this.data.filter)
+      ? this.data.filter
+      : '全部'
     const memberOf = (memberId: string) => getMemberById(state, memberId)
     const nameOf = (memberId: string): string => {
       const member = memberOf(memberId)
@@ -104,13 +108,14 @@ Page({
     })
     const baseChips = [
       { label: '全部', count: formalRecipes.length },
-      ...FOOD_TYPES.filter((type) => (typeCounts.get(type) || 0) > 0)
+      ...activeTypeFilters.filter((type) => (typeCounts.get(type) || 0) > 0)
         .map((type) => ({ label: type, count: typeCounts.get(type) || 0 })),
       ...(pendingRecipes.length > 0 ? [{ label: '待补充', count: pendingRecipes.length }] : []),
     ]
     this.setData({
       formalCount: formalRecipes.length,
       pendingCount: pendingRecipes.length,
+      filter,
       chips: baseChips.map((chip) => ({ ...chip, active: chip.label === filter })),
       formal: formalRecipes.filter(matchesQuery).filter(matchesType).map(toCard),
       drafts: filter === '全部' || filter === '待补充'

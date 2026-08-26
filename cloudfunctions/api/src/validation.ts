@@ -1,8 +1,6 @@
 import crypto from 'crypto'
 import { DomainError } from './errors'
-
-const FOOD_TYPES = ['粥类', '面食', '蛋羹', '泥糊', '汤羹', '小饼']
-const STAGES = ['细腻泥糊', '带小颗粒', '软烂块状', '手指食物']
+import type { RecipeOptions } from './recipe-option-model'
 
 export interface RecipeImage {
   fileId: string
@@ -88,7 +86,11 @@ export function normalizeDisplayName(value: unknown): string {
 }
 
 /** 云端重新清洗食谱内容，不能直接信任客户端已经做过的校验。 */
-export function normalizeRecipeContent(value: unknown, familyId: string): RecipeContent {
+export function normalizeRecipeContent(
+  value: unknown,
+  familyId: string,
+  recipeOptions: RecipeOptions,
+): RecipeContent {
   const raw = (value || {}) as Record<string, unknown>
   const ingredients = Array.isArray(raw.ingredients)
     ? raw.ingredients.slice(0, 30).map((item) => {
@@ -107,8 +109,8 @@ export function normalizeRecipeContent(value: unknown, familyId: string): Recipe
     mainImage,
     ingredients,
     steps: normalizeSteps(raw.steps, familyId),
-    type: FOOD_TYPES.includes(type) ? type : undefined,
-    stage: STAGES.includes(stage) ? stage : undefined,
+    type: recipeOptions.foodTypes.includes(type) ? type : undefined,
+    stage: recipeOptions.stages.includes(stage) ? stage : undefined,
     tags: textList(raw.tags, 3, 20),
   }
 }

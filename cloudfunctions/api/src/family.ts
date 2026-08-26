@@ -3,6 +3,7 @@ import { ensureUser, getActiveContext, requireAdmin, type MemberRecord } from '.
 import { db } from './cloud'
 import { DomainError, assertDomain } from './errors'
 import { normalizeDisplayName, requiredText } from './validation'
+import { defaultRecipeOptions } from './recipe-option-model'
 const MEMBER_COLORS = ['#BF5924', '#4A7C8A', '#6B8A4A', '#8A6A4A', '#6A5A8A']
 const INVITE_TTL = 24 * 60 * 60 * 1000
 
@@ -62,7 +63,13 @@ export async function createFamily(userId: string, payload: Record<string, unkno
     const user = userResult.data as { activeMemberId?: string | null }
     assertDomain(!user.activeMemberId, 'ALREADY_IN_FAMILY', '你已经加入了一个家庭')
     await transaction.collection('families').doc(familyId).set({
-      data: { name: familyName, adminMemberId: memberId, createdAt: now, updatedAt: now },
+      data: {
+        name: familyName,
+        adminMemberId: memberId,
+        recipeOptions: defaultRecipeOptions(),
+        createdAt: now,
+        updatedAt: now,
+      },
     })
     await transaction.collection('family_members').doc(memberId).set({
       data: {

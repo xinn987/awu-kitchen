@@ -15,6 +15,7 @@ const auth_1 = require("./auth");
 const cloud_1 = require("./cloud");
 const errors_1 = require("./errors");
 const validation_1 = require("./validation");
+const recipe_option_model_1 = require("./recipe-option-model");
 const MEMBER_COLORS = ['#BF5924', '#4A7C8A', '#6B8A4A', '#8A6A4A', '#6A5A8A'];
 const INVITE_TTL = 24 * 60 * 60 * 1000;
 function id(prefix) {
@@ -68,7 +69,13 @@ async function createFamily(userId, payload) {
         const user = userResult.data;
         (0, errors_1.assertDomain)(!user.activeMemberId, 'ALREADY_IN_FAMILY', '你已经加入了一个家庭');
         await transaction.collection('families').doc(familyId).set({
-            data: { name: familyName, adminMemberId: memberId, createdAt: now, updatedAt: now },
+            data: {
+                name: familyName,
+                adminMemberId: memberId,
+                recipeOptions: (0, recipe_option_model_1.defaultRecipeOptions)(),
+                createdAt: now,
+                updatedAt: now,
+            },
         });
         await transaction.collection('family_members').doc(memberId).set({
             data: {

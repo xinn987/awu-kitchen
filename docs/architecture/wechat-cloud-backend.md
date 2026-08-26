@@ -50,6 +50,7 @@
 | `_id` | 家庭 ID |
 | `name` | 家庭名称 |
 | `adminMemberId` | 当前管理员成员 ID |
+| `recipeOptions` | 家庭共用的辅食类型、适用阶段及配置版本 |
 | `createdAt`、`updatedAt` | 服务端时间 |
 
 ### 3.3 `family_members`
@@ -121,6 +122,7 @@
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
 | 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.duplicate`、`recipe.restoreRevision` |
 | 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
+| 食谱选项 | `recipeOptions.list`、`recipeOptions.add`、`recipeOptions.remove` |
 
 所有接口统一返回：
 
@@ -187,6 +189,12 @@ type ApiResponse<T> =
 评论列表支持 `newest / oldest`，默认最新。所有有效家庭成员都可查看和发布评论；只有作者能编辑自己的评论，作者或家庭管理员可以删除，管理员不能编辑他人评论。客户端的操作入口只改善交互，最终权限始终由云函数重新判断。
 
 创建和删除在事务中同步食谱 `commentCount`；编辑只更新评论自身版本。食谱归档后评论不可访问，复制食谱和恢复旧修订都不会复制或回滚评论。
+
+### 5.7 家庭食谱选项
+
+老家庭没有 `recipeOptions` 时由云函数返回原固定选项作为默认配置；新家庭创建时直接写入默认配置。客户端和食谱写入不再维护固定白名单。
+
+所有有效成员都可以添加和删除。配置使用独立 `version` 做并发校验。删除选项时先从家庭配置移除，再清除当前食谱中的对应值并递增食谱版本；不改变修改人、更新时间和修订数组。食谱列表、复制和历史恢复都会按最新家庭配置过滤，已删除选项不能重新出现。
 
 ## 6. 前端迁移
 

@@ -7,7 +7,8 @@
     "pages/recipe-edit/index",
     "pages/history/index",
     "pages/family/index",
-    "pages/settings/index"
+    "pages/settings/index",
+    "pages/recipe-options/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

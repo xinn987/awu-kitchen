@@ -10,6 +10,7 @@ import {
 import {
   createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
 } from './recipe-comment'
+import { addRecipeOption, listRecipeOptions, removeRecipeOption } from './recipe-options'
 
 interface ApiEvent {
   action?: string
@@ -34,6 +35,9 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipeComment.create': createRecipeComment,
   'recipeComment.update': updateRecipeComment,
   'recipeComment.delete': deleteRecipeComment,
+  'recipeOptions.list': listRecipeOptions,
+  'recipeOptions.add': addRecipeOption,
+  'recipeOptions.remove': removeRecipeOption,
 }
 
 /** 单一入口只负责路由和错误翻译，业务逻辑留在对应模块。 */

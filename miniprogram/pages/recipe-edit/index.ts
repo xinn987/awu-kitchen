@@ -3,8 +3,6 @@
  * 本地选图不会立即上传；确认保存时才统一处理图片并提交食谱版本。
  */
 import {
-  FOOD_TYPES,
-  STAGES,
   type FoodType,
   type Ingredient,
   type RecipeImage,
@@ -135,7 +133,7 @@ Page({
       // 编辑页复用详情/列表快照；保存时仍由 expectedVersion 防止覆盖家人的新版本。
       let state = await getState()
       // 云函数刚升级时，内存里可能还是旧列表响应；只在缺少结构版本时强制校准一次。
-      if (state.recipeSchemaVersion !== 2) state = await getState(true)
+      if (state.recipeSchemaVersion !== 2 || state.recipeOptions.version === 0) state = await getState(true)
       const recipe = state.recipes.find((item) => item.id === id)
       if (!recipe) {
         this.setData({ id, found: false })
@@ -183,8 +181,10 @@ Page({
       canSave: this.data.name.trim().length > 0 && hasKeys,
       formalizing: this.data.wasDraft && hasKeys,
       showKeysHint: this.data.name.trim().length > 0 && !hasKeys,
-      typeOptions: FOOD_TYPES.map((label) => ({ label, active: label === this.data.type })),
-      stageOptions: STAGES.map((label) => ({ label, active: label === this.data.stage })),
+      typeOptions: (state ? state.recipeOptions.foodTypes : [])
+        .map((label) => ({ label, active: label === this.data.type })),
+      stageOptions: (state ? state.recipeOptions.stages : [])
+        .map((label) => ({ label, active: label === this.data.stage })),
       ingredientsCount: this.data.ingredients.filter((item) => item.name.trim()).length,
       stepsCount: this.data.steps.filter((step) => step.text.trim()).length,
       classifyCount: this.data.tags.length + (this.data.type ? 1 : 0) + (this.data.stage ? 1 : 0),

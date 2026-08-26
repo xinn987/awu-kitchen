@@ -2,6 +2,17 @@
   <page-navbar left-text="返回" title="设置" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="settings-content">
+      <text class="settings-section-label">家庭设置</text>
+      <view class="settings-card option-entry" role="button" bindtap="openRecipeOptions">
+        <view class="entry-icon"><app-icon name="tag" size="32"></app-icon></view>
+        <view class="entry-copy">
+          <text class="entry-title">食谱选项</text>
+          <text class="entry-description">管理辅食类型和适用阶段</text>
+        </view>
+        <app-icon name="chevron-right" size="30"></app-icon>
+      </view>
+
+      <text class="settings-section-label version-section-label">关于</text>
       <view class="version-card">
         <text class="version-label">当前版本</text>
         <text class="version-number font-serif">{{versionLabel}}</text>
