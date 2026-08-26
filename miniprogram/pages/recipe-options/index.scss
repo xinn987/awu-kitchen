@@ -1,24 +1,25 @@
-.options-content { padding: 28rpx 32rpx 60rpx; }
-.shared-note { display: flex; align-items: flex-start; gap: 12rpx; padding: 20rpx 24rpx; border-radius: 22rpx; background: rgba(234, 227, 216, 0.58); color: #7c6f63; font-size: 23rpx; line-height: 1.65; }
-.shared-note app-icon { margin-top: 3rpx; color: #bf5924; }
-.option-sections { display: flex; flex-direction: column; gap: 42rpx; margin-top: 34rpx; }
-.section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20rpx; padding: 0 10rpx 14rpx; }
+.options-content { padding: 30rpx 40rpx 72rpx; }
+.page-description { display: block; max-width: 620rpx; color: #7c6f63; font-size: 24rpx; line-height: 1.7; }
+.option-sections { display: flex; flex-direction: column; gap: 54rpx; margin-top: 44rpx; }
+.section-heading { padding-bottom: 22rpx; }
 .section-title, .section-description { display: block; }
-.section-title { color: #1a1714; font-size: 31rpx; font-weight: 600; }
-.section-description { margin-top: 5rpx; color: #9a8e82; font-size: 21rpx; }
-.section-count { flex-shrink: 0; color: #9a8e82; font-size: 22rpx; }
-.option-card { overflow: hidden; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 28rpx; background: #fff; box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
-.option-row { min-height: 106rpx; margin: 0 28rpx; display: flex; align-items: center; justify-content: space-between; gap: 20rpx; border-bottom: 1rpx solid rgba(26, 23, 20, 0.07); }
-.option-copy { flex: 1; min-width: 0; }
-.option-name, .usage-copy { display: block; }
-.option-name { color: #1a1714; font-size: 27rpx; font-weight: 500; }
-.usage-copy { margin-top: 5rpx; color: #9a8e82; font-size: 21rpx; }
-.remove-option { min-height: 64rpx; display: flex; align-items: center; padding: 0 4rpx 0 20rpx; flex-shrink: 0; color: #a84a37; font-size: 23rpx; }
-.remove-option:active { opacity: 0.5; }
-.section-empty { padding: 30rpx 28rpx 20rpx; color: #9a8e82; font-size: 23rpx; line-height: 1.65; }
-.add-option { height: 88rpx; display: flex; align-items: center; justify-content: center; gap: 8rpx; color: #bf5924; font-size: 25rpx; font-weight: 500; }
-.add-option:active { background: rgba(191, 89, 36, 0.04); }
+.section-title { color: #1a1714; font-size: 32rpx; font-weight: 600; line-height: 1.35; }
+.section-description { margin-top: 7rpx; color: #9a8e82; font-size: 22rpx; }
 
+/* 与首页筛选和食谱分类使用同一套胶囊语言，避免管理页变成系统表格。 */
+.option-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 16rpx; }
+.option-chip, .add-option { min-height: 62rpx; display: inline-flex; align-items: center; border-radius: 999rpx; font-size: 24rpx; font-weight: 500; transition: transform 0.15s ease; }
+.option-chip { padding: 0 10rpx 0 24rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); background: #fff; color: #6f6257; }
+.option-name { max-width: 360rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.option-remove { width: 44rpx; height: 44rpx; margin-left: 5rpx; display: flex; align-items: center; justify-content: center; border-radius: 999rpx; color: rgba(124, 111, 99, 0.58); }
+.option-remove:active { background: rgba(26, 23, 20, 0.06); color: #7c6f63; }
+.add-option { gap: 5rpx; padding: 0 22rpx; border: 1rpx solid rgba(191, 89, 36, 0.34); background: rgba(255, 255, 255, 0.42); color: #bf5924; }
+.option-chip:active, .add-option:active { transform: scale(0.96); }
+.section-empty { display: block; margin: -2rpx 0 18rpx; color: #9a8e82; font-size: 23rpx; line-height: 1.65; }
+.shared-note { display: flex; align-items: center; gap: 12rpx; padding-top: 4rpx; color: #9a8e82; font-size: 22rpx; line-height: 1.6; }
+.shared-note app-icon { flex-shrink: 0; color: rgba(124, 111, 99, 0.7); }
+
+.panel-backdrop { position: fixed; z-index: 70; top: 0; right: 0; bottom: 0; left: 0; background: rgba(26, 23, 20, 0.14); animation: option-backdrop-in 0.18s ease; }
 .action-panel { position: fixed; z-index: 80; left: 32rpx; right: 32rpx; bottom: calc(24rpx + env(safe-area-inset-bottom)); padding: 30rpx; border: 1rpx solid rgba(26, 23, 20, 0.1); border-radius: 30rpx; background: #fff; box-shadow: 0 30rpx 80rpx rgba(26, 23, 20, 0.2); animation: option-panel-in 0.2s cubic-bezier(0.2, 0.7, 0.3, 1); }
 .panel-title { display: block; color: #1a1714; font-size: 28rpx; font-weight: 500; }
 .panel-copy { display: block; margin-top: 16rpx; color: #5f554c; font-size: 24rpx; line-height: 1.7; }
@@ -36,4 +37,9 @@
 @keyframes option-panel-in {
   from { opacity: 0; transform: translateY(24rpx); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes option-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

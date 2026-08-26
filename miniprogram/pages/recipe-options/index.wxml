@@ -3,65 +3,77 @@
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="options-content">
-      <view class="shared-note">
-        <app-icon name="users" size="30"></app-icon>
-        <text>所有家庭成员都可以修改，变更会对全家生效。</text>
-      </view>
+      <text class="page-description">管理食谱编辑时可选的分类。删除后，原食谱会回到未选择状态。</text>
 
       <view wx:if="{{loading && foodTypes.length === 0 && stages.length === 0}}" class="empty-state">正在加载食谱选项…</view>
 
       <view wx:else class="option-sections">
         <view class="option-section">
           <view class="section-heading">
-            <view>
-              <text class="section-title font-serif">辅食类型</text>
-              <text class="section-description">每份食谱最多选择一项</text>
-            </view>
-            <text class="section-count">{{foodTypes.length}} 项</text>
+            <text class="section-title font-serif">辅食类型</text>
+            <text class="section-description">每份食谱最多选择一项</text>
           </view>
 
-          <view class="option-card">
-            <view wx:for="{{foodTypes}}" wx:key="name" class="option-row">
-              <view class="option-copy">
-                <text class="option-name">{{item.name}}</text>
-                <text class="usage-copy">{{item.usageCount > 0 ? item.usageCount + ' 份食谱使用' : '暂未使用'}}</text>
+          <!-- 选项沿用首页的胶囊语言；使用数量只在真正删除时提示。 -->
+          <text wx:if="{{foodTypes.length === 0}}" class="section-empty">尚未设置，食谱会保持未选择。</text>
+          <view class="option-chips">
+            <view wx:for="{{foodTypes}}" wx:key="name" class="option-chip">
+              <text class="option-name">{{item.name}}</text>
+              <view
+                class="option-remove"
+                role="button"
+                aria-label="删除{{item.name}}"
+                data-kind="foodType"
+                data-name="{{item.name}}"
+                data-count="{{item.usageCount}}"
+                catchtap="askRemove"
+              >
+                <app-icon name="x" size="24"></app-icon>
               </view>
-              <view class="remove-option" role="button" data-kind="foodType" data-name="{{item.name}}" data-count="{{item.usageCount}}" bindtap="askRemove">删除</view>
             </view>
-            <view wx:if="{{foodTypes.length === 0}}" class="section-empty">还没有辅食类型，食谱会保持未选择。</view>
             <view class="add-option" role="button" data-kind="foodType" bindtap="startAdd">
-              <app-icon name="plus" size="28"></app-icon><text>添加辅食类型</text>
+              <app-icon name="plus" size="24"></app-icon><text>添加</text>
             </view>
           </view>
         </view>
 
         <view class="option-section">
           <view class="section-heading">
-            <view>
-              <text class="section-title font-serif">适用阶段</text>
-              <text class="section-description">用于记录食物最终形态</text>
-            </view>
-            <text class="section-count">{{stages.length}} 项</text>
+            <text class="section-title font-serif">适用阶段</text>
+            <text class="section-description">用于记录食物最终形态</text>
           </view>
 
-          <view class="option-card">
-            <view wx:for="{{stages}}" wx:key="name" class="option-row">
-              <view class="option-copy">
-                <text class="option-name">{{item.name}}</text>
-                <text class="usage-copy">{{item.usageCount > 0 ? item.usageCount + ' 份食谱使用' : '暂未使用'}}</text>
+          <text wx:if="{{stages.length === 0}}" class="section-empty">尚未设置，食谱会保持未选择。</text>
+          <view class="option-chips">
+            <view wx:for="{{stages}}" wx:key="name" class="option-chip">
+              <text class="option-name">{{item.name}}</text>
+              <view
+                class="option-remove"
+                role="button"
+                aria-label="删除{{item.name}}"
+                data-kind="stage"
+                data-name="{{item.name}}"
+                data-count="{{item.usageCount}}"
+                catchtap="askRemove"
+              >
+                <app-icon name="x" size="24"></app-icon>
               </view>
-              <view class="remove-option" role="button" data-kind="stage" data-name="{{item.name}}" data-count="{{item.usageCount}}" bindtap="askRemove">删除</view>
             </view>
-            <view wx:if="{{stages.length === 0}}" class="section-empty">还没有适用阶段，食谱会保持未选择。</view>
             <view class="add-option" role="button" data-kind="stage" bindtap="startAdd">
-              <app-icon name="plus" size="28"></app-icon><text>添加适用阶段</text>
+              <app-icon name="plus" size="24"></app-icon><text>添加</text>
             </view>
           </view>
+        </view>
+
+        <view class="shared-note">
+          <app-icon name="users" size="28"></app-icon>
+          <text>所有家庭成员都可以修改，变更会对全家生效。</text>
         </view>
       </view>
     </view>
   </scroll-view>
 
+  <view wx:if="{{addingKind}}" class="panel-backdrop" bindtap="cancelAdd"></view>
   <view wx:if="{{addingKind}}" class="action-panel">
     <text class="panel-title">添加{{addingLabel}}</text>
     <input
@@ -81,6 +93,7 @@
     </view>
   </view>
 
+  <view wx:if="{{confirmKind}}" class="panel-backdrop" bindtap="cancelRemove"></view>
   <view wx:if="{{confirmKind}}" class="action-panel">
     <text class="panel-title">删除“{{confirmName}}”？</text>
     <text class="panel-copy" wx:if="{{confirmUsageCount > 0}}">有 {{confirmUsageCount}} 份食谱正在使用。删除后，这些食谱会变为“未选择{{confirmKind === 'foodType' ? '辅食类型' : '适用阶段'}}”。</text>
