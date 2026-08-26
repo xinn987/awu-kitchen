@@ -1,13 +1,27 @@
 // 线性图标库：与 HTTP demo 的 Feather/Tabler 图标同一几何风格。
 // 用 mask 而非 background-image，便于颜色跟随 currentColor。
 
+/*
+ * 自定义组件默认按文字基线参与排版，会在图标下方留下行盒空间，
+ * 导致“图标 + 文字”按钮里的图标看起来偏上。宿主改为零行高的
+ * inline-flex 后，所有页面都以图标自身的几何中心参与对齐。
+ */
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+  vertical-align: middle;
+}
+
 @mixin icon-mask($svg) {
   -webkit-mask-image: url("data:image/svg+xml,#{$svg}");
   mask-image: url("data:image/svg+xml,#{$svg}");
 }
 
 .icon {
-  display: inline-block;
+  display: block;
   flex-shrink: 0;
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
