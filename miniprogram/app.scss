@@ -1,11 +1,56 @@
-/** 全局视觉令牌来自 HTTP 设计稿，以 390px 宽设计稿换算 rpx。 */
+/**
+ * 全局视觉令牌来自 HTTP 设计稿，以 390px 宽设计稿换算 rpx。
+ * 色板、字号和圆角统一以 CSS 变量下发，页面样式只允许引用变量，
+ * 这样暗色模式和后续调色只需要改这一处。
+ */
 
 page {
+  /* —— 色板：暖纸面 —— */
+  --paper: #f4efe6;        /* 页面底色 */
+  --paper-soft: #eae3d8;   /* 胶囊、徽章底 */
+  --paper-deep: #ede6da;   /* 输入框、图片占位底 */
+  --paper-dim: #e3dcd2;    /* 禁用态底 */
+  --card: #ffffff;         /* 卡片底 */
+
+  /* —— 色板：文字与线条 —— */
+  --ink: #1a1714;          /* 正文 */
+  --ink-soft: #5f554c;     /* 强调的次级文字 */
+  --ink-2: #6f6257;        /* 次级文字，纸面上对比度 ≥ 4.5:1 */
+  --ink-faint: #9a8e82;    /* 仅装饰性文字、图标与禁用文字 */
+  --line: rgba(26, 23, 20, 0.1);     /* 卡片描边 */
+  --line-soft: rgba(26, 23, 20, 0.07); /* 分隔线 */
+  --line-strong: rgba(26, 23, 20, 0.14); /* 强调描边 */
+
+  /* —— 色板：品牌与语义 —— */
+  --brand: #bf5924;        /* 主行动色 */
+  --brand-tint: rgba(191, 89, 36, 0.4); /* 强调条、弱化描边 */
+  --brand-wash: rgba(191, 89, 36, 0.06); /* 选中/编辑高亮底 */
+  --danger: #b3402a;       /* 唯一的警示色 */
+  --danger-wash: rgba(179, 64, 42, 0.08);
+  --mask: rgba(26, 23, 20, 0.35);      /* 半屏遮罩 */
+  --mask-soft: rgba(26, 23, 20, 0.14); /* 轻遮罩 */
+
+  /* —— 字号标尺 —— */
+  --fs-caption: 22rpx;     /* 徽章、计数 */
+  --fs-meta: 24rpx;        /* 说明、时间等次级信息 */
+  --fs-body: 28rpx;        /* 正文 */
+  --fs-title-sm: 32rpx;    /* 卡片标题 */
+  --fs-title: 38rpx;       /* 表单标题 */
+  --fs-display: 46rpx;     /* 页面大标题 */
+
+  /* —— 圆角标尺 —— */
+  --r-sm: 18rpx;
+  --r-md: 24rpx;
+  --r-lg: 28rpx;
+  --r-xl: 32rpx;
+  --r-sheet: 44rpx;
+  --r-pill: 999rpx;
+
   height: 100%;
-  background: #f4efe6;
-  color: #1a1714;
+  background: var(--paper);
+  color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: 28rpx;
+  font-size: var(--fs-body);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -28,7 +73,7 @@ button::after { border: 0; }
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f4efe6;
+  background: var(--paper);
   overflow: hidden;
   animation: page-in 0.22s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
@@ -41,7 +86,7 @@ button::after { border: 0; }
 
 .page-scroll { flex: 1; min-height: 0; }
 .page-content { padding: 0 40rpx 40rpx; }
-.muted { color: #9a8e82; }
+.muted { color: var(--ink-faint); }
 
 .section-label {
   display: flex;
@@ -49,7 +94,7 @@ button::after { border: 0; }
   gap: 10rpx;
   margin-bottom: 24rpx;
   color: rgba(26, 23, 20, 0.45);
-  font-size: 25rpx;
+  font-size: var(--fs-meta);
   font-weight: 500;
   letter-spacing: 0.12em;
 }
@@ -59,10 +104,10 @@ button::after { border: 0; }
   align-items: center;
   min-height: 36rpx;
   padding: 2rpx 16rpx;
-  border-radius: 999rpx;
-  background: #eae3d8;
-  color: #7c6f63;
-  font-size: 22rpx;
+  border-radius: var(--r-pill);
+  background: var(--paper-soft);
+  color: var(--ink-2);
+  font-size: var(--fs-caption);
   font-weight: 500;
 }
 
@@ -72,16 +117,16 @@ button::after { border: 0; }
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  border-radius: 28rpx;
-  font-size: 28rpx;
+  border-radius: var(--r-lg);
+  font-size: var(--fs-body);
   font-weight: 500;
   transition: transform 0.15s ease;
 }
 
-.primary-button { background: #bf5924; color: #fff; }
+.primary-button { background: var(--brand); color: #fff; }
 .primary-button:active, .secondary-button:active { transform: scale(0.97); }
-.primary-button[disabled], .primary-button.disabled { background: #e3dcd2; color: #9a8e82; }
-.secondary-button { background: #fff; color: #7c6f63; border: 1rpx solid rgba(26, 23, 20, 0.12); }
+.primary-button[disabled], .primary-button.disabled { background: var(--paper-dim); color: var(--ink-faint); }
+.secondary-button { background: var(--card); color: var(--ink-2); border: 1rpx solid var(--line); }
 
 .action-bar {
   position: relative;
@@ -91,22 +136,20 @@ button::after { border: 0; }
   align-items: center;
   gap: 20rpx;
   padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid rgba(26, 23, 20, 0.08);
-  background: rgba(244, 239, 230, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  border-top: 1rpx solid var(--line-soft);
+  background: var(--paper);
 }
 
-.field-label { margin-bottom: 14rpx; color: #7c6f63; font-size: 24rpx; font-weight: 500; }
+.field-label { margin-bottom: 14rpx; color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; }
 
 .field-input, .field-textarea {
   width: 100%;
   border: 0;
-  border-radius: 24rpx;
-  background: #ede6da;
-  color: #1a1714;
+  border-radius: var(--r-md);
+  background: var(--paper-deep);
+  color: var(--ink);
 }
 
 .field-input { height: 78rpx; padding: 0 24rpx; }
 .field-textarea { min-height: 112rpx; padding: 20rpx 24rpx; line-height: 1.7; }
-.empty-state { padding: 112rpx 40rpx; color: #9a8e82; text-align: center; font-size: 27rpx; }
+.empty-state { padding: 112rpx 40rpx; color: var(--ink-2); text-align: center; font-size: var(--fs-meta); }
