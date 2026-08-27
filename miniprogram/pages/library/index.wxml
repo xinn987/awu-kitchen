@@ -13,6 +13,7 @@
       <view class="search-box">
         <view class="search-icon"><app-icon name="search" size="30"></app-icon></view>
         <input value="{{query}}" placeholder="搜索食谱名或食材" placeholder-class="search-placeholder" bindinput="onSearchInput" />
+        <view wx:if="{{query}}" class="search-clear" role="button" aria-label="清空搜索" bindtap="clearSearch"><app-icon name="x" size="28"></app-icon></view>
       </view>
     </view>
 

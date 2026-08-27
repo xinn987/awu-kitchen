@@ -90,8 +90,12 @@ Page({
         ...recipe.tags, ...recipe.ingredients.map((item) => item.name),
       ].join(' ').toLowerCase().includes(query)
     }
-    const matchesType = (recipe: Recipe) =>
-      filter === '全部' || filter === '待补充' || recipe.type === filter
+    const matchesType = (recipe: Recipe) => {
+      if (filter === '全部') return true
+      // “待补充”筛选只看草稿，正式食谱不再混入结果。
+      if (filter === '待补充') return false
+      return recipe.type === filter
+    }
     const toCard = (recipe: Recipe): RecipeCardView => ({
       ...recipe,
       isDraft: !isFormalRecipe(recipe),
@@ -128,6 +132,11 @@ Page({
     this.setData({ query: event.detail.value })
     if (searchTimer) clearTimeout(searchTimer)
     searchTimer = setTimeout(() => { void this.refresh() }, 150)
+  },
+
+  clearSearch() {
+    if (searchTimer) clearTimeout(searchTimer)
+    this.setData({ query: '' }, () => { void this.refresh() })
   },
 
   selectFilter(event: WechatMiniprogram.BaseEvent) {

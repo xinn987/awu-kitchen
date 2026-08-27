@@ -1,7 +1,7 @@
 <view class="page-shell comments-page">
   <page-navbar left-text="返回" title="评论" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
 
-  <view wx:if="{{found}}" class="sort-bar">
+  <view wx:if="{{found && comments.length > 0}}" class="sort-bar">
     <view
       class="sort-option {{sort === 'newest' ? 'active' : ''}}"
       role="button"
@@ -18,12 +18,12 @@
     >最旧</view>
   </view>
 
-  <scroll-view class="comment-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+  <scroll-view class="comment-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}">
     <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:elif="{{loading && comments.length === 0}}" class="empty-state">正在加载评论…</view>
     <view wx:elif="{{comments.length === 0}}" class="empty-state comment-empty">还没有评论，写下这次尝试，或者想问家人的问题。</view>
     <view wx:else class="comment-list {{loading ? 'refreshing' : ''}}">
-      <view wx:for="{{comments}}" wx:key="id" class="comment-item">
+      <view wx:for="{{comments}}" wx:key="id" class="comment-item" id="comment-{{item.id}}">
         <member-avatar name="{{item.authorName}}" size="58" color="{{item.avatarColor}}"></member-avatar>
         <view class="comment-main">
           <view class="comment-head">
@@ -85,7 +85,7 @@
         bindtap="submitComment"
       >{{submitting ? '保存中' : (editingId ? '保存' : '发送')}}</view>
     </view>
-    <text class="character-count">{{draft.length}} / 500</text>
+    <text wx:if="{{draft.length >= 400}}" class="character-count">{{draft.length}} / 500</text>
   </view>
 
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>

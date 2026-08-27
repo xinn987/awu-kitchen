@@ -56,6 +56,7 @@ Page({
     menuId: '',
     deleteId: '',
     deletingId: '',
+    scrollAnchor: '',
     toastVisible: false,
     toastMessage: '',
   },
@@ -224,6 +225,9 @@ Page({
         draft: '',
         focusInput: false,
         submitting: false,
+      }, () => {
+        // 输入框在页面底部，最新排序时新评论在列表顶部，发送后滚过去让发送者看到结果。
+        this.setData({ scrollAnchor: `comment-${view.id}` })
       })
     } catch (error) {
       // 请求失败时保留输入和编辑状态，用户可直接重试。
