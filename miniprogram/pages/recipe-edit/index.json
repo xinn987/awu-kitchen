@@ -1,6 +1,7 @@
 {
   "usingComponents": {
     "app-icon": "/components/app-icon/index",
-    "page-navbar": "/components/page-navbar/index"
+    "page-navbar": "/components/page-navbar/index",
+    "confirm-panel": "/components/confirm-panel/index"
   }
 }

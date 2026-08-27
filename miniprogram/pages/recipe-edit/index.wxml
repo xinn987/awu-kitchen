@@ -204,4 +204,17 @@
       <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
     </view>
   </scroll-view>
+
+  <confirm-panel
+    visible="{{confirmVisible}}"
+    title="{{confirmTitle}}"
+    copy="{{confirmCopy}}"
+    note="{{confirmNote}}"
+    confirm-text="{{confirmText}}"
+    cancel-text="{{confirmCancelText}}"
+    danger="{{confirmDanger}}"
+    cancelable="{{confirmCancelable}}"
+    bindconfirm="onConfirm"
+    bindcancel="onCancelConfirm"
+  ></confirm-panel>
 </view>

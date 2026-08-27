@@ -50,14 +50,15 @@
     </view>
   </scroll-view>
 
-  <view wx:if="{{removingId}}" class="remove-confirm">
-    <text class="remove-title">移出这位成员？</text>
-    <text class="remove-copy">移出后 TA 将无法访问家庭食谱；TA 记录的食谱仍属于家庭，不会被删除。</text>
-    <view class="remove-actions">
-      <view class="cancel-remove" role="button" bindtap="cancelRemove">取消</view>
-      <view class="confirm-remove" role="button" bindtap="confirmRemove">{{removing ? '正在移出…' : '确认移出'}}</view>
-    </view>
-  </view>
+  <confirm-panel
+    visible="{{removingId !== ''}}"
+    title="移出这位成员？"
+    copy="移出后 TA 将无法访问家庭食谱；TA 记录的食谱仍属于家庭，不会被删除。"
+    confirm-text="{{removing ? '正在移出…' : '确认移出'}}"
+    danger
+    bindconfirm="confirmRemove"
+    bindcancel="cancelRemove"
+  ></confirm-panel>
 
   <bottom-nav active="family" bindcapture="openCapture"></bottom-nav>
   <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindsaved="onCaptured"></quick-capture>

@@ -52,6 +52,36 @@ let originalCore: CoreSnapshot | undefined
 let editingState: RecipeState | undefined
 let editingVersion = 1
 
+/** 全字段的脏检查快照，用于离开保护；只在载入成功后赋值。 */
+let originalFull: FullSnapshot | undefined
+let dirtyGuardOn = false
+
+interface FullSnapshot {
+  name: string
+  keys: string[]
+  mainImage: string
+  ingredients: Array<{ name: string; amount: string }>
+  steps: Array<{ id: string; text: string; image: string }>
+  type: string
+  stage: string
+  tags: string[]
+  stepDraft: string
+  stepImage: string
+}
+
+type ConfirmAction = '' | 'save' | 'schema' | 'conflict'
+
+interface ConfirmOptions {
+  action: ConfirmAction
+  title: string
+  copy: string
+  note?: string
+  confirmText: string
+  cancelText?: string
+  danger?: boolean
+  cancelable?: boolean
+}
+
 function editableImage(image?: RecipeImage): EditableImage | null {
   return image ? {
     fileId: image.fileId,
@@ -120,6 +150,15 @@ Page({
     saveStatus: '',
     showKeysHint: false,
     maxTags: MAX_TAGS,
+    confirmVisible: false,
+    confirmTitle: '',
+    confirmCopy: '',
+    confirmNote: '',
+    confirmText: '确认',
+    confirmCancelText: '取消',
+    confirmDanger: false,
+    confirmCancelable: true,
+    confirmAction: '' as ConfirmAction,
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -167,11 +206,71 @@ Page({
         stage: recipe.stage || '',
         tags: [...recipe.tags],
         wasDraft,
-      }, () => this.recompute())
+      }, () => {
+        originalFull = this.snapshotOf()
+        this.recompute()
+      })
     } catch (error) {
       this.setData({ found: false })
       wx.showToast({ title: error instanceof Error ? error.message : '食谱加载失败', icon: 'none' })
     }
+  },
+
+  /** 全字段快照：离开保护以此判断“有没有未保存的修改”。 */
+  snapshotOf(): FullSnapshot {
+    return {
+      name: this.data.name.trim(),
+      keys: this.data.keys.map((key) => key.trim()).filter(Boolean),
+      mainImage: imageIdentity(this.data.mainImage),
+      ingredients: this.data.ingredients
+        .map((item) => ({ name: item.name.trim(), amount: item.amount.trim() }))
+        .filter((item) => item.name.length > 0),
+      steps: this.data.steps
+        .map((step) => ({ id: step.id, text: step.text.trim(), image: imageIdentity(step.image) }))
+        .filter((step) => step.text.length > 0),
+      type: this.data.type || '',
+      stage: this.data.stage || '',
+      tags: [...this.data.tags],
+      stepDraft: this.data.stepDraft.trim(),
+      stepImage: imageIdentity(this.data.stepImageDraft),
+    }
+  },
+
+  /** 有未保存修改时挂上系统级离开确认；干净时摘掉，避免保存跳转被打断。 */
+  syncDirtyGuard() {
+    if (!originalFull || typeof wx.enableAlertBeforeUnload !== 'function') return
+    const dirty = JSON.stringify(this.snapshotOf()) !== JSON.stringify(originalFull)
+    if (dirty && !dirtyGuardOn) {
+      wx.enableAlertBeforeUnload({ message: '修改还没有保存，确定要离开吗？' })
+      dirtyGuardOn = true
+    } else if (!dirty && dirtyGuardOn && typeof wx.disableAlertBeforeUnload === 'function') {
+      wx.disableAlertBeforeUnload()
+      dirtyGuardOn = false
+    }
+  },
+
+  openConfirm(options: ConfirmOptions) {
+    this.setData({
+      confirmVisible: true,
+      confirmAction: options.action,
+      confirmTitle: options.title,
+      confirmCopy: options.copy,
+      confirmNote: options.note || '',
+      confirmText: options.confirmText,
+      confirmCancelText: options.cancelText || '取消',
+      confirmDanger: Boolean(options.danger),
+      confirmCancelable: options.cancelable !== false,
+    })
+  },
+
+  onConfirm() {
+    const action = this.data.confirmAction
+    this.setData({ confirmVisible: false, confirmAction: '' })
+    if (action === 'save') void this.doSave()
+  },
+
+  onCancelConfirm() {
+    this.setData({ confirmVisible: false, confirmAction: '' })
   },
 
   recompute() {
@@ -191,7 +290,7 @@ Page({
       ingredientSuggestions: state
         ? getIngredientSuggestions(state, this.data.ingredients.map((item) => item.name.trim()).filter(Boolean)) : [],
       tagSuggestions: state ? getTagSuggestions(state, this.data.tags) : [],
-    })
+    }, () => this.syncDirtyGuard())
   },
 
   cancel() {
@@ -268,7 +367,7 @@ Page({
     const field = String(event.currentTarget.dataset.field) as 'name' | 'amount'
     const ingredients = this.data.ingredients.map((item, i) =>
       i === index ? { ...item, [field]: event.detail.value } : item)
-    this.setData({ ingredients })
+    this.setData({ ingredients }, () => this.syncDirtyGuard())
   },
 
   addIngredient() {
@@ -284,7 +383,7 @@ Page({
 
   /** —— 步骤：稳定 ID 让文字、图片和移动操作保持同一归属 —— */
   onStepDraftInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ stepDraft: event.detail.value })
+    this.setData({ stepDraft: event.detail.value }, () => this.syncDirtyGuard())
   },
 
   async chooseStepImage() {
@@ -293,11 +392,11 @@ Page({
       return
     }
     const image = await this.pickImage()
-    if (image) this.setData({ stepImageDraft: image })
+    if (image) this.setData({ stepImageDraft: image }, () => this.syncDirtyGuard())
   },
 
   removeStepImage() {
-    if (!this.data.saving) this.setData({ stepImageDraft: null })
+    if (!this.data.saving) this.setData({ stepImageDraft: null }, () => this.syncDirtyGuard())
   },
 
   commitStepDraft() {
@@ -362,9 +461,7 @@ Page({
     const tag = this.data.tagDraft.trim().replace(/^#/, '')
     if (!tag || this.data.tags.includes(tag) || this.data.tags.length >= MAX_TAGS) return
     this.setData({ tags: [...this.data.tags, tag], tagDraft: '' }, () => this.recompute())
-  },
-
-  addSuggestedTag(event: WechatMiniprogram.BaseEvent) {
+  },  addSuggestedTag(event: WechatMiniprogram.BaseEvent) {
     const tag = String(event.currentTarget.dataset.tag)
     if (!tag || this.data.tags.includes(tag) || this.data.tags.length >= MAX_TAGS) return
     this.setData({ tags: [...this.data.tags, tag] }, () => this.recompute())
@@ -388,20 +485,16 @@ Page({
     }
 
     wx.hideKeyboard()
-    const substantiveChanged = originalCore !== undefined
-      && JSON.stringify(coreOf(this.data.keys, this.data.mainImage, this.data.ingredients, this.data.steps))
-        !== JSON.stringify(originalCore)
-    if (!this.data.wasDraft && substantiveChanged) {
-      wx.showModal({
+    // 只有成功关键被改动时才打断确认——食材、步骤和标签的修订不值得一次弹窗。
+    const keysChanged = originalCore !== undefined
+      && JSON.stringify(this.data.keys.map((key) => key.trim()).filter(Boolean)) !== JSON.stringify(originalCore.keys)
+    if (!this.data.wasDraft && keysChanged) {
+      this.openConfirm({
+        action: 'save',
         title: '确认做成功了吗？',
-        content: '这次修改涉及关键经验、图片、食材或步骤。建议实际做成功后再更新当前食谱。',
+        copy: '这次修改会更新成功关键。建议实际做成功后，再更新这条家庭经验。',
         confirmText: '确认保存',
         cancelText: '再看看',
-        success: (result) => { if (result.confirm) void this.doSave() },
-        fail: (error) => {
-          console.error('打开保存确认框失败', error)
-          wx.showToast({ title: '无法打开确认框，请重试', icon: 'none' })
-        },
       })
       return
     }
@@ -411,10 +504,12 @@ Page({
   async doSave() {
     if (this.data.saving || !editingState) return
     if (editingState.recipeSchemaVersion !== 2) {
-      wx.showModal({
+      this.openConfirm({
+        action: 'schema',
         title: '云端服务尚未更新',
-        content: '当前服务还不能保存图片和新版步骤。请更新云函数后重新进入小程序，再保存一次。',
-        showCancel: false,
+        copy: '当前服务还不能保存图片和新版步骤。请更新云函数后重新进入小程序，再保存一次。',
+        confirmText: '知道了',
+        cancelable: false,
       })
       return
     }
@@ -475,12 +570,23 @@ Page({
         editingVersion,
       )
       const message = this.data.wasDraft ? '已转为正式食谱' : '已保存'
+      // 保存即将跳转，先摘掉离开保护，避免被自己的成功路径拦下。
+      if (dirtyGuardOn && typeof wx.disableAlertBeforeUnload === 'function') {
+        wx.disableAlertBeforeUnload()
+        dirtyGuardOn = false
+      }
       wx.redirectTo({ url: `/pages/recipe-detail/index?id=${this.data.id}&toast=${encodeURIComponent(message)}` })
     } catch (error) {
       await cleanupUploadedRecipeImages(uploadedFileIds)
       this.setData({ saving: false, saveStatus: '' })
       if (error instanceof ApiError && error.code === 'VERSION_CONFLICT') {
-        wx.showModal({ title: '食谱已经更新', content: error.message, showCancel: false })
+        this.openConfirm({
+          action: 'conflict',
+          title: '食谱已经更新',
+          copy: error.message,
+          confirmText: '知道了',
+          cancelable: false,
+        })
         return
       }
       wx.showToast({ title: error instanceof Error ? error.message : '保存失败，请重试', icon: 'none' })

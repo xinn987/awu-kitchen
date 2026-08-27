@@ -23,6 +23,8 @@ Page({
     confirmKind: '' as RecipeOptionKind | '',
     confirmName: '',
     confirmUsageCount: 0,
+    confirmCopy: '',
+    confirmNote: '食谱的其他内容不会改变。',
     toastVisible: false,
     toastMessage: '',
   },
@@ -91,10 +93,15 @@ Page({
 
   askRemove(event: WechatMiniprogram.BaseEvent) {
     if (this.data.saving) return
+    const kind = String(event.currentTarget.dataset.kind) as RecipeOptionKind
+    const usageCount = Number(event.currentTarget.dataset.count) || 0
     this.setData({
-      confirmKind: String(event.currentTarget.dataset.kind) as RecipeOptionKind,
+      confirmKind: kind,
       confirmName: String(event.currentTarget.dataset.name),
-      confirmUsageCount: Number(event.currentTarget.dataset.count) || 0,
+      confirmUsageCount: usageCount,
+      confirmCopy: usageCount > 0
+        ? `有 ${usageCount} 份食谱正在使用。删除后，这些食谱会变为“未选择${kind === 'foodType' ? '辅食类型' : '适用阶段'}”。`
+        : '删除后，新食谱将不能再选择这一项。',
       addingKind: '',
       draft: '',
     })

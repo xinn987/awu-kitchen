@@ -93,17 +93,16 @@
     </view>
   </view>
 
-  <view wx:if="{{confirmKind}}" class="panel-backdrop" bindtap="cancelRemove"></view>
-  <view wx:if="{{confirmKind}}" class="action-panel">
-    <text class="panel-title">删除“{{confirmName}}”？</text>
-    <text class="panel-copy" wx:if="{{confirmUsageCount > 0}}">有 {{confirmUsageCount}} 份食谱正在使用。删除后，这些食谱会变为“未选择{{confirmKind === 'foodType' ? '辅食类型' : '适用阶段'}}”。</text>
-    <text class="panel-copy" wx:else>删除后，新食谱将不能再选择这一项。</text>
-    <text class="panel-note">食谱的其他内容不会改变。</text>
-    <view class="panel-actions">
-      <view class="panel-cancel" role="button" bindtap="cancelRemove">取消</view>
-      <view class="panel-delete" role="button" bindtap="confirmRemove">{{saving ? '删除中…' : '确认删除'}}</view>
-    </view>
-  </view>
+  <confirm-panel
+    visible="{{confirmKind !== ''}}"
+    title="删除“{{confirmName}}”？"
+    copy="{{confirmCopy}}"
+    note="{{confirmNote}}"
+    confirm-text="{{saving ? '删除中…' : '确认删除'}}"
+    danger
+    bindconfirm="confirmRemove"
+    bindcancel="cancelRemove"
+  ></confirm-panel>
 
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>
