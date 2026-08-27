@@ -202,6 +202,27 @@ export async function archiveRecipe(
   return result
 }
 
+/** 废纸篓条目：只保留列表展示需要的归因信息。 */
+export interface ArchivedRecipeView {
+  id: string
+  name: string
+  isFormal: boolean
+  version: number
+  archivedAt: string
+  archivedByName: string
+}
+
+export async function listArchivedRecipes(): Promise<ArchivedRecipeView[]> {
+  const result = await callApi<{ recipes: ArchivedRecipeView[] }>('recipe.listArchived')
+  return result.recipes
+}
+
+/** 恢复后直接作废整份缓存，让列表页在 onShow 时重新拉取。 */
+export async function restoreArchivedRecipe(recipeId: string): Promise<void> {
+  await callApi('recipe.restore', { recipeId })
+  invalidateState()
+}
+
 export async function restoreRevision(
   recipeId: string,
   revisionId: string,

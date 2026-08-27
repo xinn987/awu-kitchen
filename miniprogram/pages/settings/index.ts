@@ -26,4 +26,8 @@ Page({
   openRecipeOptions() {
     wx.navigateTo({ url: '/pages/recipe-options/index' })
   },
+
+  openTrash() {
+    wx.navigateTo({ url: '/pages/trash/index' })
+  },
 })

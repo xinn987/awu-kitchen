@@ -240,6 +240,63 @@ export async function archiveRecipe(userId: string, payload: Record<string, unkn
   return { archivedRecipeId: recipeId, version }
 }
 
+/** 废纸篓列表：只返回归档食谱的归因信息，不携带正文和修订历史。 */
+export async function listArchivedRecipes(userId: string) {
+  const { member: current } = await getActiveContext(userId)
+  const [recipeRaw, memberRaw] = await Promise.all([
+    db.collection('recipes').where({ familyId: current.familyId })
+      .field({
+        name: true, state: true, version: true, archivedAt: true, archivedById: true,
+      }).limit(1000).get(),
+    db.collection('family_members').where({ familyId: current.familyId })
+      .field({ displayName: true }).limit(100).get(),
+  ])
+  const recipeResult = recipeRaw as unknown as {
+    data: Array<{
+      _id: string; name: string; state?: string; version?: number
+      archivedAt: string; archivedById: string
+    }>
+  }
+  const memberResult = memberRaw as unknown as { data: Array<{ _id: string; displayName: string }> }
+  const nameOf = (memberId: string) => memberResult.data.find((item) => item._id === memberId)
+  const recipes = recipeResult.data
+    .filter((recipe) => Boolean(recipe.archivedAt))
+    .sort((a, b) => (a.archivedAt < b.archivedAt ? 1 : -1))
+    .map((recipe) => {
+      const archiver = nameOf(recipe.archivedById)
+      return {
+        id: String(recipe._id),
+        name: String(recipe.name),
+        isFormal: recipe.state === 'formal',
+        version: Number(recipe.version) || 1,
+        archivedAt: String(recipe.archivedAt),
+        archivedByName: archiver ? archiver.displayName : '家人',
+      }
+    })
+  return { recipes }
+}
+
+/** 从废纸篓恢复：只移除归档标记并递增版本，正文和修订历史原样保留。 */
+export async function restoreRecipe(userId: string, payload: Record<string, unknown>) {
+  const { member } = await getActiveContext(userId)
+  const recipeId = requiredText(payload.recipeId, '食谱', 80)
+  await db.runTransaction(async (transaction: any) => {
+    const result = await transaction.collection('recipes').doc(recipeId).get()
+    const current = result.data as Record<string, unknown>
+    assertDomain(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱')
+    assertDomain(Boolean(current.archivedAt), 'VALIDATION_ERROR', '这份食谱不在废纸篓中')
+    const next = { ...current } as Record<string, unknown>
+    delete next.archivedAt
+    delete next.archivedById
+    next.id = recipeId
+    next.updatedById = member._id
+    next.updatedAt = new Date().toISOString()
+    next.version = Number(current.version) + 1
+    await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) })
+  })
+  return { restoredRecipeId: recipeId }
+}
+
 export async function restoreRevision(userId: string, payload: Record<string, unknown>) {
   const { member } = await getActiveContext(userId)
   const recipeId = requiredText(payload.recipeId, '食谱', 80)

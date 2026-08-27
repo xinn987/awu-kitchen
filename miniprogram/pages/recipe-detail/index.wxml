@@ -111,5 +111,15 @@
     </view>
     <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
   </view>
+  <confirm-panel
+    visible="{{archiveConfirm}}"
+    title="移入废纸篓？"
+    copy="食谱会从家庭列表隐藏，正文和修订记录仍会保留。"
+    note="之后可以随时在 设置-废纸篓 恢复。"
+    confirm-text="{{archiving ? '正在移入…' : '确认移入'}}"
+    danger
+    bindconfirm="confirmArchive"
+    bindcancel="cancelArchive"
+  ></confirm-panel>
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>

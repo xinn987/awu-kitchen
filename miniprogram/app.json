@@ -8,7 +8,8 @@
     "pages/history/index",
     "pages/family/index",
     "pages/settings/index",
-    "pages/recipe-options/index"
+    "pages/recipe-options/index",
+    "pages/trash/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

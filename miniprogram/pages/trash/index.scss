@@ -1,0 +1,9 @@
+.trash-content { padding: 30rpx 32rpx 56rpx; }
+.page-note { display: block; max-width: 620rpx; padding: 0 8rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
+.trash-list { display: flex; flex-direction: column; gap: 20rpx; margin-top: 32rpx; }
+.trash-card { display: flex; align-items: center; gap: 20rpx; padding: 30rpx; border: 1rpx dashed var(--line-strong); border-radius: var(--r-lg); background: var(--card); }
+.trash-main { flex: 1; min-width: 0; }
+.trash-name { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trash-meta { display: block; margin-top: 8rpx; color: var(--ink-2); font-size: var(--fs-meta); }
+.restore-button { flex-shrink: 0; min-width: 116rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; padding: 0 24rpx; border: 1rpx solid var(--brand-tint); border-radius: var(--r-pill); color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
+.restore-button:active { opacity: 0.6; }

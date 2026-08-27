@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "page-navbar": "/components/page-navbar/index",
+    "confirm-panel": "/components/confirm-panel/index",
+    "app-toast": "/components/app-toast/index"
+  }
+}

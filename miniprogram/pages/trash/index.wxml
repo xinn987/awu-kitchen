@@ -1,0 +1,33 @@
+<view class="page-shell">
+  <page-navbar left-text="返回" title="废纸篓" bindleft="back"></page-navbar>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="trash-content">
+      <text class="page-note">移入废纸篓的食谱仍保留正文和修订记录，恢复后回到家庭食谱库。</text>
+
+      <view wx:if="{{loading}}" class="empty-state">正在加载废纸篓…</view>
+      <view wx:elif="{{items.length === 0}}" class="empty-state">废纸篓是空的</view>
+
+      <view wx:else class="trash-list">
+        <view wx:for="{{items}}" wx:key="id" class="trash-card">
+          <view class="trash-main">
+            <text class="trash-name font-serif">{{item.name}}</text>
+            <text class="trash-meta">{{item.dateLabel}} 由 {{item.archivedByName}} 移入 · {{item.isFormal ? '正式食谱' : '待补条目'}}</text>
+          </view>
+          <view class="restore-button" role="button" aria-label="恢复{{item.name}}" data-id="{{item.id}}" bindtap="askRestore">恢复</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <confirm-panel
+    visible="{{confirmId !== ''}}"
+    title="恢复这份食谱？"
+    copy="恢复后它会重新出现在家庭食谱库中，所有家人都能看到。"
+    confirm-text="{{restoring ? '恢复中…' : '确认恢复'}}"
+    bindconfirm="confirmRestore"
+    bindcancel="cancelRestore"
+  ></confirm-panel>
+
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

@@ -21,6 +21,8 @@ const handlers = {
     'recipe.update': recipe_1.updateRecipe,
     'recipe.archive': recipe_1.archiveRecipe,
     'recipe.duplicate': recipe_1.duplicateRecipe,
+    'recipe.listArchived': recipe_1.listArchivedRecipes,
+    'recipe.restore': recipe_1.restoreRecipe,
     'recipe.restoreRevision': recipe_1.restoreRevision,
     'recipeComment.list': recipe_comment_1.listRecipeComments,
     'recipeComment.create': recipe_comment_1.createRecipeComment,

@@ -8,6 +8,8 @@ exports.createRecipe = createRecipe;
 exports.updateRecipe = updateRecipe;
 exports.duplicateRecipe = duplicateRecipe;
 exports.archiveRecipe = archiveRecipe;
+exports.listArchivedRecipes = listArchivedRecipes;
+exports.restoreRecipe = restoreRecipe;
 exports.restoreRevision = restoreRevision;
 const crypto_1 = __importDefault(require("crypto"));
 const auth_1 = require("./auth");
@@ -227,6 +229,56 @@ async function archiveRecipe(userId, payload) {
         });
     });
     return { archivedRecipeId: recipeId, version };
+}
+/** 废纸篓列表：只返回归档食谱的归因信息，不携带正文和修订历史。 */
+async function listArchivedRecipes(userId) {
+    const { member: current } = await (0, auth_1.getActiveContext)(userId);
+    const [recipeRaw, memberRaw] = await Promise.all([
+        cloud_1.db.collection('recipes').where({ familyId: current.familyId })
+            .field({
+            name: true, state: true, version: true, archivedAt: true, archivedById: true,
+        }).limit(1000).get(),
+        cloud_1.db.collection('family_members').where({ familyId: current.familyId })
+            .field({ displayName: true }).limit(100).get(),
+    ]);
+    const recipeResult = recipeRaw;
+    const memberResult = memberRaw;
+    const nameOf = (memberId) => memberResult.data.find((item) => item._id === memberId);
+    const recipes = recipeResult.data
+        .filter((recipe) => Boolean(recipe.archivedAt))
+        .sort((a, b) => (a.archivedAt < b.archivedAt ? 1 : -1))
+        .map((recipe) => {
+        const archiver = nameOf(recipe.archivedById);
+        return {
+            id: String(recipe._id),
+            name: String(recipe.name),
+            isFormal: recipe.state === 'formal',
+            version: Number(recipe.version) || 1,
+            archivedAt: String(recipe.archivedAt),
+            archivedByName: archiver ? archiver.displayName : '家人',
+        };
+    });
+    return { recipes };
+}
+/** 从废纸篓恢复：只移除归档标记并递增版本，正文和修订历史原样保留。 */
+async function restoreRecipe(userId, payload) {
+    const { member } = await (0, auth_1.getActiveContext)(userId);
+    const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
+    await cloud_1.db.runTransaction(async (transaction) => {
+        const result = await transaction.collection('recipes').doc(recipeId).get();
+        const current = result.data;
+        (0, errors_1.assertDomain)(current.familyId === member.familyId, 'FORBIDDEN', '无权恢复这份食谱');
+        (0, errors_1.assertDomain)(Boolean(current.archivedAt), 'VALIDATION_ERROR', '这份食谱不在废纸篓中');
+        const next = { ...current };
+        delete next.archivedAt;
+        delete next.archivedById;
+        next.id = recipeId;
+        next.updatedById = member._id;
+        next.updatedAt = new Date().toISOString();
+        next.version = Number(current.version) + 1;
+        await transaction.collection('recipes').doc(recipeId).set({ data: writableDocument(next) });
+    });
+    return { restoredRecipeId: recipeId };
 }
 async function restoreRevision(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);

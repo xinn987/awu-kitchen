@@ -32,6 +32,7 @@ Page({
     found: true,
     duplicating: false,
     archiving: false,
+    archiveConfirm: false,
     toastVisible: false,
     toastMessage: '',
   },
@@ -42,7 +43,15 @@ Page({
     if (options.toast) this.showToast(decodeURIComponent(options.toast))
   },
 
-  onShow() { void this.refresh() },
+  onShow() {
+    // 厨房场景下手持查看步骤，屏幕常亮避免中途锁屏。
+    wx.setKeepScreenOn({ keepScreenOn: true })
+    void this.refresh()
+  },
+
+  onHide() { wx.setKeepScreenOn({ keepScreenOn: false }) },
+
+  onUnload() { wx.setKeepScreenOn({ keepScreenOn: false }) },
 
   async refresh() {
     try {
@@ -162,15 +171,17 @@ Page({
 
   askArchive() {
     if (this.data.archiving) return
-    wx.showModal({
-      title: '移入废纸篓？',
-      content: '食谱会从家庭列表隐藏，正文和修订记录仍会保留。当前版本暂不支持自行恢复。',
-      confirmText: '确认移入',
-      confirmColor: '#b3402a',
-      cancelText: '取消',
-      success: (result) => { if (result.confirm) void this.archive() },
-      fail: () => this.showToast('无法打开确认框，请重试'),
-    })
+    this.setData({ archiveConfirm: true })
+  },
+
+  cancelArchive() {
+    if (!this.data.archiving) this.setData({ archiveConfirm: false })
+  },
+
+  confirmArchive() {
+    if (!this.data.archiveConfirm) return
+    this.setData({ archiveConfirm: false })
+    void this.archive()
   },
 
   async archive() {

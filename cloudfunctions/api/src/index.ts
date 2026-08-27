@@ -5,7 +5,8 @@ import {
   bootstrap, createFamily, createInvite, joinFamily, listMembers, previewInvite, removeMember,
 } from './family'
 import {
-  archiveRecipe, createRecipe, duplicateRecipe, listRecipeState, restoreRevision, updateRecipe,
+  archiveRecipe, createRecipe, duplicateRecipe, listArchivedRecipes, listRecipeState,
+  restoreRecipe, restoreRevision, updateRecipe,
 } from './recipe'
 import {
   createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
@@ -30,6 +31,8 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipe.update': updateRecipe,
   'recipe.archive': archiveRecipe,
   'recipe.duplicate': duplicateRecipe,
+  'recipe.listArchived': listArchivedRecipes,
+  'recipe.restore': restoreRecipe,
   'recipe.restoreRevision': restoreRevision,
   'recipeComment.list': listRecipeComments,
   'recipeComment.create': createRecipeComment,
