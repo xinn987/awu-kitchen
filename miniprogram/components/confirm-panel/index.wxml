@@ -1,0 +1,10 @@
+<view wx:if="{{visible}}" class="panel-backdrop" bindtap="cancel"></view>
+<view wx:if="{{visible}}" class="panel" catchtap="noop">
+  <text class="panel-title">{{title}}</text>
+  <text wx:if="{{copy}}" class="panel-copy">{{copy}}</text>
+  <text wx:if="{{note}}" class="panel-note">{{note}}</text>
+  <view class="panel-actions">
+    <view wx:if="{{cancelable}}" class="panel-cancel" role="button" bindtap="cancel">{{cancelText}}</view>
+    <view class="panel-confirm {{danger ? 'danger' : ''}}" role="button" bindtap="confirm">{{confirmText}}</view>
+  </view>
+</view>
