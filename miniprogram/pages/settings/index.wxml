@@ -1,31 +1,34 @@
 <view class="page-shell">
-  <page-navbar left-text="返回" title="设置" bindleft="back"></page-navbar>
+  <page-navbar left-text="家庭" title="设置" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="settings-content">
-      <text class="settings-section-label">家庭设置</text>
-      <view class="settings-card">
-        <view class="option-entry" role="button" bindtap="openRecipeOptions">
-          <view class="entry-icon"><app-icon name="tag" size="32"></app-icon></view>
-          <view class="entry-copy">
-            <text class="entry-title">食谱选项</text>
-            <text class="entry-description">管理辅食类型分类</text>
+      <view class="section-label">家庭设置</view>
+
+      <view class="settings-group">
+        <view class="settings-row" role="button" bindtap="openRecipeOptions">
+          <app-icon name="tag" size="32"></app-icon>
+          <view class="settings-row-copy">
+            <text class="settings-row-title">食谱选项</text>
+            <text class="settings-row-description">管理辅食类型分类</text>
           </view>
           <app-icon name="chevron-right" size="30"></app-icon>
         </view>
-        <view class="option-entry trash-entry" role="button" bindtap="openTrash">
-          <view class="entry-icon"><app-icon name="trash" size="32"></app-icon></view>
-          <view class="entry-copy">
-            <text class="entry-title">废纸篓</text>
-            <text class="entry-description">查看和恢复已移入的食谱</text>
+        <view class="settings-row" role="button" bindtap="openTrash">
+          <app-icon name="trash" size="32"></app-icon>
+          <view class="settings-row-copy">
+            <text class="settings-row-title">废纸篓</text>
+            <text class="settings-row-description">查看和恢复已移入的食谱</text>
           </view>
           <app-icon name="chevron-right" size="30"></app-icon>
         </view>
       </view>
 
-      <text class="settings-section-label version-section-label">关于</text>
-      <view class="version-card">
-        <text class="version-label">当前版本</text>
-        <text class="version-number font-serif">{{versionLabel}}</text>
+      <view class="section-label version-section-label">关于</view>
+      <view class="settings-group">
+        <view class="settings-row version-row">
+          <text class="settings-row-title">当前版本</text>
+          <text class="version-number">{{versionLabel}}</text>
+        </view>
       </view>
     </view>
   </scroll-view>

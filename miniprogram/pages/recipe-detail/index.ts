@@ -2,7 +2,7 @@
 import type { Recipe, RecipeImage, RecipeStep } from '../../models/recipe'
 import { resolveRecipeImageUrls } from '../../services/recipe-media'
 import { archiveRecipe, duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
-import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
+import { isFormalRecipe, relativeTime, shortDate, typeIconName } from '../../utils/recipe-utils'
 
 interface DetailImage extends RecipeImage {
   src: string
@@ -18,6 +18,7 @@ interface DetailView extends Omit<Recipe, 'mainImage' | 'steps'> {
   steps: DetailStep[]
   /** 主食材置顶，并携带标记供模板区分圆点与四角星。 */
   ingredientRows: Array<{ name: string; amount: string; primary: boolean }>
+  typeIcon: string
   isDraft: boolean
   updatedName: string
   createdName: string
@@ -82,6 +83,7 @@ Page({
           mainImage: viewImage(recipe.mainImage),
           steps: recipe.steps.map((step) => ({ ...step, image: viewImage(step.image) })),
           ingredientRows,
+          typeIcon: typeIconName(recipe.type),
           isDraft: !isFormalRecipe(recipe),
           updatedName: updatedMember ? updatedMember.name : '家人',
           createdName: createdMember ? createdMember.name : '家人',
@@ -111,6 +113,19 @@ Page({
 
   editRecipe() {
     wx.navigateTo({ url: `/pages/recipe-edit/index?id=${this.data.id}` })
+  },
+
+  /** 次级操作收纳进更多菜单：复制与归档都不值得占据一级底栏。 */
+  openMore() {
+    wx.showActionSheet({
+      itemList: ['复制一份新食谱', '移入废纸篓'],
+      itemColor: '#1a1714',
+      success: (result) => {
+        if (result.tapIndex === 0) void this.duplicate()
+        if (result.tapIndex === 1) this.askArchive()
+      },
+      fail: () => {},
+    })
   },
 
   openHistory() {

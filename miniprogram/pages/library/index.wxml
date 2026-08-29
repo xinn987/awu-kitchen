@@ -70,13 +70,17 @@
         </view>
 
         <view wx:if="{{formal.length === 0 && drafts.length === 0 && importTasks.length === 0}}" class="empty-state">
-          {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
+          <app-icon name="type-soup" size="120"></app-icon>
+          <text>{{query ? '没有找到「' + query + '」相关的食谱' : '还没人收录，把最近做成功的一道记下来'}}</text>
         </view>
 
         <view wx:for="{{formal}}" wx:key="id" class="recipe-card" data-id="{{item.id}}" bindtap="openRecipe">
           <view class="card-heading">
             <text class="card-title font-serif">{{item.name}}</text>
-            <text wx:if="{{item.type}}" class="type-badge">{{item.type}}</text>
+            <view wx:if="{{item.typeIcon}}" class="card-side">
+              <app-icon name="{{item.typeIcon}}" size="52"></app-icon>
+              <text class="type-name">{{item.type}}</text>
+            </view>
           </view>
           <view class="key-preview">
             <text class="key-text font-serif">{{item.firstKey}}</text>

@@ -17,3 +17,8 @@
 .restore-confirm { display: flex; align-items: center; flex-wrap: wrap; gap: 20rpx; }
 .confirm-link { color: var(--brand); font-size: var(--fs-meta); font-weight: 600; }
 .cancel-link { color: var(--ink-faint); font-size: var(--fs-meta); }
+
+/* 恢复操作：描边小按钮，与确认面板的按钮语言一致。 */
+.restore-button { width: fit-content; min-height: 56rpx; margin-top: 4rpx; padding: 0 26rpx; display: flex; align-items: center; border: 1rpx solid var(--line-strong); border-radius: var(--r-pill); color: var(--ink-2); font-size: var(--fs-meta); }
+.restore-button:active { opacity: 0.6; }
+.snapshot-same { margin-top: 18rpx; color: var(--ink-faint); font-size: var(--fs-caption); }

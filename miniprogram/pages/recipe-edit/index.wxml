@@ -25,7 +25,7 @@
 
       <view class="edit-section">
         <view class="section-head">
-          <view class="section-label"><app-icon name="zap" size="28"></app-icon><text>成功关键</text><text class="required">*</text></view>
+          <view class="section-label"><text>成功关键</text><text class="required">*</text></view>
           <text wx:if="{{showKeysHint}}" class="keys-hint">写一条才能保存</text>
         </view>
         <view class="key-list">
@@ -53,17 +53,17 @@
 
       <!-- —— 辅食类型：一句话就能选完的元数据，紧跟成功关键、保持常显 —— -->
       <view class="edit-section">
-        <view class="section-label"><app-icon name="tag" size="28"></app-icon><text>辅食类型</text></view>
+        <view class="section-label"><text>辅食类型</text></view>
         <view class="option-row">
           <view wx:for="{{typeOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</view>
         </view>
-        <view class="classify-note">每份食谱最多选择一项；选项由家庭共同维护，可在「设置 · 食谱选项」中调整。</view>
+        <view class="classify-note">单选 · 选项在「设置 · 食谱选项」维护</view>
       </view>
 
       <!-- 主图：可选的大块内容，默认收起，用摘要提示是否已设置。 -->
       <view class="edit-section">
         <view class="section-head" role="button" data-section="mainImage" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
+          <view class="section-label"><text>主图（可选）</text></view>
           <view class="collapse-meta">
             <text wx:if="{{mainImage}}" class="collapse-count">已设置</text>
             <text wx:else class="collapse-add">添加</text>
@@ -91,7 +91,7 @@
       <!-- —— 食材：点亮四角星即主食材，行式编辑、细分隔线 —— -->
       <view class="edit-section">
         <view class="section-head" role="button" data-section="ingredients" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
+          <view class="section-label"><text>食材</text></view>
           <view class="collapse-meta">
             <text wx:if="{{ingredientsCount > 0}}" class="collapse-count">{{ingredientsCount}} 项</text>
             <text wx:else class="collapse-add">添加</text>
@@ -117,7 +117,7 @@
               </view>
             </view>
           </view>
-          <view class="primary-help">点亮星形的食材会置顶展示，并作为这道菜的主食材，方便家人按原料查找。</view>
+          <view class="primary-help">点亮星形的主食材会置顶，并支持按原料查找</view>
           <view wx:if="{{ingredientSuggestions.length > 0}}" class="suggestion-block">
             <text class="suggestion-label">全家常用</text>
             <view class="suggestion-row">
@@ -136,7 +136,7 @@
       <!-- —— 步骤：圆角卡片逐行编辑，右上角负责配图与删除 —— -->
       <view class="edit-section last">
         <view class="section-head" role="button" data-section="steps" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
+          <view class="section-label"><text>步骤</text></view>
           <view class="collapse-meta">
             <text wx:if="{{stepsCount > 0}}" class="collapse-count">{{stepsCount}} 步</text>
             <text wx:else class="collapse-add">添加</text>

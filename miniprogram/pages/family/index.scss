@@ -1,32 +1,33 @@
-.family-header { padding: 40rpx 40rpx 28rpx; }
+/* 家庭页：开放纸面版式——衬线标题、成员行、细分隔线，不再使用卡片容器。 */
+.family-content { padding: 0 40rpx 180rpx; }
+.family-header { padding: 40rpx 0 32rpx; border-bottom: 1rpx solid var(--line-soft); }
 .family-title { display: block; color: var(--ink); font-size: var(--fs-display); font-weight: 600; }
 .family-meta { display: block; margin-top: 10rpx; color: var(--ink-2); font-size: var(--fs-meta); }
-.member-list { display: flex; flex-direction: column; gap: 20rpx; padding: 0 32rpx 48rpx; }
-.member-card { display: flex; align-items: center; gap: 26rpx; padding: 30rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
+
+.member-list { border-bottom: 1rpx solid var(--line-soft); }
+.member-row { display: flex; align-items: center; gap: 26rpx; padding: 28rpx 0; border-bottom: 1rpx solid var(--line-soft); }
+.member-row:last-child { border-bottom: 0; }
 .member-copy { flex: 1; min-width: 0; }
 .member-title-row { display: flex; align-items: center; gap: 10rpx; }
 .member-name { color: var(--ink); font-size: var(--fs-body); font-weight: 500; }
 .self-label, .member-meta { color: var(--ink-2); font-size: var(--fs-meta); }
 .member-meta { display: block; margin-top: 6rpx; }
-.crown { display: flex; color: var(--brand); }
+/* 管理员用小徽章表达，替代皇冠图标。 */
+.role-pill { padding: 2rpx 14rpx; border-radius: var(--r-pill); background: var(--brand-wash); color: var(--brand-deep); font-size: var(--fs-caption); }
 .remove-member { flex-shrink: 0; width: 64rpx; height: 64rpx; margin: 0 -12rpx 0 0; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); }
 .remove-member:active { opacity: 0.5; }
 
-/* —— 邀请卡 —— */
-.invite-card { padding: 30rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
-.invite-head { display: flex; align-items: baseline; justify-content: space-between; }
-.invite-title { color: var(--ink); font-size: var(--fs-body); font-weight: 500; }
-.invite-expire { color: var(--ink-2); font-size: var(--fs-caption); }
-.invite-code-row { margin-top: 20rpx; display: flex; align-items: center; justify-content: space-between; padding: 18rpx 24rpx; border-radius: var(--r-md); background: var(--paper); }
-.invite-link-copy { color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.65; }
-.invite-actions { margin-top: 22rpx; display: flex; align-items: center; gap: 16rpx; }
-.invite-share { flex: 1; height: 76rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; border-radius: var(--r-md); background: var(--brand); color: #fff; font-size: var(--fs-meta); font-weight: 500; line-height: 1; }
-.invite-share:active { opacity: 0.85; }
-.invite-share.disabled { background: var(--paper-dim); color: var(--ink-faint); }
-.invite-renew { padding: 0 26rpx; height: 76rpx; display: flex; align-items: center; border-radius: var(--r-md); border: 1rpx solid var(--line-strong); background: var(--card); color: var(--ink-2); font-size: var(--fs-meta); }
+/* —— 邀请：一段说明 + 一个主按钮 —— */
+.invite-block { padding: 36rpx 0; border-bottom: 1rpx solid var(--line-soft); }
+.invite-row { display: flex; align-items: center; gap: 20rpx; }
+.invite-copy { flex: 1; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.65; }
+.invite-renew { flex-shrink: 0; min-height: 56rpx; padding: 0 22rpx; display: flex; align-items: center; border-radius: var(--r-pill); border: 1rpx solid var(--line); color: var(--ink-2); font-size: var(--fs-meta); }
 .invite-renew:active { opacity: 0.6; }
+.invite-share { margin-top: 24rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; gap: 10rpx; border-radius: var(--r-lg); background: var(--brand); color: #fff; font-size: var(--fs-body); font-weight: 500; line-height: 1; }
+.invite-share:active { opacity: 0.85; }
 
-.family-note { margin-top: 8rpx; padding: 30rpx; border-radius: var(--r-lg); background: rgba(234, 227, 216, 0.5); color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.8; }
-.settings-row { min-height: 84rpx; margin-top: 4rpx; padding: 0 24rpx; display: flex; align-items: center; justify-content: space-between; color: var(--ink-2); font-size: var(--fs-meta); }
-.settings-row-label { display: flex; align-items: center; gap: 12rpx; }
+.family-footnote { padding: 28rpx 0; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.7; }
+
+.settings-row { min-height: 88rpx; display: flex; align-items: center; gap: 14rpx; border-top: 1rpx solid var(--line-soft); color: var(--ink-2); font-size: var(--fs-body); }
+.settings-row-text { flex: 1; }
 .settings-row:active { opacity: 0.55; }

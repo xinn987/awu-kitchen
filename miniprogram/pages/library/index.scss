@@ -12,8 +12,9 @@
 .chip-row { display: inline-flex; gap: 16rpx; padding: 0 40rpx; }
 .filter-chip { height: 60rpx; display: inline-flex; align-items: center; justify-content: center; padding: 0 24rpx; border: 1rpx solid var(--line); border-radius: var(--r-pill); background: var(--card); color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; white-space: nowrap; transition: transform 0.15s ease; }
 .filter-chip:active { transform: scale(0.95); }
-.filter-chip.active { border-color: var(--brand); background: var(--brand); color: #fff; }
-.recipe-list { display: flex; flex-direction: column; gap: 20rpx; padding: 0 32rpx 56rpx; }
+/* 激活态用墨色：橙色只留给每屏唯一的主操作。 */
+.filter-chip.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+.recipe-list { display: flex; flex-direction: column; gap: 20rpx; padding: 0 32rpx 180rpx; }
 .import-task-section { display: flex; flex-direction: column; gap: 14rpx; margin-bottom: 8rpx; }
 .import-section-head { display: flex; align-items: center; justify-content: space-between; padding: 0 8rpx 4rpx; color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; letter-spacing: 0.08em; }
 .import-task-card { position: relative; display: flex; align-items: center; gap: 20rpx; min-height: 148rpx; padding: 20rpx; border: 1rpx solid var(--brand-tint); border-radius: var(--r-lg); background: var(--brand-wash); }
@@ -36,7 +37,9 @@
 .recipe-card:active { transform: scale(0.985); }
 .card-heading { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; }
 .card-title { flex: 1; min-width: 0; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.type-badge { flex-shrink: 0; padding: 4rpx 16rpx; border-radius: var(--r-pill); background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
+/* 类型用手绘图标表示，替代灰色文字徽章。 */
+.card-side { display: flex; flex-direction: column; align-items: center; gap: 6rpx; flex-shrink: 0; margin-left: 8rpx; color: var(--ink-faint); }
+.card-side .type-name { color: var(--ink-2); font-size: var(--fs-caption); }
 .key-preview { padding-left: 22rpx; border-left: 4rpx solid var(--brand-tint); }
 .key-text { display: -webkit-box; color: rgba(26, 23, 20, 0.78); font-size: var(--fs-body); line-height: 1.65; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .more-key { display: block; margin-top: 4rpx; color: var(--ink-2); font-size: var(--fs-caption); }
@@ -48,7 +51,7 @@
 .draft-card { border: 3rpx dashed rgba(26, 23, 20, 0.22); background: rgba(234, 227, 216, 0.5); box-shadow: none; }
 .draft-card .card-title { color: rgba(26, 23, 20, 0.65); }
 .draft-badge { flex-shrink: 0; padding: 4rpx 16rpx; border: 1rpx dashed var(--ink-faint); border-radius: var(--r-pill); background: rgba(234, 227, 216, 0.6); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
-.draft-help { color: var(--ink-2); font-size: var(--fs-meta); font-style: italic; }
+.draft-help { color: var(--ink-faint); font-size: var(--fs-meta); }
 .draft-divider { display: flex; align-items: center; gap: 24rpx; margin: 12rpx 8rpx 4rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .draft-divider view { flex: 1; height: 1rpx; background: var(--line-soft); }
 

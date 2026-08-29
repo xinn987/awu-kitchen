@@ -10,7 +10,7 @@
         </view>
       </view>
       <view class="create-options">
-        <view class="create-option primary" role="button" bindtap="chooseQuick">
+        <view class="create-option" role="button" bindtap="chooseQuick">
           <view class="create-option-icon"><app-icon name="pencil" size="38"></app-icon></view>
           <view class="create-option-copy">
             <text class="create-option-title">快速记录</text>

@@ -3,8 +3,8 @@
 .option-sections { display: flex; flex-direction: column; gap: 54rpx; margin-top: 44rpx; }
 .section-heading { padding-bottom: 22rpx; }
 .section-title, .section-description { display: block; }
-.section-title { color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; line-height: 1.35; }
-.section-description { margin-top: 7rpx; color: var(--ink-2); font-size: var(--fs-caption); }
+
+.section-description { display: block; margin: -12rpx 0 22rpx; color: var(--ink-faint); font-size: var(--fs-caption); }
 
 /* 与首页筛选和食谱分类使用同一套胶囊语言，避免管理页变成系统表格。 */
 .option-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 16rpx; }

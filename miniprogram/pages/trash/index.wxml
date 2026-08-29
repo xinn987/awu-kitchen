@@ -1,12 +1,15 @@
 <view class="page-shell">
-  <page-navbar left-text="返回" title="废纸篓" bindleft="back"></page-navbar>
+  <page-navbar left-text="设置" title="废纸篓" bindleft="back"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="trash-content">
       <text class="page-note">移入废纸篓的食谱仍保留正文和修订记录，恢复后回到家庭食谱库。</text>
 
       <app-loading wx:if="{{loading}}" label="正在加载废纸篓"></app-loading>
-      <view wx:elif="{{items.length === 0}}" class="empty-state">废纸篓是空的</view>
+      <view wx:elif="{{items.length === 0}}" class="empty-state">
+        <app-icon name="type-soup" size="120"></app-icon>
+        <text>废纸篓是空的</text>
+      </view>
 
       <view wx:else class="trash-list">
         <view wx:for="{{items}}" wx:key="id" class="trash-card">
