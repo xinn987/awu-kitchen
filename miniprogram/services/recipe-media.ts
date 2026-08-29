@@ -69,7 +69,8 @@ export async function chooseRecipeImage(): Promise<LocalRecipeImage> {
   }
 }
 
-async function compressForDisplay(image: LocalRecipeImage): Promise<LocalRecipeImage> {
+/** 压缩为适合小程序展示和模型识别的尺寸；正式图片与导入临时图片共用规则。 */
+export async function compressRecipeImage(image: LocalRecipeImage): Promise<LocalRecipeImage> {
   const scale = Math.min(1, MAX_LONG_EDGE / Math.max(image.width, image.height))
   const width = Math.max(1, Math.round(image.width * scale))
   const height = Math.max(1, Math.round(image.height * scale))
@@ -130,7 +131,7 @@ export async function prepareAndUploadRecipeImages(
   const processed: Array<{ key: string; image: LocalRecipeImage }> = []
   onStatus({ phase: 'processing', current: 0, total: items.length })
   for (let index = 0; index < items.length; index += 1) {
-    processed.push({ key: items[index].key, image: await compressForDisplay(items[index].image) })
+    processed.push({ key: items[index].key, image: await compressRecipeImage(items[index].image) })
     onStatus({ phase: 'processing', current: index + 1, total: items.length })
   }
 

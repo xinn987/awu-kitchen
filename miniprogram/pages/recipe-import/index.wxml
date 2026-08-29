@@ -1,0 +1,61 @@
+<view class="page-shell">
+  <page-navbar left-text="返回" title="导入食谱" bindleft="back"></page-navbar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="import-form">
+      <view class="intro-card">
+        <text class="intro-title font-serif">从图片快速填写</text>
+        <text class="intro-copy">按原食谱顺序选择小红书截图，识别后会进入编辑页。内容不会自动保存，请逐项核对。</text>
+      </view>
+
+      <view class="section-head">
+        <view>
+          <text class="section-title">食谱图片</text>
+          <text class="section-meta">{{images.length}} / {{maxImages}} 张</text>
+        </view>
+        <text wx:if="{{images.length > 0 && !working}}" class="clear-link" role="button" bindtap="clearImages">清空</text>
+      </view>
+
+      <view wx:if="{{images.length > 0}}" class="image-list">
+        <view wx:for="{{images}}" wx:key="localPath" class="image-row">
+          <view class="image-index">{{index + 1}}</view>
+          <image class="image-thumb" src="{{item.localPath}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+          <view class="image-copy">
+            <text class="image-name">第 {{index + 1}} 张</text>
+            <text class="image-hint">识别时按此顺序阅读</text>
+          </view>
+          <view wx:if="{{!working}}" class="image-tools">
+            <view wx:if="{{index > 0}}" class="image-tool" role="button" aria-label="上移图片" data-index="{{index}}" data-offset="-1" bindtap="moveImage"><app-icon name="arrow-up" size="28"></app-icon></view>
+            <view wx:if="{{index < images.length - 1}}" class="image-tool" role="button" aria-label="下移图片" data-index="{{index}}" data-offset="1" bindtap="moveImage"><app-icon name="arrow-down" size="28"></app-icon></view>
+            <view class="image-tool danger" role="button" aria-label="移除图片" data-index="{{index}}" bindtap="removeImage"><app-icon name="x" size="28"></app-icon></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{images.length < maxImages && !working}}" class="select-button" role="button" bindtap="selectImages">
+        <app-icon name="image" size="36"></app-icon>
+        <view>
+          <text class="select-title">{{images.length > 0 ? '继续添加图片' : '从相册选择图片'}}</text>
+          <text class="select-copy">最多 9 张，可在识别前调整顺序</text>
+        </view>
+      </view>
+
+      <view wx:if="{{working}}" class="working-card">
+        <view class="working-dot"></view>
+        <view>
+          <text class="working-title">{{statusText}}</text>
+          <text class="working-copy">请保持当前页面，完成后会自动进入编辑页</text>
+        </view>
+      </view>
+
+      <view class="privacy-note">
+        <text>识别时，所选图片会临时发送至 AI 识别服务；识别完成后会尽力删除云端临时副本。</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="action-bar">
+    <button class="primary-button import-button {{images.length === 0 || working ? 'disabled' : ''}}" hover-class="none" disabled="{{images.length === 0 || working}}" bindtap="recognize">
+      {{working ? statusText : '识别并填写食谱'}}
+    </button>
+  </view>
+</view>

@@ -1,5 +1,6 @@
 /**
- * 两步式快速收录：先留下名称，再填写成功关键。
+ * 统一的添加食谱面板：先选择快速记录或图片导入。
+ * 快速记录仍是两步式流程，先留下名称，再填写成功关键。
  * 第二步可以明确暂存为待补条目，避免把草稿伪装成正式食谱。
  * mounted/open 两个状态负责滑入滑出动画，opened 只反映外部意图。
  */
@@ -20,7 +21,7 @@ Component({
   data: {
     mounted: false,
     open: false,
-    step: 'name',
+    step: 'choice',
     name: '',
     keyText: '',
     example: KEY_EXAMPLES[0],
@@ -37,7 +38,7 @@ Component({
         }
         const example = KEY_EXAMPLES[Math.floor(Math.random() * KEY_EXAMPLES.length)]
         this.setData({
-          mounted: true, open: false, step: 'name', name: '', keyText: '', example,
+          mounted: true, open: false, step: 'choice', name: '', keyText: '', example,
           nameFilled: false, keyFilled: false, saving: false,
         })
         wx.nextTick(() => this.setData({ open: true }))
@@ -55,7 +56,9 @@ Component({
   methods: {
     noop() { /* 阻止点击面板时关闭遮罩。 */ },
     close() { this.triggerEvent('close') },
-    back() { this.setData({ step: 'name' }) },
+    chooseQuick() { this.setData({ step: 'name' }) },
+    chooseImport() { this.triggerEvent('chooseimport') },
+    back() { this.setData({ step: this.data.step === 'key' ? 'name' : 'choice' }) },
     next() {
       if (this.data.nameFilled) this.setData({ step: 'key' })
     },

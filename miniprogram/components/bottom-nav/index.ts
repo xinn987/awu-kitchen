@@ -1,4 +1,4 @@
-/** 两端页签加中央悬浮收录按钮。 */
+/** 两端页签加中央悬浮“添加食谱”按钮。 */
 Component({
   options: { styleIsolation: 'apply-shared' },
   properties: { active: { type: String, value: 'library' } },

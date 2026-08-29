@@ -146,7 +146,8 @@ export function getPendingRecipes(state: RecipeState): Recipe[] {
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
 }
 
-async function createRecipe(content: RecipeContent): Promise<Recipe> {
+/** 创建完整食谱；导入编辑页会在用户最终确认后调用。 */
+export async function createRecipe(content: RecipeContent): Promise<Recipe> {
   const recipe = await callApi<Recipe>('recipe.create', { content })
   upsertCachedRecipe(recipe)
   return recipe

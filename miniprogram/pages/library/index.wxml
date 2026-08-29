@@ -1,15 +1,11 @@
 <view class="page-shell">
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="library-header" style="padding-top: {{statusBarHeight + 20}}px;">
-      <view class="header-row">
-        <view>
-          <view class="brand-eyebrow">
-            <text>AWU KITCHEN</text>
-          </view>
-          <text class="page-title font-serif">阿呜厨房</text>
-          <text class="page-meta">{{formalCount}} 份家庭食谱 · {{pendingCount}} 个待补条目</text>
-        </view>
+      <view class="brand-eyebrow">
+        <text>AWU KITCHEN</text>
       </view>
+      <text class="page-title font-serif">阿呜厨房</text>
+      <text class="page-meta">{{formalCount}} 份家庭食谱 · {{pendingCount}} 个待补条目</text>
       <view class="search-box">
         <view class="search-icon"><app-icon name="search" size="30"></app-icon></view>
         <input value="{{query}}" placeholder="搜索食谱名或食材" placeholder-class="search-placeholder" bindinput="onSearchInput" />
@@ -90,6 +86,6 @@
   </scroll-view>
 
   <bottom-nav active="library" bindcapture="openCapture"></bottom-nav>
-  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindsaved="onCaptured"></quick-capture>
+  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindchooseimport="openImport" bindsaved="onCaptured"></quick-capture>
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>

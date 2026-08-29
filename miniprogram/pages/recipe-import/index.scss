@@ -1,0 +1,34 @@
+/* 食谱导入页只负责选择和识别，最终确认仍在原生编辑页完成。 */
+.import-form { display: flex; flex-direction: column; gap: 30rpx; padding: 32rpx 36rpx 60rpx; }
+.intro-card { padding: 32rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--brand-wash); }
+.intro-title { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }
+.intro-copy { display: block; margin-top: 12rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; }
+.section-title { color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
+.section-meta { margin-left: 12rpx; color: var(--ink-faint); font-size: var(--fs-caption); }
+.clear-link { min-height: 48rpx; color: var(--danger); font-size: var(--fs-meta); text-decoration: underline; text-underline-offset: 6rpx; }
+.image-list { display: flex; flex-direction: column; gap: 16rpx; }
+.image-row { min-height: 132rpx; display: flex; align-items: center; gap: 18rpx; padding: 16rpx; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--card); }
+.image-index { width: 40rpx; height: 40rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; background: var(--brand); color: #fff; font-size: var(--fs-caption); }
+.image-thumb { width: 106rpx; height: 106rpx; flex-shrink: 0; border-radius: var(--r-sm); background: var(--paper-deep); }
+.image-copy { flex: 1; min-width: 0; }
+.image-name, .image-hint { display: block; }
+.image-name { color: var(--ink); font-size: var(--fs-meta); font-weight: 500; }
+.image-hint { margin-top: 6rpx; color: var(--ink-faint); font-size: var(--fs-caption); }
+.image-tools { display: flex; align-items: center; gap: 2rpx; }
+.image-tool { width: 48rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); }
+.image-tool.danger { color: var(--danger); }
+.image-tool:active { background: var(--paper-soft); }
+.select-button { min-height: 142rpx; display: flex; align-items: center; justify-content: center; gap: 20rpx; border: 2rpx dashed var(--ink-faint); border-radius: var(--r-lg); background: var(--paper-deep); color: var(--brand); }
+.select-button:active { background: var(--paper-dim); }
+.select-title, .select-copy { display: block; }
+.select-title { color: var(--ink-soft); font-size: var(--fs-body); font-weight: 500; }
+.select-copy { margin-top: 5rpx; color: var(--ink-2); font-size: var(--fs-caption); }
+.working-card { display: flex; align-items: center; gap: 22rpx; padding: 28rpx; border-radius: var(--r-md); background: var(--paper-soft); }
+.working-dot { width: 22rpx; height: 22rpx; flex-shrink: 0; border: 4rpx solid var(--brand-tint); border-top-color: var(--brand); border-radius: 50%; animation: import-spin 0.9s linear infinite; }
+.working-title, .working-copy { display: block; }
+.working-title { color: var(--ink); font-size: var(--fs-meta); font-weight: 500; }
+.working-copy { margin-top: 5rpx; color: var(--ink-2); font-size: var(--fs-caption); }
+.privacy-note { padding: 0 8rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.65; }
+.import-button { width: 100%; margin: 0; }
+@keyframes import-spin { to { transform: rotate(360deg); } }

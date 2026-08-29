@@ -5,6 +5,7 @@
     "pages/recipe-detail/index",
     "pages/recipe-comments/index",
     "pages/recipe-edit/index",
+    "pages/recipe-import/index",
     "pages/history/index",
     "pages/family/index",
     "pages/settings/index",

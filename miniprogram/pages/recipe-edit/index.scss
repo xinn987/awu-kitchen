@@ -1,6 +1,12 @@
 /* 编辑页：镜像详情页的阅读版式——开放纸面、细分隔线、段落式区块。
    层次靠排版与留白建立，输入框直接长成它将来被阅读的样子。 */
 .edit-form { display: flex; flex-direction: column; padding: 0 40rpx 48rpx; }
+.import-notice { margin-top: 26rpx; padding: 26rpx 28rpx; border: 1rpx solid var(--brand-tint); border-radius: var(--r-md); background: var(--brand-wash); }
+.import-notice-title, .import-notice-copy, .import-warning { display: block; }
+.import-notice-title { color: var(--ink); font-size: var(--fs-meta); font-weight: 600; }
+.import-notice-copy { margin-top: 8rpx; color: var(--ink-2); font-size: var(--fs-caption); line-height: 1.65; }
+.import-warning-list { margin-top: 14rpx; padding-top: 12rpx; border-top: 1rpx solid var(--brand-tint); }
+.import-warning { color: var(--brand-deep); font-size: var(--fs-caption); line-height: 1.65; }
 
 /* —— 名称：衬线大字，就是详情页的标题 —— */
 .name-block { padding: 28rpx 0 32rpx; border-bottom: 1rpx solid var(--line-soft); }

@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "app-icon": "/components/app-icon/index",
+    "page-navbar": "/components/page-navbar/index"
+  }
+}

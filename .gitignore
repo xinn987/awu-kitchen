@@ -4,6 +4,7 @@ node_modules/
 # 构建产物与 TypeScript 增量缓存
 dist/
 /cloudfunctions/api/lib/
+/cloudfunctions/recipe-import/lib/
 *.tsbuildinfo
 
 # 微信开发者工具的本机私有配置

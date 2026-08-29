@@ -9,7 +9,9 @@ import {
   type RecipeStep,
   type Stage,
 } from '../../models/recipe'
+import type { RecipeImportDraft } from '../../models/recipe-import'
 import { ApiError } from '../../services/cloud-client'
+import { takePendingRecipeImportDraft } from '../../services/recipe-import'
 import {
   chooseRecipeImage,
   cleanupUploadedRecipeImages,
@@ -17,7 +19,7 @@ import {
   RecipeMediaError,
   type LocalRecipeImage,
 } from '../../services/recipe-media'
-import { getIngredientSuggestions, getState, updateRecipe } from '../../services/recipe-store'
+import { createRecipe, getIngredientSuggestions, getState, updateRecipe } from '../../services/recipe-store'
 import { isFormalRecipe, uid } from '../../utils/recipe-utils'
 
 /** 点亮为主食材的数量上限；主食材会作为家庭可搜索的原料标签保存。 */
@@ -126,6 +128,9 @@ function coreOf(
 Page({
   data: {
     id: '',
+    importMode: false,
+    pageTitle: '编辑食谱',
+    importWarnings: [] as string[],
     found: true,
     loading: true,
     name: '',
@@ -160,9 +165,67 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
+    if (options.mode === 'import') {
+      const draft = takePendingRecipeImportDraft()
+      if (!draft) {
+        this.setData({ importMode: true, pageTitle: '导入食谱', found: false, loading: false })
+        return
+      }
+      this.setData({ importMode: true, pageTitle: '核对导入内容' })
+      void this.loadImportDraft(draft)
+      return
+    }
     const id = options.id || ''
     this.setData({ id })
     void this.loadRecipe(id)
+  },
+
+  /** 导入草稿只初始化表单；真正的 recipe.create 仍发生在用户点击保存之后。 */
+  async loadImportDraft(draft: RecipeImportDraft) {
+    try {
+      let state = await getState()
+      if (state.recipeSchemaVersion !== 2 || state.recipeOptions.version === 0) state = await getState(true)
+      editingState = state
+      editingVersion = 1
+      originalCore = undefined
+      let primaryCount = 0
+      const ingredients = draft.ingredients.slice(0, 30).map((item) => {
+        const primary = item.primary && primaryCount < MAX_PRIMARY
+        if (primary) primaryCount += 1
+        return { name: item.name, amount: item.amount || '', primary }
+      })
+      const steps = draft.steps.slice(0, 30).map((step) => ({
+        id: uid('step-'),
+        text: step.text,
+        image: null,
+      }))
+      // 与空表单比较，让导入预填本身也被视为尚未保存的修改。
+      originalFull = {
+        name: '', keys: [], mainImage: '', ingredients: [], steps: [], type: '', stage: '',
+      }
+      this.setData({
+        id: '',
+        found: true,
+        loading: false,
+        name: draft.name,
+        keys: draft.successKeys.length > 0 ? draft.successKeys.slice(0, 10) : [''],
+        mainImage: null,
+        sections: {
+          ingredients: ingredients.length > 0,
+          steps: steps.length > 0,
+          classify: Boolean(draft.type || draft.stage),
+        },
+        ingredients,
+        steps,
+        type: state.recipeOptions.foodTypes.includes(draft.type) ? draft.type : '',
+        stage: state.recipeOptions.stages.includes(draft.stage) ? draft.stage : '',
+        wasDraft: false,
+        importWarnings: draft.warnings.slice(0, 10),
+      }, () => this.recompute())
+    } catch (error) {
+      this.setData({ found: false, loading: false })
+      wx.showToast({ title: error instanceof Error ? error.message : '导入草稿加载失败', icon: 'none' })
+    }
   },
 
   async loadRecipe(id: string) {
@@ -297,7 +360,11 @@ Page({
       wx.showToast({ title: '图片和食谱正在保存，请稍候', icon: 'none' })
       return
     }
-    wx.navigateBack({ fail: () => wx.redirectTo({ url: `/pages/recipe-detail/index?id=${this.data.id}` }) })
+    wx.navigateBack({
+      fail: () => wx.redirectTo({
+        url: this.data.importMode ? '/pages/library/index' : `/pages/recipe-detail/index?id=${this.data.id}`,
+      }),
+    })
   },
 
   toggleSection(event: WechatMiniprogram.BaseEvent) {
@@ -563,19 +630,27 @@ Page({
 
       this.setData({ saveStatus: '正在保存…' })
       wx.showLoading({ title: '正在保存', mask: true })
-      await updateRecipe(
-        this.data.id,
-        content,
-        this.data.wasDraft ? '补充成功关键，转为正式食谱' : '更新食谱内容',
-        editingVersion,
-      )
-      const message = this.data.wasDraft ? '已转为正式食谱' : '已保存'
+      let savedId = this.data.id
+      if (this.data.importMode) {
+        const recipe = await createRecipe(content)
+        savedId = recipe.id
+      } else {
+        await updateRecipe(
+          this.data.id,
+          content,
+          this.data.wasDraft ? '补充成功关键，转为正式食谱' : '更新食谱内容',
+          editingVersion,
+        )
+      }
+      const message = this.data.importMode
+        ? '导入食谱已保存'
+        : (this.data.wasDraft ? '已转为正式食谱' : '已保存')
       // 保存即将跳转，先摘掉离开保护，避免被自己的成功路径拦下。
       if (dirtyGuardOn && typeof wx.disableAlertBeforeUnload === 'function') {
         wx.disableAlertBeforeUnload()
         dirtyGuardOn = false
       }
-      wx.redirectTo({ url: `/pages/recipe-detail/index?id=${this.data.id}&toast=${encodeURIComponent(message)}` })
+      wx.redirectTo({ url: `/pages/recipe-detail/index?id=${savedId}&toast=${encodeURIComponent(message)}` })
     } catch (error) {
       await cleanupUploadedRecipeImages(uploadedFileIds)
       this.setData({ saving: false, saveStatus: '' })

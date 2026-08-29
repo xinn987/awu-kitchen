@@ -2,9 +2,39 @@
   <view class="sheet" catchtap="noop">
     <view class="sheet-handle"></view>
 
-    <view wx:if="{{step === 'name'}}" class="sheet-body">
+    <view wx:if="{{step === 'choice'}}" class="sheet-body">
       <view class="sheet-header">
-        <text class="sheet-title">收录一道新做法</text>
+        <text class="sheet-title">添加食谱</text>
+        <view class="close-button" role="button" aria-label="关闭" bindtap="close">
+          <app-icon name="x" size="38"></app-icon>
+        </view>
+      </view>
+      <view class="create-options">
+        <view class="create-option primary" role="button" bindtap="chooseQuick">
+          <view class="create-option-icon"><app-icon name="pencil" size="38"></app-icon></view>
+          <view class="create-option-copy">
+            <text class="create-option-title">快速记录</text>
+            <text class="create-option-help">先记下名称和成功关键，其他内容以后再补</text>
+          </view>
+          <app-icon name="chevron-right" size="30"></app-icon>
+        </view>
+        <view class="create-option" role="button" bindtap="chooseImport">
+          <view class="create-option-icon"><app-icon name="image" size="38"></app-icon></view>
+          <view class="create-option-copy">
+            <text class="create-option-title">从图片导入</text>
+            <text class="create-option-help">选择食谱截图，由 AI 识别并预填编辑页</text>
+          </view>
+          <app-icon name="chevron-right" size="30"></app-icon>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{step === 'name'}}" class="sheet-body">
+      <view class="sheet-header">
+        <view class="back-button" role="button" aria-label="返回添加方式" bindtap="back">
+          <app-icon name="chevron-left" size="40"></app-icon>
+        </view>
+        <text class="sheet-title sheet-title-center">快速记录</text>
         <view class="close-button" role="button" aria-label="关闭" bindtap="close">
           <app-icon name="x" size="38"></app-icon>
         </view>
@@ -15,7 +45,7 @@
         value="{{name}}"
         placeholder="这道辅食叫什么？"
         placeholder-class="input-placeholder"
-        focus="{{open}}"
+        focus="{{open && step === 'name'}}"
         bindinput="onNameInput"
         bindconfirm="next"
       />

@@ -1,6 +1,5 @@
 .library-header { padding: 40rpx 40rpx 28rpx; }
 .brand-eyebrow { display: flex; align-items: center; gap: 8rpx; margin-bottom: 14rpx; color: var(--brand); font-size: var(--fs-caption); font-weight: 500; letter-spacing: 0.14em; }
-.header-row { display: flex; align-items: flex-start; justify-content: space-between; }
 .page-title { display: block; color: var(--ink); font-size: var(--fs-display); font-weight: 600; line-height: 1.2; }
 .page-meta { display: block; margin-top: 10rpx; color: var(--ink-2); font-size: var(--fs-meta); }
 .search-box { height: 80rpx; margin-top: 28rpx; display: flex; align-items: center; padding: 0 24rpx; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--card); }

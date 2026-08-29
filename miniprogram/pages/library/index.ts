@@ -155,6 +155,13 @@ Page({
   openCapture() { this.setData({ captureOpen: true }) },
   closeCapture() { this.setData({ captureOpen: false }) },
 
+  /** 图片导入与快速记录共用“添加食谱”入口，但进入各自独立流程。 */
+  openImport() {
+    this.setData({ captureOpen: false }, () => {
+      wx.navigateTo({ url: '/pages/recipe-import/index' })
+    })
+  },
+
   onCaptured(event: WechatMiniprogram.CustomEvent<{ id: string; formal: boolean; message: string }>) {
     const { id, formal, message } = event.detail
     this.setData({ captureOpen: false })

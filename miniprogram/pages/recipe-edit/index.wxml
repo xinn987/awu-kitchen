@@ -1,9 +1,16 @@
 <view class="page-shell">
-  <page-navbar left-text="取消" title="编辑食谱" bindleft="cancel"></page-navbar>
+  <page-navbar left-text="取消" title="{{pageTitle}}" bindleft="cancel"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <app-loading wx:if="{{loading}}" label="正在加载食谱"></app-loading>
     <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:else class="edit-form">
+      <view wx:if="{{importMode}}" class="import-notice">
+        <text class="import-notice-title">图片内容已预填，请逐项核对</text>
+        <text class="import-notice-copy">AI 识别结果可能遗漏或误读。只有点击底部保存后，内容才会进入家庭食谱。</text>
+        <view wx:if="{{importWarnings.length > 0}}" class="import-warning-list">
+          <text wx:for="{{importWarnings}}" wx:key="*this" class="import-warning">· {{item}}</text>
+        </view>
+      </view>
       <!-- 名称：直接写成将来的标题样子，衬线大字、无边框。 -->
       <view class="name-block">
         <input
@@ -207,7 +214,7 @@
 
   <!-- 保存栏固定在页面底部，长表单滚动时始终可见。 -->
   <view wx:if="{{found && !loading}}" class="action-bar">
-    <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
+    <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : (importMode ? '确认并保存食谱' : ('保存' + (formalizing ? '并转为正式食谱' : '修改')))}}</button>
   </view>
 
   <confirm-panel

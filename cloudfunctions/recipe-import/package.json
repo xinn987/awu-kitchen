@@ -1,0 +1,17 @@
+{
+  "name": "awu-kitchen-recipe-import",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/promote-build.cjs",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0"
+  }
+}
