@@ -19,7 +19,7 @@
           <text class="member-meta">{{item.roleLabel}} · 参与了 {{item.contributionCount}} 份食谱</text>
         </view>
         <view wx:if="{{item.canRemove}}" class="remove-member" role="button" aria-label="移出成员" data-id="{{item.id}}" bindtap="askRemove">
-          <app-icon name="x" size="34"></app-icon>
+          <app-icon name="x" size="30"></app-icon>
         </view>
       </view>
 

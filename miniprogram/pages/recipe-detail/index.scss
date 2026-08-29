@@ -22,7 +22,7 @@
 .main-photo, .main-image-error { width: 100%; height: 447rpx; border-radius: var(--r-lg); }
 .main-photo { display: block; border: 1rpx solid var(--line); background: var(--paper-deep); }
 .image-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10rpx; border: 1rpx solid var(--line-soft); background: var(--paper-deep); color: var(--ink-2); font-size: var(--fs-meta); }
-.retry-link { color: var(--brand); font-weight: 500; text-decoration: underline; text-underline-offset: 5rpx; }
+.retry-link { color: var(--brand); font-weight: 500; text-decoration: underline; text-underline-offset: 6rpx; }
 .ingredient-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid var(--line-soft); color: var(--ink); font-size: var(--fs-body); }
 .ingredient-row:last-child { border-bottom: 0; }
 .ingredient-amount { color: var(--ink-2); font-size: var(--fs-meta); }

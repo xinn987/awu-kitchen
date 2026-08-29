@@ -33,7 +33,7 @@
               bindinput="onKeyInput"
             ></textarea>
             <view class="remove-button" role="button" aria-label="删除成功关键" data-index="{{index}}" bindtap="removeKey">
-              <app-icon name="x" size="32"></app-icon>
+              <app-icon name="x" size="30"></app-icon>
             </view>
           </view>
         </view>
