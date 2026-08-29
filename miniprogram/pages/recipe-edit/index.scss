@@ -1,35 +1,47 @@
-/* 编辑页：分区卡片化。每张卡片一个主题，衬线标题建立层次。 */
-.edit-form { display: flex; flex-direction: column; gap: 24rpx; padding: 24rpx 32rpx 48rpx; }
-.form-card { width: 100%; padding: 30rpx 28rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); }
-.card-head { display: flex; align-items: center; justify-content: space-between; }
-.card-title-row { display: flex; align-items: center; gap: 12rpx; color: var(--ink-2); }
-.card-title { color: var(--ink); font-size: var(--fs-title-sm); font-weight: 500; }
-.card-label { margin-bottom: 14rpx; color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; }
-.required { color: var(--brand); }
-.field-placeholder { color: var(--ink-faint); }
-.name-field { height: 88rpx; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 500; }
-.keys-hint { color: var(--brand); font-size: var(--fs-caption); }
+/* 编辑页：镜像详情页的阅读版式——开放纸面、细分隔线、段落式区块。
+   层次靠排版与留白建立，输入框直接长成它将来被阅读的样子。 */
+.edit-form { display: flex; flex-direction: column; padding: 0 40rpx 48rpx; }
 
-/* —— 折叠状态摘要：数量或已选值，空时给「添加」行动点 —— */
+/* —— 名称：衬线大字，就是详情页的标题 —— */
+.name-block { padding: 28rpx 0 32rpx; border-bottom: 1rpx solid var(--line-soft); }
+.name-input { width: 100%; height: 72rpx; color: var(--ink); font-size: var(--fs-display); font-weight: 600; line-height: 1.3; }
+.name-placeholder { color: var(--ink-faint); font-weight: 400; }
+
+/* —— 区块节奏：与详情页 detail-section 相同的分隔线段落 —— */
+.edit-section { padding: 36rpx 0; border-bottom: 1rpx solid var(--line-soft); }
+.edit-section.last { border-bottom: 0; padding-bottom: 12rpx; }
+.section-head { display: flex; align-items: center; justify-content: space-between; }
+.section-head .section-label { margin-bottom: 0; }
+.section-label text { font-size: var(--fs-meta); }
+.required { margin-left: 2rpx; color: var(--brand); }
+.keys-hint { color: var(--brand); font-size: var(--fs-caption); }
+.row-placeholder { color: var(--ink-faint); }
+
+/* —— 折叠状态摘要 —— */
 .collapse-meta { display: flex; align-items: center; gap: 10rpx; }
 .collapse-count { max-width: 320rpx; overflow: hidden; color: var(--ink-2); font-size: var(--fs-caption); white-space: nowrap; text-overflow: ellipsis; }
 .collapse-add { color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
 .collapse-chevron { display: flex; color: var(--ink-faint); transition: transform 0.2s ease; }
 .collapse-chevron.open { transform: rotate(180deg); }
 
-/* —— 成功关键 —— */
-.repeat-list { display: flex; flex-direction: column; gap: 16rpx; margin-top: 24rpx; }
+/* —— 成功关键：输入框直接长成详情页 success-key 的样子 —— */
+.key-list { display: flex; flex-direction: column; gap: 20rpx; margin-top: 24rpx; }
 .key-editor { display: flex; align-items: flex-start; gap: 16rpx; }
-.key-accent { width: 7rpx; align-self: stretch; margin: 16rpx 0; flex-shrink: 0; border-radius: var(--r-pill); background: var(--brand-tint); }
-.key-textarea { flex: 1; min-height: 116rpx; font-size: var(--fs-body); }
-.remove-button { width: 64rpx; height: 64rpx; margin: 6rpx -12rpx 0 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-faint); }
+.key-textarea {
+  flex: 1; min-height: 104rpx; box-sizing: border-box; padding: 24rpx 28rpx;
+  border-left: 6rpx solid var(--brand); border-radius: var(--r-md);
+  background: var(--brand-wash); color: var(--ink);
+  font-size: var(--fs-body); line-height: 1.8;
+}
+.key-placeholder { color: var(--ink-faint); }
+.remove-button { width: 60rpx; height: 60rpx; margin-top: 12rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-faint); }
 .remove-button:active { opacity: 0.5; }
-.add-button { margin-top: 18rpx; display: flex; align-items: center; gap: 8rpx; color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
+.add-button { margin-top: 20rpx; display: flex; align-items: center; gap: 8rpx; color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
 .add-button:active { opacity: 0.6; }
 
-/* —— 主图：编辑场景压缩展示高度，操作保持行内链接 —— */
-.main-image-editor { margin-top: 20rpx; }
-.main-image-preview { width: 100%; height: 320rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--paper-deep); }
+/* —— 主图 —— */
+.main-image-editor { margin-top: 4rpx; }
+.main-image-preview { width: 100%; height: 360rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--paper-deep); }
 .image-empty { min-height: 152rpx; display: flex; align-items: center; justify-content: center; gap: 20rpx; border: 2rpx dashed var(--ink-faint); border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink-2); }
 .image-empty:active { background: var(--paper-dim); }
 .image-empty-icon { display: flex; color: var(--brand); }
@@ -37,42 +49,45 @@
 .image-empty-title { color: var(--ink-soft); font-size: var(--fs-body); font-weight: 500; }
 .image-empty-copy { margin-top: 5rpx; color: var(--ink-2); font-size: var(--fs-meta); }
 .image-action-row { display: flex; align-items: center; gap: 30rpx; margin-top: 14rpx; }
-.image-action-row.compact { margin-top: 12rpx; }
-.image-link { min-height: 52rpx; display: flex; align-items: center; color: var(--ink-2); font-size: var(--fs-meta); text-decoration: underline; text-underline-offset: 6rpx; }
+.image-action-row.compact { margin-top: 10rpx; }
+.image-link { min-height: 48rpx; display: flex; align-items: center; color: var(--ink-2); font-size: var(--fs-meta); text-decoration: underline; text-underline-offset: 6rpx; }
 .image-link.danger { color: var(--danger); }
 .image-link:active { opacity: 0.5; }
 
-/* —— 食材：星标点亮主食材 —— */
-.ingredient-editor { display: flex; align-items: flex-start; gap: 12rpx; }
-.primary-toggle { width: 60rpx; height: 60rpx; margin-top: 10rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1rpx dashed var(--line-strong); border-radius: 50%; color: var(--ink-faint); }
-.primary-toggle:active { opacity: 0.7; }
-.primary-toggle.on { border: 1rpx solid var(--brand); background: var(--brand); color: #fff; }
-.ingredient-name { flex: 1; min-width: 0; }
-.amount-input { width: 176rpx; }
-.ingredient-editor .remove-button { margin-right: -8rpx; }
+/* —— 食材：行式编辑，星标即主食材 —— */
+.ingredient-list { margin-top: 8rpx; }
+.ingredient-row { display: flex; align-items: center; gap: 16rpx; padding: 14rpx 0; border-bottom: 1rpx solid var(--line-soft); }
+.primary-toggle { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-faint); }
+.primary-toggle:active { opacity: 0.6; }
+.primary-toggle.on { color: var(--brand); }
+.ingredient-name { flex: 1; min-width: 0; height: 64rpx; color: var(--ink); font-size: var(--fs-body); }
+.ingredient-amount { width: 150rpx; height: 64rpx; color: var(--ink-2); font-size: var(--fs-meta); text-align: right; }
+.ingredient-row .remove-button { width: 52rpx; height: 52rpx; margin-top: 0; }
 .primary-help { margin-top: 16rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.6; }
 
-/* —— 历史建议 chips：收在已有列表之后 —— */
+/* —— 全家常用：建议收在已有列表之后 —— */
 .suggestion-block { margin-top: 24rpx; }
 .suggestion-label { display: block; margin-bottom: 12rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .suggestion-row { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .suggestion-chip { display: flex; align-items: center; gap: 6rpx; padding: 8rpx 18rpx; border: 1rpx solid var(--line-strong); border-radius: var(--r-pill); background: var(--card); color: var(--ink-soft); font-size: var(--fs-meta); transition: transform 0.15s ease; }
 .suggestion-chip:active { transform: scale(0.94); }
 
-/* —— 步骤：直接列表编辑，操作图标归属每步 —— */
-.step-editor { padding: 20rpx; border: 1rpx solid var(--line-soft); border-radius: var(--r-md); background: var(--paper); }
-.step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
+/* —— 步骤：与详情页 step-row 同构的开放文本 —— */
+.step-list { margin-top: 8rpx; }
+.step-block { padding: 26rpx 0 22rpx; border-bottom: 1rpx solid var(--line-soft); }
+.step-block:last-child { border-bottom: 0; }
+.step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
 .step-number { width: 40rpx; height: 40rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
-.step-tools { display: flex; align-items: center; gap: 8rpx; }
+.step-tools { display: flex; align-items: center; gap: 6rpx; margin-right: -10rpx; }
 .step-tool { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-faint); }
 .step-tool:active { background: var(--paper-soft); }
 .step-tool.danger { color: var(--danger); }
-.step-textarea { min-height: 96rpx; font-size: var(--fs-body); line-height: 1.65; }
-.step-image-editor { margin-top: 14rpx; }
-.step-image-preview { width: 240rpx; height: 160rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--paper-deep); }
+.step-textarea { width: 100%; min-height: 64rpx; padding: 0; color: var(--ink); font-size: var(--fs-body); line-height: 1.75; }
+.step-image-editor { margin-top: 18rpx; }
+.step-image-preview { width: 100%; height: 320rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--paper-deep); }
 .step-image-add { min-height: 52rpx; margin-top: 10rpx; display: flex; align-items: center; gap: 8rpx; color: var(--ink-faint); font-size: var(--fs-meta); }
 .step-image-add:active { color: var(--brand); }
-.steps-empty { padding: 8rpx 0; color: var(--ink-2); font-size: var(--fs-meta); }
+.steps-empty { padding: 16rpx 0 4rpx; color: var(--ink-2); font-size: var(--fs-meta); }
 
 /* —— 分类：家庭统一维护的两个单选组 —— */
 .classify-group { margin-top: 28rpx; }
@@ -84,5 +99,5 @@
 .option-chip.active { border-color: var(--brand); background: var(--brand); color: #fff; }
 .classify-note { margin-top: 26rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.6; }
 
-/* —— 吸底保存栏：移出滚动层后由 page-shell 布局承载 —— */
+/* —— 吸底保存栏 —— */
 .save-button { width: auto; margin: 0; flex: 1; }

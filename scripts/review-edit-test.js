@@ -72,7 +72,7 @@ async function main() {
     log(`steps after remove: ${stepTextareas.length}`)
 
     // 分区折叠：点分类标题折叠再展开
-    const heads = await edit.$$('.card-head')
+    const heads = await edit.$$('.section-head')
     log(`card heads: ${heads.length}`)
     await heads[heads.length - 1].tap()
     await edit.waitFor(300)

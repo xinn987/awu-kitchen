@@ -4,29 +4,30 @@
     <app-loading wx:if="{{loading}}" label="正在加载食谱"></app-loading>
     <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:else class="edit-form">
-      <view class="form-card">
-        <view class="card-label">食谱名称</view>
-        <input class="field-input name-field" value="{{name}}" bindinput="onNameInput" />
+      <!-- 名称：直接写成将来的标题样子，衬线大字、无边框。 -->
+      <view class="name-block">
+        <input
+          class="name-input font-serif"
+          value="{{name}}"
+          placeholder="这道辅食叫什么？"
+          placeholder-class="name-placeholder"
+          bindinput="onNameInput"
+        />
       </view>
 
-      <view class="form-card">
-        <view class="card-head">
-          <view class="card-title-row">
-            <app-icon name="zap" size="28"></app-icon>
-            <text class="card-title font-serif">成功关键</text>
-            <text class="required">*</text>
-          </view>
+      <view class="edit-section">
+        <view class="section-head">
+          <view class="section-label"><app-icon name="zap" size="28"></app-icon><text>成功关键</text><text class="required">*</text></view>
           <text wx:if="{{showKeysHint}}" class="keys-hint">写一条才能保存</text>
         </view>
-        <view class="repeat-list">
+        <view class="key-list">
           <view wx:for="{{keys}}" wx:key="index" class="key-editor">
-            <view class="key-accent"></view>
             <textarea
-              class="field-textarea key-textarea"
+              class="key-textarea"
               value="{{item}}"
               data-index="{{index}}"
               placeholder="比如：蒸到筷子能轻松穿过才够烂"
-              placeholder-class="field-placeholder"
+              placeholder-class="key-placeholder"
               maxlength="-1"
               auto-height
               bindinput="onKeyInput"
@@ -43,11 +44,8 @@
       </view>
 
       <!-- 主图在成功关键之后出现，不把图片抬到核心经验之前。 -->
-      <view class="form-card">
-        <view class="card-title-row">
-          <app-icon name="image" size="28"></app-icon>
-          <text class="card-title font-serif">主图（可选）</text>
-        </view>
+      <view class="edit-section">
+        <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
         <view wx:if="{{mainImage}}" class="main-image-editor">
           <image class="main-image-preview" src="{{mainImage.localPath}}" mode="aspectFill"></image>
           <view class="image-action-row">
@@ -64,13 +62,10 @@
         </view>
       </view>
 
-      <!-- —— 食材：点亮星标即主食材，建议收在列表之后 —— -->
-      <view class="form-card">
-        <view class="card-head" role="button" data-section="ingredients" bindtap="toggleSection">
-          <view class="card-title-row">
-            <app-icon name="shopping-bag" size="28"></app-icon>
-            <text class="card-title font-serif">食材</text>
-          </view>
+      <!-- —— 食材：点亮星标即主食材，行式编辑、细分隔线 —— -->
+      <view class="edit-section">
+        <view class="section-head" role="button" data-section="ingredients" bindtap="toggleSection">
+          <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
           <view class="collapse-meta">
             <text wx:if="{{ingredientsCount > 0}}" class="collapse-count">{{ingredientsCount}} 项</text>
             <text wx:else class="collapse-add">添加</text>
@@ -78,8 +73,8 @@
           </view>
         </view>
         <block wx:if="{{sections.ingredients}}">
-          <view class="repeat-list">
-            <view wx:for="{{ingredients}}" wx:key="index" class="ingredient-editor">
+          <view class="ingredient-list">
+            <view wx:for="{{ingredients}}" wx:key="index" class="ingredient-row">
               <view
                 class="primary-toggle {{item.primary ? 'on' : ''}}"
                 role="button"
@@ -87,12 +82,12 @@
                 data-index="{{index}}"
                 bindtap="togglePrimary"
               >
-                <app-icon name="star" size="26"></app-icon>
+                <app-icon name="{{item.primary ? 'star-filled' : 'star'}}" size="34"></app-icon>
               </view>
-              <input class="field-input ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="field-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
-              <input class="field-input amount-input" value="{{item.amount}}" placeholder="用量" placeholder-class="field-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
+              <input class="ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="row-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
+              <input class="ingredient-amount" value="{{item.amount}}" placeholder="用量" placeholder-class="row-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
               <view class="remove-button" role="button" aria-label="删除食材" data-index="{{index}}" bindtap="removeIngredient">
-                <app-icon name="x" size="32"></app-icon>
+                <app-icon name="x" size="30"></app-icon>
               </view>
             </view>
           </view>
@@ -112,13 +107,10 @@
         </block>
       </view>
 
-      <!-- —— 步骤：每步直接编辑文字，图片与排序归属同一行 —— -->
-      <view class="form-card">
-        <view class="card-head" role="button" data-section="steps" bindtap="toggleSection">
-          <view class="card-title-row">
-            <app-icon name="list" size="28"></app-icon>
-            <text class="card-title font-serif">步骤</text>
-          </view>
+      <!-- —— 步骤：无框文本直接编辑，序号与图片归属每步 —— -->
+      <view class="edit-section">
+        <view class="section-head" role="button" data-section="steps" bindtap="toggleSection">
+          <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
           <view class="collapse-meta">
             <text wx:if="{{stepsCount > 0}}" class="collapse-count">{{stepsCount}} 步</text>
             <text wx:else class="collapse-add">添加</text>
@@ -126,8 +118,8 @@
           </view>
         </view>
         <block wx:if="{{sections.steps}}">
-          <view class="repeat-list">
-            <view wx:for="{{steps}}" wx:key="id" class="step-editor">
+          <view class="step-list">
+            <view wx:for="{{steps}}" wx:key="id" class="step-block">
               <view class="step-head">
                 <text class="step-number">{{index + 1}}</text>
                 <view class="step-tools">
@@ -155,11 +147,11 @@
                 </view>
               </view>
               <textarea
-                class="field-textarea step-textarea"
+                class="step-textarea"
                 value="{{item.text}}"
                 data-index="{{index}}"
                 placeholder="这一步做什么？做到什么状态算到位"
-                placeholder-class="field-placeholder"
+                placeholder-class="row-placeholder"
                 maxlength="-1"
                 auto-height
                 bindinput="onStepTextInput"
@@ -175,8 +167,8 @@
                 <app-icon name="image" size="28"></app-icon><text>添加步骤图</text>
               </view>
             </view>
+            <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，按做的顺序写下来</view>
           </view>
-          <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，按做的顺序写下来</view>
           <view class="add-button" role="button" bindtap="addStep">
             <app-icon name="plus" size="30"></app-icon>
             <text>添加一步</text>
@@ -185,12 +177,9 @@
       </view>
 
       <!-- —— 分类：家庭统一维护的两个单选组 —— -->
-      <view class="form-card">
-        <view class="card-head" role="button" data-section="classify" bindtap="toggleSection">
-          <view class="card-title-row">
-            <app-icon name="tag" size="28"></app-icon>
-            <text class="card-title font-serif">分类</text>
-          </view>
+      <view class="edit-section last">
+        <view class="section-head" role="button" data-section="classify" bindtap="toggleSection">
+          <view class="section-label"><app-icon name="tag" size="28"></app-icon><text>分类</text></view>
           <view class="collapse-meta">
             <text wx:if="{{classifySummary}}" class="collapse-count">{{classifySummary}}</text>
             <text wx:else class="collapse-add">添加</text>
