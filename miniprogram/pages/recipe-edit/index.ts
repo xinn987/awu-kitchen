@@ -7,7 +7,6 @@ import {
   type RecipeImage,
   type RecipeState,
   type RecipeStep,
-  type Stage,
 } from '../../models/recipe'
 import type { RecipeImportDraft } from '../../models/recipe-import'
 import { ApiError } from '../../services/cloud-client'
@@ -28,6 +27,11 @@ import { isFormalRecipe, uid } from '../../utils/recipe-utils'
 
 /** 点亮为主食材的数量上限；主食材会作为家庭可搜索的原料标签保存。 */
 const MAX_PRIMARY = 3
+
+/** 步骤长按拖动排序的临时状态；坐标测量结果不进 data。 */
+let dragStartY = 0
+let dragOriginIndex = 0
+let dragRowHeight = 0
 
 interface EditSections {
   ingredients: boolean
@@ -76,7 +80,6 @@ interface FullSnapshot {
   ingredients: Array<{ name: string; amount: string; primary: boolean }>
   steps: Array<{ id: string; text: string; image: string }>
   type: string
-  stage: string
 }
 
 type ConfirmAction = '' | 'save' | 'schema' | 'conflict'
@@ -147,10 +150,9 @@ Page({
     ingredientSuggestions: [] as string[],
     steps: [] as EditableStep[],
     stepsCount: 0,
+    dragIndex: -1,
     type: '' as FoodType | '',
-    stage: '' as Stage | '',
     typeOptions: [] as Array<{ label: FoodType; active: boolean }>,
-    stageOptions: [] as Array<{ label: Stage; active: boolean }>,
     classifySummary: '',
     wasDraft: false,
     formalizing: false,
@@ -224,7 +226,7 @@ Page({
       }))
       // 与空表单比较，让导入预填本身也被视为尚未保存的修改。
       originalFull = {
-        name: '', keys: [], mainImage: '', ingredients: [], steps: [], type: '', stage: '',
+        name: '', keys: [], mainImage: '', ingredients: [], steps: [], type: '',
       }
       this.setData({
         id: '',
@@ -236,12 +238,11 @@ Page({
         sections: {
           ingredients: ingredients.length > 0,
           steps: steps.length > 0,
-          classify: Boolean(draft.type || draft.stage),
+          classify: Boolean(draft.type),
         },
         ingredients,
         steps,
         type: state.recipeOptions.foodTypes.includes(draft.type) ? draft.type : '',
-        stage: state.recipeOptions.stages.includes(draft.stage) ? draft.stage : '',
         wasDraft: false,
         importWarnings: draft.warnings.slice(0, 10),
       }, () => this.recompute())
@@ -271,6 +272,10 @@ Page({
         amount: item.amount || '',
         primary: recipe.tags.includes(item.name.trim()),
       }))
+      const sortedIngredients = [
+        ...ingredients.filter((item) => item.primary),
+        ...ingredients.filter((item) => !item.primary),
+      ]
       const mainImage = editableImage(recipe.mainImage)
       const steps = recipe.steps.map((step) => ({
         id: step.id,
@@ -286,14 +291,13 @@ Page({
         keys: recipe.successKeys.length > 0 ? [...recipe.successKeys] : [''],
         mainImage,
         sections: {
-          ingredients: ingredients.length > 0,
+          ingredients: sortedIngredients.length > 0,
           steps: steps.length > 0,
-          classify: Boolean(recipe.type || recipe.stage),
+          classify: Boolean(recipe.type),
         },
-        ingredients,
+        ingredients: sortedIngredients,
         steps,
         type: recipe.type || '',
-        stage: recipe.stage || '',
         wasDraft,
       }, () => {
         originalFull = this.snapshotOf()
@@ -318,7 +322,6 @@ Page({
         .map((step) => ({ id: step.id, text: step.text.trim(), image: imageIdentity(step.image) }))
         .filter((step) => step.text.length > 0),
       type: this.data.type || '',
-      stage: this.data.stage || '',
     }
   },
 
@@ -368,11 +371,9 @@ Page({
       showKeysHint: this.data.name.trim().length > 0 && !hasKeys,
       typeOptions: (state ? state.recipeOptions.foodTypes : [])
         .map((label) => ({ label, active: label === this.data.type })),
-      stageOptions: (state ? state.recipeOptions.stages : [])
-        .map((label) => ({ label, active: label === this.data.stage })),
       ingredientsCount: this.data.ingredients.filter((item) => item.name.trim()).length,
       stepsCount: this.data.steps.filter((step) => step.text.trim()).length,
-      classifySummary: [this.data.type, this.data.stage].filter(Boolean).join(' · '),
+      classifySummary: this.data.type || '',
       ingredientSuggestions: state
         ? getIngredientSuggestions(state, this.data.ingredients.map((item) => item.name.trim()).filter(Boolean)) : [],
     }, () => this.syncDirtyGuard())
@@ -485,7 +486,12 @@ Page({
     }
     const ingredients = this.data.ingredients.map((item, i) =>
       i === index ? { ...item, primary: !item.primary } : item)
-    this.setData({ ingredients }, () => this.recompute())
+    // 点亮为主食材后稳定置顶：主食材组在前，组内保持原有相对顺序。
+    const sorted = [
+      ...ingredients.filter((item) => item.primary),
+      ...ingredients.filter((item) => !item.primary),
+    ]
+    this.setData({ ingredients: sorted }, () => this.recompute())
   },
 
   removeIngredient(event: WechatMiniprogram.BaseEvent) {
@@ -533,26 +539,48 @@ Page({
     this.setData({ steps }, () => this.recompute())
   },
 
-  moveStep(event: WechatMiniprogram.BaseEvent) {
+  /** 长按进入拖动：记录起点行高，随手指移动整行换位。 */
+  onStepLongPress(event: WechatMiniprogram.TouchEvent) {
     if (this.data.saving) return
     const index = Number(event.currentTarget.dataset.index)
-    const target = index + Number(event.currentTarget.dataset.offset)
-    if (target < 0 || target >= this.data.steps.length) return
+    if (index < 0 || index >= this.data.steps.length) return
+    dragStartY = event.touches[0].clientY
+    dragOriginIndex = index
+    wx.createSelectorQuery()
+      .selectAll('.step-block')
+      .boundingClientRect((rects) => {
+        const list = rects as unknown as WechatMiniprogram.BoundingClientRectCallbackResult[]
+        if (!list || list.length < 2) return
+        dragRowHeight = (list[list.length - 1].bottom - list[0].top) / list.length
+      })
+      .exec()
+    this.setData({ dragIndex: index })
+    wx.vibrateShort({ type: 'light' })
+  },
+
+  onStepTouchMove(event: WechatMiniprogram.TouchEvent) {
+    const from = this.data.dragIndex
+    if (from < 0 || dragRowHeight <= 0) return
+    const delta = event.touches[0].clientY - dragStartY
+    const target = Math.max(0, Math.min(
+      this.data.steps.length - 1,
+      Math.round(dragOriginIndex + delta / dragRowHeight),
+    ))
+    if (target === from) return
     const steps = [...this.data.steps]
-    const current = steps[index]
-    steps[index] = steps[target]
-    steps[target] = current
-    this.setData({ steps }, () => this.recompute())
+    const moved = steps.splice(from, 1)[0]
+    steps.splice(target, 0, moved)
+    this.setData({ steps, dragIndex: target })
+    wx.vibrateShort({ type: 'light' })
+  },
+
+  onStepTouchEnd() {
+    if (this.data.dragIndex >= 0) this.setData({ dragIndex: -1 })
   },
 
   selectType(event: WechatMiniprogram.BaseEvent) {
     const value = String(event.currentTarget.dataset.value) as FoodType
     this.setData({ type: this.data.type === value ? '' : value }, () => this.recompute())
-  },
-
-  selectStage(event: WechatMiniprogram.BaseEvent) {
-    const value = String(event.currentTarget.dataset.value) as Stage
-    this.setData({ stage: this.data.stage === value ? '' : value }, () => this.recompute())
   },
 
   /** 点亮的主食材就是原料标签；这里统一 trim 并过滤空行。 */
@@ -647,7 +675,6 @@ Page({
           .filter((item) => item.name.length > 0),
         steps,
         type: this.data.type || undefined,
-        stage: this.data.stage || undefined,
         tags: this.primaryTags(),
       }
 

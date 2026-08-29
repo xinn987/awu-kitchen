@@ -23,8 +23,12 @@
 .main-photo { display: block; border: 1rpx solid var(--line); background: var(--paper-deep); }
 .image-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10rpx; border: 1rpx solid var(--line-soft); background: var(--paper-deep); color: var(--ink-2); font-size: var(--fs-meta); }
 .retry-link { color: var(--brand); font-weight: 500; text-decoration: underline; text-underline-offset: 6rpx; }
-.ingredient-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid var(--line-soft); color: var(--ink); font-size: var(--fs-body); }
+/* 主食材用实心四角星，普通食材用无序列表圆点：圆点读作列表符而非按钮，标记列定宽让名称对齐。 */
+.ingredient-row { display: flex; align-items: center; gap: 16rpx; padding: 18rpx 0; border-bottom: 1rpx solid var(--line-soft); color: var(--ink); font-size: var(--fs-body); }
 .ingredient-row:last-child { border-bottom: 0; }
+.ingredient-marker { width: 32rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--brand); }
+.ingredient-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--ink-faint); }
+.ingredient-name { flex: 1; min-width: 0; }
 .ingredient-amount { color: var(--ink-2); font-size: var(--fs-meta); }
 .steps-section { border-bottom: 0; }
 .step-row { display: flex; align-items: flex-start; gap: 22rpx; margin-bottom: 26rpx; }

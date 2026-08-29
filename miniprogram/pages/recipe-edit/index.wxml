@@ -89,7 +89,7 @@
                 data-index="{{index}}"
                 bindtap="togglePrimary"
               >
-                <app-icon name="{{item.primary ? 'star-filled' : 'star'}}" size="34"></app-icon>
+                <app-icon name="{{item.primary ? 'sparkle' : 'sparkle-outline'}}" size="30"></app-icon>
               </view>
               <input class="ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="row-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
               <input class="ingredient-amount" value="{{item.amount}}" placeholder="用量" placeholder-class="row-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
@@ -126,28 +126,19 @@
         </view>
         <block wx:if="{{sections.steps}}">
           <view class="step-list">
-            <view wx:for="{{steps}}" wx:key="id" class="step-block">
+            <view
+              wx:for="{{steps}}"
+              wx:key="id"
+              class="step-block {{dragIndex === index ? 'dragging' : ''}}"
+              data-index="{{index}}"
+              bindlongpress="onStepLongPress"
+              catchtouchmove="onStepTouchMove"
+              bindtouchend="onStepTouchEnd"
+              bindtouchcancel="onStepTouchEnd"
+            >
               <view class="step-head">
                 <text class="step-number">{{index + 1}}</text>
                 <view class="step-tools">
-                  <view
-                    wx:if="{{index > 0}}"
-                    class="step-tool"
-                    role="button"
-                    aria-label="上移"
-                    data-index="{{index}}"
-                    data-offset="-1"
-                    bindtap="moveStep"
-                  ><app-icon name="arrow-up" size="30"></app-icon></view>
-                  <view
-                    wx:if="{{index < steps.length - 1}}"
-                    class="step-tool"
-                    role="button"
-                    aria-label="下移"
-                    data-index="{{index}}"
-                    data-offset="1"
-                    bindtap="moveStep"
-                  ><app-icon name="arrow-down" size="30"></app-icon></view>
                   <view class="step-tool danger" role="button" aria-label="删除这一步" data-index="{{index}}" bindtap="removeStep">
                     <app-icon name="x" size="30"></app-icon>
                   </view>
@@ -175,6 +166,7 @@
               </view>
             </view>
             <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，按做的顺序写下来</view>
+            <view wx:if="{{steps.length > 1}}" class="drag-hint">长按步骤可拖动排序</view>
           </view>
           <view class="add-button" role="button" bindtap="addStep">
             <app-icon name="plus" size="30"></app-icon>
@@ -198,12 +190,6 @@
             <text class="classify-label">辅食类型</text>
             <view class="option-row">
               <view wx:for="{{typeOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</view>
-            </view>
-          </view>
-          <view class="classify-group">
-            <text class="classify-label">适用阶段</text>
-            <view class="option-row">
-              <view wx:for="{{stageOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectStage">{{item.label}}</view>
             </view>
           </view>
           <view class="classify-note">选项由家庭共同维护，可在「设置 · 食谱选项」中调整。</view>
