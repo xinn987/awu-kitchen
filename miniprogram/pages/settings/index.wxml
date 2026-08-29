@@ -8,7 +8,7 @@
           <view class="entry-icon"><app-icon name="tag" size="32"></app-icon></view>
           <view class="entry-copy">
             <text class="entry-title">食谱选项</text>
-            <text class="entry-description">管理辅食类型分类</text>
+            <text class="entry-description">管理辅食类型和适用阶段</text>
           </view>
           <app-icon name="chevron-right" size="30"></app-icon>
         </view>

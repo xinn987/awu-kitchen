@@ -22,7 +22,8 @@
             <text>修订记录</text>
           </view>
         </view>
-        <view wx:if="{{recipe.tags.length > 0}}" class="tag-row">
+        <view wx:if="{{recipe.stage || recipe.tags.length > 0}}" class="tag-row">
+          <text wx:if="{{recipe.stage}}" class="pill">{{recipe.stage}}</text>
           <text wx:for="{{recipe.tags}}" wx:key="*this" class="pill">{{item}}</text>
         </view>
       </view>
@@ -59,15 +60,10 @@
         ></image>
       </view>
 
-      <view wx:if="{{recipe.ingredientRows.length > 0}}" class="detail-section">
+      <view wx:if="{{recipe.ingredients.length > 0}}" class="detail-section">
         <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
-        <view class="ingredient-row" wx:for="{{recipe.ingredientRows}}" wx:key="index">
-          <view class="ingredient-marker">
-            <app-icon wx:if="{{item.primary}}" name="sparkle" size="26"></app-icon>
-            <view wx:else class="ingredient-dot"></view>
-          </view>
-          <text class="ingredient-name {{item.primary ? 'primary' : ''}}">{{item.name}}</text>
-          <text class="ingredient-amount">{{item.amount || '—'}}</text>
+        <view class="ingredient-row" wx:for="{{recipe.ingredients}}" wx:key="index">
+          <text>{{item.name}}</text><text class="ingredient-amount">{{item.amount || '—'}}</text>
         </view>
       </view>
 
@@ -77,22 +73,24 @@
           <text class="step-number">{{index + 1}}</text>
           <view class="step-body">
             <text class="step-copy">{{item.text}}</text>
+            <view wx:if="{{item.image}}" class="step-photo-wrap">
+              <view wx:if="{{item.image.loadError}}" class="image-error step-image-error" role="button" data-kind="step" data-index="{{index}}" bindtap="retryImage">
+                <text>图片加载失败</text><text class="retry-link">重新加载</text>
+              </view>
+              <image
+                wx:else
+                class="step-photo"
+                src="{{item.image.src}}"
+                mode="aspectFill"
+                lazy-load
+                data-kind="step"
+                data-index="{{index}}"
+                data-file-id="{{item.image.fileId}}"
+                bindtap="previewImage"
+                binderror="onImageError"
+              ></image>
+            </view>
           </view>
-          <view wx:if="{{item.image && item.image.loadError}}" class="step-thumb step-thumb-error" role="button" data-kind="step" data-index="{{index}}" bindtap="retryImage">
-            <text>加载失败</text><text class="retry-link">重新加载</text>
-          </view>
-          <image
-            wx:elif="{{item.image}}"
-            class="step-thumb"
-            src="{{item.image.src}}"
-            mode="aspectFill"
-            lazy-load
-            data-kind="step"
-            data-index="{{index}}"
-            data-file-id="{{item.image.fileId}}"
-            bindtap="previewImage"
-            binderror="onImageError"
-          ></image>
         </view>
       </view>
 

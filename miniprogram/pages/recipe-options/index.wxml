@@ -5,7 +5,7 @@
     <view class="options-content">
       <text class="page-description">管理食谱编辑时可选的分类。删除后，原食谱会回到未选择状态。</text>
 
-      <view wx:if="{{loading && foodTypes.length === 0}}" class="empty-state">正在加载食谱选项…</view>
+      <view wx:if="{{loading && foodTypes.length === 0 && stages.length === 0}}" class="empty-state">正在加载食谱选项…</view>
 
       <view wx:else class="option-sections">
         <view class="option-section">
@@ -32,6 +32,34 @@
               </view>
             </view>
             <view class="add-option" role="button" data-kind="foodType" bindtap="startAdd">
+              <app-icon name="plus" size="24"></app-icon><text>添加</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="option-section">
+          <view class="section-heading">
+            <text class="section-title font-serif">适用阶段</text>
+            <text class="section-description">用于记录食物最终形态</text>
+          </view>
+
+          <text wx:if="{{stages.length === 0}}" class="section-empty">尚未设置，食谱会保持未选择。</text>
+          <view class="option-chips">
+            <view wx:for="{{stages}}" wx:key="name" class="option-chip">
+              <text class="option-name">{{item.name}}</text>
+              <view
+                class="option-remove"
+                role="button"
+                aria-label="删除{{item.name}}"
+                data-kind="stage"
+                data-name="{{item.name}}"
+                data-count="{{item.usageCount}}"
+                catchtap="askRemove"
+              >
+                <app-icon name="x" size="24"></app-icon>
+              </view>
+            </view>
+            <view class="add-option" role="button" data-kind="stage" bindtap="startAdd">
               <app-icon name="plus" size="24"></app-icon><text>添加</text>
             </view>
           </view>

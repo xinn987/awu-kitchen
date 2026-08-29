@@ -83,12 +83,6 @@ $foot: "%3C/svg%3E";
 
 .icon-star { @include icon-mask("#{$head}%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E#{$foot}"); }
 
-/* 四角星：主食材标记，与详情页食材清单共用。 */
-.icon-sparkle { @include icon-mask("#{$head}%3Cpath d='M12 2 C12.9 7.4 16.6 11.1 22 12 C16.6 12.9 12.9 16.6 12 22 C11.1 16.6 7.4 12.9 2 12 C7.4 11.1 11.1 7.4 12 2 Z' fill='%23000' stroke='none'/%3E#{$foot}"); }
-
-/* 照片加号：为步骤添加配图。 */
-.icon-image-plus { @include icon-mask("#{$head}%3Crect x='3' y='5' width='16' height='14' rx='2'/%3E%3Ccircle cx='8' cy='10' r='1.5'/%3E%3Cpolyline points='19 16 14.5 11.5 6 19'/%3E%3Cline x1='19' y1='2' x2='19' y2='8'/%3E%3Cline x1='16' y1='5' x2='22' y2='5'/%3E#{$foot}"); }
-
 .icon-star-filled { @include icon-mask("#{$head}%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2' fill='%23000' stroke='%23000' stroke-linejoin='round'/%3E#{$foot}"); }
 
 .icon-user-plus { @include icon-mask("#{$head}%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='8.5' cy='7' r='4'/%3E%3Cline x1='20' y1='8' x2='20' y2='14'/%3E%3Cline x1='23' y1='11' x2='17' y2='11'/%3E#{$foot}"); }

@@ -14,6 +14,7 @@ Page({
     familyName: '',
     version: 0,
     foodTypes: [] as ManagedRecipeOption[],
+    stages: [] as ManagedRecipeOption[],
     loading: true,
     saving: false,
     addingKind: '' as RecipeOptionKind | '',
@@ -35,6 +36,7 @@ Page({
       familyName: data.familyName,
       version: data.version,
       foodTypes: data.foodTypes,
+      stages: data.stages,
       loading: false,
     })
   },
@@ -58,7 +60,7 @@ Page({
     const kind = String(event.currentTarget.dataset.kind) as RecipeOptionKind
     this.setData({
       addingKind: kind,
-      addingLabel: '辅食类型',
+      addingLabel: kind === 'foodType' ? '辅食类型' : '适用阶段',
       draft: '',
       confirmKind: '',
     })
@@ -98,7 +100,7 @@ Page({
       confirmName: String(event.currentTarget.dataset.name),
       confirmUsageCount: usageCount,
       confirmCopy: usageCount > 0
-        ? `有 ${usageCount} 份食谱正在使用。删除后，这些食谱会变为“未选择辅食类型”。`
+        ? `有 ${usageCount} 份食谱正在使用。删除后，这些食谱会变为“未选择${kind === 'foodType' ? '辅食类型' : '适用阶段'}”。`
         : '删除后，新食谱将不能再选择这一项。',
       addingKind: '',
       draft: '',
