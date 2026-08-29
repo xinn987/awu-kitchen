@@ -4,14 +4,18 @@
     <app-loading wx:if="{{loading}}" label="正在加载食谱"></app-loading>
     <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:else class="edit-form">
-      <view class="form-section">
-        <view class="field-label">食谱名称</view>
+      <view class="form-card">
+        <view class="card-label">食谱名称</view>
         <input class="field-input name-field" value="{{name}}" bindinput="onNameInput" />
       </view>
 
-      <view class="form-section">
-        <view class="section-head">
-          <view class="section-label"><app-icon name="zap" size="28"></app-icon><text>成功关键</text><text class="required">*</text></view>
+      <view class="form-card">
+        <view class="card-head">
+          <view class="card-title-row">
+            <app-icon name="zap" size="28"></app-icon>
+            <text class="card-title font-serif">成功关键</text>
+            <text class="required">*</text>
+          </view>
           <text wx:if="{{showKeysHint}}" class="keys-hint">写一条才能保存</text>
         </view>
         <view class="repeat-list">
@@ -39,8 +43,11 @@
       </view>
 
       <!-- 主图在成功关键之后出现，不把图片抬到核心经验之前。 -->
-      <view class="form-section image-section">
-        <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
+      <view class="form-card">
+        <view class="card-title-row">
+          <app-icon name="image" size="28"></app-icon>
+          <text class="card-title font-serif">主图（可选）</text>
+        </view>
         <view wx:if="{{mainImage}}" class="main-image-editor">
           <image class="main-image-preview" src="{{mainImage.localPath}}" mode="aspectFill"></image>
           <view class="image-action-row">
@@ -57,10 +64,13 @@
         </view>
       </view>
 
-      <!-- —— 食材：常用点选 + 名称/用量两框 —— -->
-      <view class="form-section">
-        <view class="section-head" role="button" data-section="ingredients" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
+      <!-- —— 食材：点亮星标即主食材，建议收在列表之后 —— -->
+      <view class="form-card">
+        <view class="card-head" role="button" data-section="ingredients" bindtap="toggleSection">
+          <view class="card-title-row">
+            <app-icon name="shopping-bag" size="28"></app-icon>
+            <text class="card-title font-serif">食材</text>
+          </view>
           <view class="collapse-meta">
             <text wx:if="{{ingredientsCount > 0}}" class="collapse-count">{{ingredientsCount}} 项</text>
             <text wx:else class="collapse-add">添加</text>
@@ -68,21 +78,30 @@
           </view>
         </view>
         <block wx:if="{{sections.ingredients}}">
+          <view class="repeat-list">
+            <view wx:for="{{ingredients}}" wx:key="index" class="ingredient-editor">
+              <view
+                class="primary-toggle {{item.primary ? 'on' : ''}}"
+                role="button"
+                aria-label="{{item.primary ? '取消主食材' : '标记主食材'}}"
+                data-index="{{index}}"
+                bindtap="togglePrimary"
+              >
+                <app-icon name="star" size="26"></app-icon>
+              </view>
+              <input class="field-input ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="field-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
+              <input class="field-input amount-input" value="{{item.amount}}" placeholder="用量" placeholder-class="field-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
+              <view class="remove-button" role="button" aria-label="删除食材" data-index="{{index}}" bindtap="removeIngredient">
+                <app-icon name="x" size="32"></app-icon>
+              </view>
+            </view>
+          </view>
+          <view class="primary-help">点亮星标的食材会作为这道菜的主食材，方便家人按原料查找。</view>
           <view wx:if="{{ingredientSuggestions.length > 0}}" class="suggestion-block">
             <text class="suggestion-label">全家常用</text>
             <view class="suggestion-row">
               <view wx:for="{{ingredientSuggestions}}" wx:key="*this" class="suggestion-chip" role="button" data-name="{{item}}" bindtap="addSuggestedIngredient">
                 <app-icon name="plus" size="24"></app-icon><text>{{item}}</text>
-              </view>
-            </view>
-          </view>
-
-          <view class="repeat-list">
-            <view wx:for="{{ingredients}}" wx:key="index" class="ingredient-editor">
-              <input class="field-input ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="field-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
-              <input class="field-input amount-input" value="{{item.amount}}" placeholder="用量" placeholder-class="field-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
-              <view class="remove-button" role="button" aria-label="删除食材" data-index="{{index}}" bindtap="removeIngredient">
-                <app-icon name="x" size="32"></app-icon>
               </view>
             </view>
           </view>
@@ -93,10 +112,13 @@
         </block>
       </view>
 
-      <!-- —— 步骤：纯阅读列表 + 单框录入，编辑操作集中出现 —— -->
-      <view class="form-section">
-        <view class="section-head" role="button" data-section="steps" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
+      <!-- —— 步骤：每步直接编辑文字，图片与排序归属同一行 —— -->
+      <view class="form-card">
+        <view class="card-head" role="button" data-section="steps" bindtap="toggleSection">
+          <view class="card-title-row">
+            <app-icon name="list" size="28"></app-icon>
+            <text class="card-title font-serif">步骤</text>
+          </view>
           <view class="collapse-meta">
             <text wx:if="{{stepsCount > 0}}" class="collapse-count">{{stepsCount}} 步</text>
             <text wx:else class="collapse-add">添加</text>
@@ -104,64 +126,73 @@
           </view>
         </view>
         <block wx:if="{{sections.steps}}">
-          <view class="step-list">
-            <view
-              wx:for="{{steps}}"
-              wx:key="id"
-              class="step-item {{stepEditingIndex === index ? 'editing' : ''}}"
-              role="button"
-              aria-label="修改第 {{index + 1}} 步"
-              data-index="{{index}}"
-              bindtap="editStep"
-            >
-              <text class="step-number">{{index + 1}}</text>
-              <text class="step-copy">{{item.text}}</text>
-              <image wx:if="{{item.image}}" class="step-list-thumb" src="{{item.image.localPath}}" mode="aspectFill" lazy-load></image>
-              <view class="step-tail"><app-icon name="chevron-right" size="26"></app-icon></view>
+          <view class="repeat-list">
+            <view wx:for="{{steps}}" wx:key="id" class="step-editor">
+              <view class="step-head">
+                <text class="step-number">{{index + 1}}</text>
+                <view class="step-tools">
+                  <view
+                    wx:if="{{index > 0}}"
+                    class="step-tool"
+                    role="button"
+                    aria-label="上移"
+                    data-index="{{index}}"
+                    data-offset="-1"
+                    bindtap="moveStep"
+                  ><app-icon name="arrow-up" size="30"></app-icon></view>
+                  <view
+                    wx:if="{{index < steps.length - 1}}"
+                    class="step-tool"
+                    role="button"
+                    aria-label="下移"
+                    data-index="{{index}}"
+                    data-offset="1"
+                    bindtap="moveStep"
+                  ><app-icon name="arrow-down" size="30"></app-icon></view>
+                  <view class="step-tool danger" role="button" aria-label="删除这一步" data-index="{{index}}" bindtap="removeStep">
+                    <app-icon name="x" size="30"></app-icon>
+                  </view>
+                </view>
+              </view>
+              <textarea
+                class="field-textarea step-textarea"
+                value="{{item.text}}"
+                data-index="{{index}}"
+                placeholder="这一步做什么？做到什么状态算到位"
+                placeholder-class="field-placeholder"
+                maxlength="-1"
+                auto-height
+                bindinput="onStepTextInput"
+              ></textarea>
+              <view wx:if="{{item.image}}" class="step-image-editor">
+                <image class="step-image-preview" src="{{item.image.localPath}}" mode="aspectFill"></image>
+                <view class="image-action-row compact">
+                  <text class="image-link" role="button" data-index="{{index}}" bindtap="chooseStepImage">更换</text>
+                  <text class="image-link danger" role="button" data-index="{{index}}" bindtap="removeStepImage">移除</text>
+                </view>
+              </view>
+              <view wx:else class="step-image-add" role="button" data-index="{{index}}" bindtap="chooseStepImage">
+                <app-icon name="image" size="28"></app-icon><text>添加步骤图</text>
+              </view>
             </view>
-            <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，在下面写下第一条</view>
           </view>
-
-          <view class="quick-add-bar step-bar">
-            <textarea
-              class="quick-add-textarea"
-              value="{{stepDraft}}"
-              placeholder="{{stepEditingIndex >= 0 ? '正在修改第 ' + (stepEditingIndex + 1) + ' 步' : '第 ' + (stepsCount + 1) + ' 步，写完点加入'}}"
-              placeholder-class="field-placeholder"
-              maxlength="-1"
-              auto-height
-              bindinput="onStepDraftInput"
-              bindconfirm="commitStepDraft"
-            ></textarea>
-            <view class="quick-add-button {{stepDraft ? '' : 'disabled'}}" role="button" bindtap="commitStepDraft">
-              {{stepEditingIndex >= 0 ? '改好' : '加入'}}
-            </view>
-          </view>
-          <view wx:if="{{stepImageDraft}}" class="step-image-editor">
-            <image class="step-image-preview" src="{{stepImageDraft.localPath}}" mode="aspectFill"></image>
-            <view class="image-action-row compact">
-              <text class="image-link" role="button" bindtap="chooseStepImage">更换</text>
-              <text class="image-link danger" role="button" bindtap="removeStepImage">移除</text>
-            </view>
-          </view>
-          <view wx:else class="step-image-add {{stepDraft ? '' : 'disabled'}}" role="button" bindtap="chooseStepImage">
-            <app-icon name="image" size="28"></app-icon><text>添加步骤图</text>
-          </view>
-          <view wx:if="{{stepEditingIndex >= 0}}" class="edit-strip">
-            <text class="strip-link" role="button" data-offset="-1" bindtap="moveEditingStep">上移</text>
-            <text class="strip-link" role="button" data-offset="1" bindtap="moveEditingStep">下移</text>
-            <text class="strip-link danger" role="button" bindtap="deleteEditingStep">删除这一步</text>
-            <text class="strip-link muted" role="button" bindtap="cancelStepEdit">取消</text>
+          <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，按做的顺序写下来</view>
+          <view class="add-button" role="button" bindtap="addStep">
+            <app-icon name="plus" size="30"></app-icon>
+            <text>添加一步</text>
           </view>
         </block>
       </view>
 
-      <!-- —— 分类与标签 —— -->
-      <view class="form-section">
-        <view class="section-head" role="button" data-section="classify" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="tag" size="28"></app-icon><text>分类与标签</text></view>
+      <!-- —— 分类：家庭统一维护的两个单选组 —— -->
+      <view class="form-card">
+        <view class="card-head" role="button" data-section="classify" bindtap="toggleSection">
+          <view class="card-title-row">
+            <app-icon name="tag" size="28"></app-icon>
+            <text class="card-title font-serif">分类</text>
+          </view>
           <view class="collapse-meta">
-            <text wx:if="{{classifyCount > 0}}" class="collapse-count">已设置</text>
+            <text wx:if="{{classifySummary}}" class="collapse-count">{{classifySummary}}</text>
             <text wx:else class="collapse-add">添加</text>
             <view class="collapse-chevron {{sections.classify ? 'open' : ''}}"><app-icon name="chevron-down" size="26"></app-icon></view>
           </view>
@@ -179,32 +210,16 @@
               <view wx:for="{{stageOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectStage">{{item.label}}</view>
             </view>
           </view>
-          <view class="classify-group">
-            <text class="classify-label">核心原料标签</text>
-            <view wx:if="{{tagSuggestions.length > 0}}" class="suggestion-row classify-suggestions">
-              <view wx:for="{{tagSuggestions}}" wx:key="*this" class="suggestion-chip" role="button" data-tag="{{item}}" bindtap="addSuggestedTag">
-                <app-icon name="plus" size="24"></app-icon><text>{{item}}</text>
-              </view>
-            </view>
-            <view class="tag-editor-row">
-              <view wx:for="{{tags}}" wx:key="*this" class="tag-item">
-                <text>{{item}}</text><view class="tag-remove" role="button" aria-label="删除标签" data-tag="{{item}}" bindtap="removeTag"><app-icon name="x" size="24"></app-icon></view>
-              </view>
-              <view wx:if="{{tags.length < maxTags}}" class="tag-input-wrap">
-                <input value="{{tagDraft}}" placeholder="{{tags.length === 0 ? '或输入新的' : '再加一个'}}" bindinput="onTagInput" bindconfirm="addTag" />
-                <view class="tag-add" role="button" aria-label="添加标签" bindtap="addTag"><app-icon name="plus" size="28"></app-icon></view>
-              </view>
-            </view>
-          </view>
+          <view class="classify-note">选项由家庭共同维护，可在「设置 · 食谱选项」中调整。</view>
         </block>
       </view>
     </view>
-
-    <!-- 保存按钮与表单放在同一个滚动层，避免真机/模拟器的 scroll-view 原生层截获点击。 -->
-    <view wx:if="{{found}}" class="action-bar inline-action-bar">
-      <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
-    </view>
   </scroll-view>
+
+  <!-- 保存栏固定在页面底部，长表单滚动时始终可见。 -->
+  <view wx:if="{{found && !loading}}" class="action-bar">
+    <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : ('保存' + (formalizing ? '并转为正式食谱' : '修改'))}}</button>
+  </view>
 
   <confirm-panel
     visible="{{confirmVisible}}"

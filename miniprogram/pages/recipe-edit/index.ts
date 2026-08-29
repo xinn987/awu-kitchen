@@ -4,7 +4,6 @@
  */
 import {
   type FoodType,
-  type Ingredient,
   type RecipeImage,
   type RecipeState,
   type RecipeStep,
@@ -18,10 +17,11 @@ import {
   RecipeMediaError,
   type LocalRecipeImage,
 } from '../../services/recipe-media'
-import { getIngredientSuggestions, getState, getTagSuggestions, updateRecipe } from '../../services/recipe-store'
+import { getIngredientSuggestions, getState, updateRecipe } from '../../services/recipe-store'
 import { isFormalRecipe, uid } from '../../utils/recipe-utils'
 
-const MAX_TAGS = 3
+/** 点亮为主食材的数量上限；主食材会作为家庭可搜索的原料标签保存。 */
+const MAX_PRIMARY = 3
 
 interface EditSections {
   ingredients: boolean
@@ -41,10 +41,17 @@ interface EditableStep {
   image: EditableImage | null
 }
 
+interface EditableIngredient {
+  name: string
+  amount: string
+  /** 点亮的主食材；保存时映射为食谱标签。 */
+  primary: boolean
+}
+
 interface CoreSnapshot {
   keys: string[]
   mainImage: string
-  ingredients: Array<{ name: string; amount?: string }>
+  ingredients: Array<{ name: string; amount?: string; primary: boolean }>
   steps: Array<{ id: string; text: string; image: string }>
 }
 
@@ -60,13 +67,10 @@ interface FullSnapshot {
   name: string
   keys: string[]
   mainImage: string
-  ingredients: Array<{ name: string; amount: string }>
+  ingredients: Array<{ name: string; amount: string; primary: boolean }>
   steps: Array<{ id: string; text: string; image: string }>
   type: string
   stage: string
-  tags: string[]
-  stepDraft: string
-  stepImage: string
 }
 
 type ConfirmAction = '' | 'save' | 'schema' | 'conflict'
@@ -104,14 +108,14 @@ function imageIdentity(image: EditableImage | null): string {
 function coreOf(
   keys: string[],
   mainImage: EditableImage | null,
-  ingredients: Array<Ingredient & { amount: string }>,
+  ingredients: EditableIngredient[],
   steps: EditableStep[],
 ): CoreSnapshot {
   return {
     keys: keys.map((key) => key.trim()).filter(Boolean),
     mainImage: imageIdentity(mainImage),
     ingredients: ingredients
-      .map((item) => ({ name: item.name.trim(), amount: item.amount.trim() || undefined }))
+      .map((item) => ({ name: item.name.trim(), amount: item.amount.trim() || undefined, primary: item.primary }))
       .filter((item) => item.name.length > 0),
     steps: steps
       .map((step) => ({ id: step.id, text: step.text.trim(), image: imageIdentity(step.image) }))
@@ -128,29 +132,22 @@ Page({
     keys: [''] as string[],
     mainImage: null as EditableImage | null,
     sections: { ingredients: false, steps: false, classify: false } as EditSections,
-    ingredients: [] as Array<Ingredient & { amount: string }>,
+    ingredients: [] as EditableIngredient[],
     ingredientsCount: 0,
     ingredientSuggestions: [] as string[],
     steps: [] as EditableStep[],
     stepsCount: 0,
-    stepDraft: '',
-    stepImageDraft: null as EditableImage | null,
-    stepEditingIndex: -1,
     type: '' as FoodType | '',
     stage: '' as Stage | '',
-    tags: [] as string[],
-    tagDraft: '',
-    tagSuggestions: [] as string[],
     typeOptions: [] as Array<{ label: FoodType; active: boolean }>,
     stageOptions: [] as Array<{ label: Stage; active: boolean }>,
-    classifyCount: 0,
+    classifySummary: '',
     wasDraft: false,
     formalizing: false,
     canSave: false,
     saving: false,
     saveStatus: '',
     showKeysHint: false,
-    maxTags: MAX_TAGS,
     confirmVisible: false,
     confirmTitle: '',
     confirmCopy: '',
@@ -182,7 +179,12 @@ Page({
       editingState = state
       editingVersion = recipe.version || 1
       const wasDraft = !isFormalRecipe(recipe)
-      const ingredients = recipe.ingredients.map((item) => ({ name: item.name, amount: item.amount || '' }))
+      // 主食材标记与旧版自由标签兼容：标签里出现过的食材名直接点亮。
+      const ingredients = recipe.ingredients.map((item) => ({
+        name: item.name,
+        amount: item.amount || '',
+        primary: recipe.tags.includes(item.name.trim()),
+      }))
       const mainImage = editableImage(recipe.mainImage)
       const steps = recipe.steps.map((step) => ({
         id: step.id,
@@ -200,13 +202,12 @@ Page({
         sections: {
           ingredients: ingredients.length > 0,
           steps: steps.length > 0,
-          classify: Boolean(recipe.type || recipe.stage || recipe.tags.length > 0),
+          classify: Boolean(recipe.type || recipe.stage),
         },
         ingredients,
         steps,
         type: recipe.type || '',
         stage: recipe.stage || '',
-        tags: [...recipe.tags],
         wasDraft,
       }, () => {
         originalFull = this.snapshotOf()
@@ -225,16 +226,13 @@ Page({
       keys: this.data.keys.map((key) => key.trim()).filter(Boolean),
       mainImage: imageIdentity(this.data.mainImage),
       ingredients: this.data.ingredients
-        .map((item) => ({ name: item.name.trim(), amount: item.amount.trim() }))
+        .map((item) => ({ name: item.name.trim(), amount: item.amount.trim(), primary: item.primary }))
         .filter((item) => item.name.length > 0),
       steps: this.data.steps
         .map((step) => ({ id: step.id, text: step.text.trim(), image: imageIdentity(step.image) }))
         .filter((step) => step.text.length > 0),
       type: this.data.type || '',
       stage: this.data.stage || '',
-      tags: [...this.data.tags],
-      stepDraft: this.data.stepDraft.trim(),
-      stepImage: imageIdentity(this.data.stepImageDraft),
     }
   },
 
@@ -288,10 +286,9 @@ Page({
         .map((label) => ({ label, active: label === this.data.stage })),
       ingredientsCount: this.data.ingredients.filter((item) => item.name.trim()).length,
       stepsCount: this.data.steps.filter((step) => step.text.trim()).length,
-      classifyCount: this.data.tags.length + (this.data.type ? 1 : 0) + (this.data.stage ? 1 : 0),
+      classifySummary: [this.data.type, this.data.stage].filter(Boolean).join(' · '),
       ingredientSuggestions: state
         ? getIngredientSuggestions(state, this.data.ingredients.map((item) => item.name.trim()).filter(Boolean)) : [],
-      tagSuggestions: state ? getTagSuggestions(state, this.data.tags) : [],
     }, () => this.syncDirtyGuard())
   },
 
@@ -361,7 +358,10 @@ Page({
   addSuggestedIngredient(event: WechatMiniprogram.BaseEvent) {
     const name = String(event.currentTarget.dataset.name).trim()
     if (!name || this.data.ingredients.some((item) => item.name === name)) return
-    this.setData({ ingredients: [...this.data.ingredients, { name, amount: '' }] }, () => this.recompute())
+    this.setData(
+      { ingredients: [...this.data.ingredients, { name, amount: '', primary: false }] },
+      () => this.recompute(),
+    )
   },
 
   onIngredientInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
@@ -373,7 +373,29 @@ Page({
   },
 
   addIngredient() {
-    if (!this.data.saving) this.setData({ ingredients: [...this.data.ingredients, { name: '', amount: '' }] })
+    if (!this.data.saving) {
+      this.setData({ ingredients: [...this.data.ingredients, { name: '', amount: '', primary: false }] })
+    }
+  },
+
+  /** 点亮/取消主食材；主食材保存后成为家庭可搜索的原料标签。 */
+  togglePrimary(event: WechatMiniprogram.BaseEvent) {
+    if (this.data.saving) return
+    const index = Number(event.currentTarget.dataset.index)
+    const target = this.data.ingredients[index]
+    if (!target) return
+    if (!target.primary && !target.name.trim()) {
+      wx.showToast({ title: '先填写食材名', icon: 'none' })
+      return
+    }
+    const primaryCount = this.data.ingredients.filter((item) => item.primary).length
+    if (!target.primary && primaryCount >= MAX_PRIMARY) {
+      wx.showToast({ title: `主食材最多 ${MAX_PRIMARY} 个`, icon: 'none' })
+      return
+    }
+    const ingredients = this.data.ingredients.map((item, i) =>
+      i === index ? { ...item, primary: !item.primary } : item)
+    this.setData({ ingredients }, () => this.recompute())
   },
 
   removeIngredient(event: WechatMiniprogram.BaseEvent) {
@@ -383,66 +405,54 @@ Page({
     this.setData({ ingredients }, () => this.recompute())
   },
 
-  /** —— 步骤：稳定 ID 让文字、图片和移动操作保持同一归属 —— */
-  onStepDraftInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ stepDraft: event.detail.value }, () => this.syncDirtyGuard())
+  /** —— 步骤：每步直接编辑文字，图片与排序归属同一行 —— */
+  onStepTextInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
+    const index = Number(event.currentTarget.dataset.index)
+    const steps = this.data.steps.map((step, i) =>
+      i === index ? { ...step, text: event.detail.value } : step)
+    this.setData({ steps }, () => this.recompute())
   },
 
-  async chooseStepImage() {
-    if (!this.data.stepDraft.trim()) {
-      wx.showToast({ title: '请先写下这一步', icon: 'none' })
-      return
+  addStep() {
+    if (!this.data.saving) {
+      this.setData({ steps: [...this.data.steps, { id: uid('step-'), text: '', image: null }] })
     }
-    const image = await this.pickImage()
-    if (image) this.setData({ stepImageDraft: image }, () => this.syncDirtyGuard())
   },
 
-  removeStepImage() {
-    if (!this.data.saving) this.setData({ stepImageDraft: null }, () => this.syncDirtyGuard())
-  },
-
-  commitStepDraft() {
-    if (this.data.saving) return
-    const text = this.data.stepDraft.trim()
-    if (!text) return
-    const editing = this.data.stepEditingIndex
-    const steps = this.data.steps.map((item, index) => editing === index
-      ? { ...item, text, image: this.data.stepImageDraft }
-      : item)
-    if (editing < 0) steps.push({ id: uid('step-'), text, image: this.data.stepImageDraft })
-    this.setData({ steps, stepDraft: '', stepImageDraft: null, stepEditingIndex: -1 }, () => this.recompute())
-  },
-
-  editStep(event: WechatMiniprogram.BaseEvent) {
+  async chooseStepImage(event: WechatMiniprogram.BaseEvent) {
     if (this.data.saving) return
     const index = Number(event.currentTarget.dataset.index)
-    const step = this.data.steps[index]
-    if (!step) return
-    this.setData({ stepEditingIndex: index, stepDraft: step.text, stepImageDraft: step.image })
+    if (!this.data.steps[index]) return
+    const image = await this.pickImage()
+    if (!image) return
+    const steps = this.data.steps.map((step, i) => (i === index ? { ...step, image } : step))
+    this.setData({ steps }, () => this.syncDirtyGuard())
   },
 
-  cancelStepEdit() {
-    if (!this.data.saving) this.setData({ stepEditingIndex: -1, stepDraft: '', stepImageDraft: null })
-  },
-
-  deleteEditingStep() {
+  removeStepImage(event: WechatMiniprogram.BaseEvent) {
     if (this.data.saving) return
-    const index = this.data.stepEditingIndex
-    if (index < 0) return
+    const index = Number(event.currentTarget.dataset.index)
+    const steps = this.data.steps.map((step, i) => (i === index ? { ...step, image: null } : step))
+    this.setData({ steps }, () => this.syncDirtyGuard())
+  },
+
+  removeStep(event: WechatMiniprogram.BaseEvent) {
+    if (this.data.saving) return
+    const index = Number(event.currentTarget.dataset.index)
     const steps = this.data.steps.filter((_, i) => i !== index)
-    this.setData({ steps, stepDraft: '', stepImageDraft: null, stepEditingIndex: -1 }, () => this.recompute())
+    this.setData({ steps }, () => this.recompute())
   },
 
-  moveEditingStep(event: WechatMiniprogram.BaseEvent) {
+  moveStep(event: WechatMiniprogram.BaseEvent) {
     if (this.data.saving) return
-    const index = this.data.stepEditingIndex
+    const index = Number(event.currentTarget.dataset.index)
     const target = index + Number(event.currentTarget.dataset.offset)
-    if (index < 0 || target < 0 || target >= this.data.steps.length) return
+    if (target < 0 || target >= this.data.steps.length) return
     const steps = [...this.data.steps]
     const current = steps[index]
     steps[index] = steps[target]
     steps[target] = current
-    this.setData({ steps, stepEditingIndex: target }, () => this.recompute())
+    this.setData({ steps }, () => this.recompute())
   },
 
   selectType(event: WechatMiniprogram.BaseEvent) {
@@ -455,23 +465,11 @@ Page({
     this.setData({ stage: this.data.stage === value ? '' : value }, () => this.recompute())
   },
 
-  onTagInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    this.setData({ tagDraft: event.detail.value })
-  },
-
-  addTag() {
-    const tag = this.data.tagDraft.trim().replace(/^#/, '')
-    if (!tag || this.data.tags.includes(tag) || this.data.tags.length >= MAX_TAGS) return
-    this.setData({ tags: [...this.data.tags, tag], tagDraft: '' }, () => this.recompute())
-  },  addSuggestedTag(event: WechatMiniprogram.BaseEvent) {
-    const tag = String(event.currentTarget.dataset.tag)
-    if (!tag || this.data.tags.includes(tag) || this.data.tags.length >= MAX_TAGS) return
-    this.setData({ tags: [...this.data.tags, tag] }, () => this.recompute())
-  },
-
-  removeTag(event: WechatMiniprogram.BaseEvent) {
-    const tag = String(event.currentTarget.dataset.tag)
-    this.setData({ tags: this.data.tags.filter((item) => item !== tag) }, () => this.recompute())
+  /** 点亮的主食材就是原料标签；这里统一 trim 并过滤空行。 */
+  primaryTags(): string[] {
+    return this.data.ingredients
+      .filter((item) => item.primary && item.name.trim())
+      .map((item) => item.name.trim())
   },
 
   save() {
@@ -560,7 +558,7 @@ Page({
         steps,
         type: this.data.type || undefined,
         stage: this.data.stage || undefined,
-        tags: [...this.data.tags],
+        tags: this.primaryTags(),
       }
 
       this.setData({ saveStatus: '正在保存…' })
