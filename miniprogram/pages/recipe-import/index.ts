@@ -1,14 +1,12 @@
 /**
- * 食谱图片导入：选择、排序、临时上传并调用可配置的 AI 识别服务。
- * 识别结果通过 EventChannel 交给编辑页，不在此页面写入食谱。
+ * 食谱图片导入：选择、排序、临时上传并提交后台识别任务。
+ * 拿到任务 ID 后立即返回清单，不在当前页面等待模型完成。
  */
-import type { RecipeImportDraft } from '../../models/recipe-import'
 import {
   cleanupRecipeImportImages,
   chooseRecipeImportImages,
   MAX_IMPORT_IMAGES,
-  recognizeRecipeImport,
-  setPendingRecipeImportDraft,
+  submitRecipeImport,
   uploadRecipeImportImages,
 } from '../../services/recipe-import'
 import { RecipeMediaError, type LocalRecipeImage } from '../../services/recipe-media'
@@ -76,13 +74,13 @@ Page({
     if (!this.data.working) this.setData({ images: [] })
   },
 
-  status(phase: 'processing' | 'uploading' | 'recognizing', current: number, total: number) {
+  status(phase: 'processing' | 'uploading' | 'submitting', current: number, total: number) {
     if (phase === 'processing') this.setData({ statusText: `正在处理图片 ${current}/${total}` })
     if (phase === 'uploading') this.setData({ statusText: `正在上传图片 ${current}/${total}` })
-    if (phase === 'recognizing') this.setData({ statusText: '正在识别食谱内容' })
+    if (phase === 'submitting') this.setData({ statusText: '正在提交识别任务' })
   },
 
-  /** 完成识别后立即打开原编辑页，由用户逐字段修改并最终保存。 */
+  /** 提交成功后返回清单；模型任务继续执行，用户无需停留等待。 */
   async recognize() {
     if (this.data.working || this.data.images.length === 0) return
     let fileIds: string[] = []
@@ -92,28 +90,29 @@ Page({
       fileIds = await uploadRecipeImportImages(state.family.id, this.data.images, (status) => {
         this.status(status.phase, status.current, status.total)
       })
-      const draft = await recognizeRecipeImport(fileIds, (status) => {
+      await submitRecipeImport(fileIds, state.family.id, state.currentMemberId || '', (status) => {
         this.status(status.phase, status.current, status.total)
       })
-      this.openEditor(draft)
+      wx.showToast({ title: '已提交识别', icon: 'success' })
+      wx.navigateBack({
+        fail: () => wx.redirectTo({
+          url: '/pages/library/index?importSubmitted=1',
+          fail: () => {
+            this.setData({ working: false, statusText: '' })
+            wx.showToast({ title: '任务已提交，可返回清单查看', icon: 'none' })
+          },
+        }),
+      })
     } catch (error) {
+      // 只有未取得任务 ID 时才清理；提交成功后的图片由任务终态统一回收。
+      await cleanupRecipeImportImages(fileIds)
       this.setData({ working: false, statusText: '' })
       wx.showModal({
-        title: '导入没有完成',
-        content: error instanceof Error ? error.message : '食谱识别失败，请重试',
+        title: '提交没有完成',
+        content: error instanceof Error ? error.message : '识别任务提交失败，请重试',
         showCancel: false,
         confirmText: '知道了',
       })
-    } finally {
-      await cleanupRecipeImportImages(fileIds)
     }
-  },
-
-  openEditor(draft: RecipeImportDraft) {
-    setPendingRecipeImportDraft(draft)
-    wx.redirectTo({
-      url: '/pages/recipe-edit/index?mode=import',
-      fail: () => this.setData({ working: false, statusText: '' }),
-    })
   },
 })

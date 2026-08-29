@@ -2,11 +2,12 @@
 
 ## 1. 设计结论
 
-首版使用微信云开发 CloudBase：普通云函数、文档型数据库和传统模式云存储。不使用云托管、SQL 数据库或自建服务器。食谱图片的完整交互与一致性规则见 [食谱图片首版设计](../design/recipe-images.md)。
+首版使用微信云开发 CloudBase：普通云函数、文档型数据库和传统模式云存储。不使用云托管、SQL 数据库或自建服务器。食谱图片的完整交互与一致性规则见 [食谱图片首版设计](../design/recipe-images.md)，AI 图片导入的异步任务与模型适配规则见 [AI 食谱图片导入](../development/recipe-import-ai.md)。
 
 ```text
 微信小程序
-    ├─ wx.cloud.callFunction → api 云函数 → CloudBase 文档型数据库
+    ├─ wx.cloud.callFunction → api 云函数           → CloudBase 文档型数据库
+    ├─ wx.cloud.callFunction → recipe-import 云函数 → 异步多模态模型 API
     └─ wx.cloud.uploadFile   → CloudBase 云存储
 ```
 
@@ -112,17 +113,33 @@
 
 `recipes` 只增加轻量 `commentCount`，供详情入口显示数量。评论写入不会修改食谱 `version`、`updatedAt` 或修订数组。
 
+### 3.7 `recipe_import_jobs`
+
+异步识别任务独立于共享食谱存储，只允许云函数访问，并按提交用户隔离：
+
+| 字段组 | 字段 |
+| --- | --- |
+| 归属 | `_id`、`userId`、`familyId` |
+| 模型任务 | `providerTaskId`、`status: processing / ready / failed / completed` |
+| 临时媒体 | `fileIds`、`coverFileId` |
+| 识别上下文 | `options`、`draft`、`message` |
+| 生命周期 | `createdAt`、`updatedAt`、`expiresAt` |
+
+模型任务 ID、临时图片引用和识别草稿都不进入家庭共享食谱。只有提交者进入编辑页核对并主动保存后，`recipe.create` 才创建正式食谱。
+
 ## 4. 最小云函数接口
 
-首版只部署一个 `api` 云函数，用 `action` 区分业务操作，内部按 session、family、recipe 三个模块组织。
+首版部署业务 `api` 和模型适配 `recipe-import` 两个云函数。`api` 用 `action` 区分家庭共享业务；`recipe-import` 单独保存异步任务和服务端模型凭证，避免 AI 超时、密钥与临时数据进入主业务函数。
 
 | 模块 | action |
 | --- | --- |
 | 会话 | `session.bootstrap` |
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
-| 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.duplicate`、`recipe.restoreRevision` |
+| 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.listArchived`、`recipe.restore`、`recipe.duplicate`、`recipe.restoreRevision` |
 | 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
 | 食谱选项 | `recipeOptions.list`、`recipeOptions.add`、`recipeOptions.remove` |
+
+`recipe-import` 支持 `start`、`list`、`status`、`complete` 和 `discard`。单次调用只提交任务或查询一次状态，保证在个人版云函数 3 秒超时限制内尽快返回；页面隐藏后停止轮询，重新进入食谱清单时恢复查询。
 
 所有接口统一返回：
 
@@ -182,7 +199,7 @@ type ApiResponse<T> =
 
 修改食谱时提交 `expectedVersion`。版本不一致返回 `VERSION_CONFLICT`；首版提示重新载入，不做自动合并。保存与恢复都把完整快照追加进当前食谱的 `revisions[]`。
 
-删除食谱使用软删除：`recipe.archive` 校验家庭归属和 `expectedVersion` 后写入归档标记，正常列表不再返回该食谱，但正文和修订历史仍保留。首版暂不提供废纸篓列表、恢复或永久删除。
+删除食谱使用软删除：`recipe.archive` 校验家庭归属和 `expectedVersion` 后写入归档标记，正常列表不再返回该食谱，但正文和修订历史仍保留。设置页提供废纸篓列表和恢复，不提供永久删除。
 
 ### 5.6 评论读写
 
@@ -196,6 +213,16 @@ type ApiResponse<T> =
 
 所有有效成员都可以添加和删除。配置使用独立 `version` 做并发校验。删除选项时先从家庭配置移除，再清除当前食谱中的对应值并递增食谱版本；不改变修改人、更新时间和修订数组。食谱列表、复制和历史恢复都会按最新家庭配置过滤，已删除选项不能重新出现。
 
+### 5.8 AI 图片导入
+
+1. 用户从相册选择按顺序排列的食谱截图，小程序压缩后上传到当前家庭的临时目录。
+2. `recipe-import.start` 校验当前用户与家庭，把短期图片地址提交给异步模型 API，并在 `recipe_import_jobs` 保存服务端任务 ID。
+3. 小程序立即返回食谱清单，只展示当前用户自己的任务卡；页面可见时通过 `status` 低频查询一次状态。
+4. 识别完成后任务进入“待核对”，用户打开现有编辑页修改草稿。
+5. 用户主动保存后调用 `recipe.create`，随后以 `complete` 结束任务并清理临时图片；放弃、失败或过期任务也可以清理。
+
+模型 API Key 只存在于 `recipe-import` 云函数环境变量中。小程序不持有密钥、模型任务 ID 或临时 HTTPS 图片地址，也不能直接读写 `recipe_import_jobs`。
+
 ## 6. 前端迁移
 
 `recipe-store.ts` 保留原函数名作为异步云端仓库，以缩小页面改造范围。页面统一使用 `Promise` 接口，并处理：
@@ -207,6 +234,7 @@ type ApiResponse<T> =
 - 被移出后的会话失效。
 - 版本冲突提示。
 - 评论发布或编辑失败时保留输入；评论排序默认最新。
+- 导入提交后立即返回清单，以个人任务卡呈现识别中、待核对和失败状态。
 
 首版不做持久化本地缓存。云端请求失败就显示错误，避免用户误以为本地内容已经同步。
 
@@ -218,6 +246,7 @@ type ApiResponse<T> =
 4. 邀请数据库只保存令牌摘要，日志不记录令牌和 OpenID 明文。
 5. 正式环境不包含种子家庭和演示食谱。
 6. 食谱更新只接受当前家庭媒体路径下的文件引用；云存储权限独立配置和核验。
+7. `recipe_import_jobs` 使用 `ADMINONLY`，小程序客户端不能直接读取任务、模型任务 ID 或识别草稿。
 
 ## 8. 后续出现信号再增强
 

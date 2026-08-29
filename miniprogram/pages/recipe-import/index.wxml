@@ -4,7 +4,7 @@
     <view class="import-form">
       <view class="intro-card">
         <text class="intro-title font-serif">从图片快速填写</text>
-        <text class="intro-copy">按原食谱顺序选择小红书截图，识别后会进入编辑页。内容不会自动保存，请逐项核对。</text>
+        <text class="intro-copy">按原食谱顺序选择小红书截图。提交后可以离开，识别完成会在食谱清单提醒你核对。</text>
       </view>
 
       <view class="section-head">
@@ -43,19 +43,19 @@
         <view class="working-dot"></view>
         <view>
           <text class="working-title">{{statusText}}</text>
-          <text class="working-copy">请保持当前页面，完成后会自动进入编辑页</text>
+          <text class="working-copy">上传和提交完成前请保持当前页面，之后即可退出</text>
         </view>
       </view>
 
       <view class="privacy-note">
-        <text>识别时，所选图片会临时发送至 AI 识别服务；识别完成后会尽力删除云端临时副本。</text>
+        <text>所选图片会临时发送至 AI 识别服务；保存食谱或移除任务后会尽力删除临时副本。识别内容不会自动保存。</text>
       </view>
     </view>
   </scroll-view>
 
   <view class="action-bar">
     <button class="primary-button import-button {{images.length === 0 || working ? 'disabled' : ''}}" hover-class="none" disabled="{{images.length === 0 || working}}" bindtap="recognize">
-      {{working ? statusText : '识别并填写食谱'}}
+      {{working ? statusText : '提交识别'}}
     </button>
   </view>
 </view>

@@ -1,8 +1,8 @@
 /**
- * 食谱图片识别云函数。
+ * 异步食谱图片识别云函数。
  *
- * 密钥只从云函数环境变量读取；客户端只传当前家庭临时目录内的 cloud fileId。
- * 图片 URL 只会发送给云函数环境中配置的 AI 识别服务，API Key 不会进入客户端、响应或日志。
+ * 每次调用只执行“提交一次”或“查询一次”，把长耗时推理留在模型平台；
+ * API Key、模型任务 ID 和未确认草稿始终只保存在服务端。
  */
 import crypto from 'crypto'
 import cloud from 'wx-server-sdk'
@@ -15,15 +15,25 @@ import {
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV as unknown as string })
 
 const nullableDb = cloud.database({ throwOnNotFound: false } as unknown as { env?: string })
+const JOB_COLLECTION = 'recipe_import_jobs'
 const MAX_IMAGES = 9
+const MAX_JOBS = 10
+const JOB_TTL_MS = 30 * 60 * 1000
+
+type JobStatus = 'processing' | 'ready' | 'failed' | 'completed'
 
 interface ImportEvent {
+  action?: unknown
   fileIds?: unknown
+  jobId?: unknown
+  familyId?: unknown
+  memberId?: unknown
 }
 
 interface MemberRecord {
   _id: string
   familyId: string
+  userId: string
   status: 'active' | 'removed'
 }
 
@@ -42,6 +52,22 @@ interface ImportDraft {
   warnings: string[]
 }
 
+interface ImportJobRecord {
+  _id: string
+  userId: string
+  familyId: string
+  providerTaskId: string
+  status: JobStatus
+  fileIds: string[]
+  coverFileId: string
+  options: FamilyOptions
+  draft?: ImportDraft
+  message?: string
+  createdAt: number
+  updatedAt: number
+  expiresAt: number
+}
+
 class ImportError extends Error {
   constructor(public readonly code: string, message: string) {
     super(message)
@@ -57,17 +83,16 @@ function currentUserId(): string {
   return `u-${digest}`
 }
 
-async function activeMember(userId: string): Promise<MemberRecord> {
-  const userResult = await nullableDb.collection('users').doc(userId).get() as unknown as {
-    data: { activeMemberId?: string | null } | null
-  }
-  const memberId = userResult.data && userResult.data.activeMemberId
-  if (!memberId) throw new ImportError('NO_MEMBERSHIP', '你还没有加入家庭')
+/** 客户端已有当前成员 ID；服务端单次读取并校验归属，减少 3 秒函数内的串行查询。 */
+async function activeMember(userId: string, memberValue: unknown, familyValue: unknown): Promise<MemberRecord> {
+  const memberId = typeof memberValue === 'string' ? memberValue.trim() : ''
+  const familyId = typeof familyValue === 'string' ? familyValue.trim() : ''
+  if (!memberId || !familyId) throw new ImportError('NO_MEMBERSHIP', '你还没有加入家庭')
   const memberResult = await nullableDb.collection('family_members').doc(memberId).get() as unknown as {
     data: MemberRecord | null
   }
   const member = memberResult.data
-  if (!member || member.status !== 'active') {
+  if (!member || member.userId !== userId || member.familyId !== familyId || member.status !== 'active') {
     throw new ImportError('MEMBERSHIP_REMOVED', '家庭成员资格已失效')
   }
   return member
@@ -100,6 +125,12 @@ function importFileIds(value: unknown, familyId: string): string[] {
     throw new ImportError('VALIDATION_ERROR', '导入图片不属于当前家庭')
   }
   return [...new Set(fileIds)]
+}
+
+function requiredJobId(value: unknown): string {
+  const jobId = typeof value === 'string' ? value.trim() : ''
+  if (!/^rij-[a-f0-9]{24}$/.test(jobId)) throw new ImportError('VALIDATION_ERROR', '导入任务无效')
+  return jobId
 }
 
 /** 把家庭临时文件转换成短期 HTTPS URL，模型端无需获得 CloudBase 权限。 */
@@ -161,8 +192,8 @@ function systemPrompt(options: FamilyOptions): string {
   ].join('\n')
 }
 
-function parseJson(text: string): unknown {
-  const unfenced = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+function parseJson(value: string): unknown {
+  const unfenced = value.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
   try {
     return JSON.parse(unfenced) as unknown
   } catch (_error) {
@@ -236,36 +267,140 @@ function normalizeDraft(value: unknown, options: FamilyOptions): ImportDraft {
   return draft
 }
 
-async function recognize(urls: string[], options: FamilyOptions): Promise<ImportDraft> {
-  const provider = createAiProvider()
-  const images = urls.map((url, index) => ({ index: index + 1, url }))
-  let responseText: string
-  try {
-    responseText = await provider.recognize({
-      systemPrompt: systemPrompt(options), images, maxTokens: 4096, jsonMode: true,
-    })
-  } catch (error) {
-    // 部分兼容接口不接受 response_format；仅对此类参数错误安全降级一次。
-    if (!(error instanceof AiProviderHttpError) || ![400, 422].includes(error.status)) throw error
-    responseText = await provider.recognize({
-      systemPrompt: systemPrompt(options), images, maxTokens: 4096, jsonMode: false,
-    })
+function jobView(job: ImportJobRecord) {
+  const expired = job.status === 'processing' && job.expiresAt <= Date.now()
+  const status = expired ? 'expired' : job.status
+  return {
+    id: job._id,
+    status,
+    name: job.draft?.name || '',
+    message: expired ? '识别等待时间过长，请重新选择图片' : (job.message || ''),
+    coverFileId: job.coverFileId,
+    warningsCount: job.draft?.warnings.length || 0,
+    createdAt: job.createdAt,
   }
-  return normalizeDraft(parseJson(responseText), options)
 }
 
-/** 云函数入口：只返回清洗后的草稿，不创建食谱。 */
+async function ownedJob(userId: string, jobId: string): Promise<ImportJobRecord> {
+  const result = await nullableDb.collection(JOB_COLLECTION).doc(jobId).get() as unknown as {
+    data: ImportJobRecord | null
+  }
+  const job = result.data
+  if (!job || job.userId !== userId || job.status === 'completed') {
+    throw new ImportError('IMPORT_JOB_NOT_FOUND', '导入任务不存在或已完成')
+  }
+  return job
+}
+
+async function startImport(
+  userId: string,
+  fileIdsValue: unknown,
+  memberIdValue: unknown,
+  familyIdValue: unknown,
+) {
+  const member = await activeMember(userId, memberIdValue, familyIdValue)
+  const fileIds = importFileIds(fileIdsValue, member.familyId)
+  const [options, urls] = await Promise.all([
+    familyOptions(member.familyId),
+    temporaryUrls(fileIds),
+  ])
+  const jobId = `rij-${crypto.randomBytes(12).toString('hex')}`
+  const submitted = await createAiProvider().submit({
+    requestId: jobId,
+    systemPrompt: systemPrompt(options),
+    images: urls.map((url, index) => ({ index: index + 1, url })),
+    maxTokens: 4096,
+  })
+  const now = Date.now()
+  const record = {
+    userId,
+    familyId: member.familyId,
+    providerTaskId: submitted.taskId,
+    status: 'processing' as const,
+    fileIds,
+    coverFileId: fileIds[0],
+    options,
+    createdAt: now,
+    updatedAt: now,
+    expiresAt: now + JOB_TTL_MS,
+  }
+  await nullableDb.collection(JOB_COLLECTION).doc(jobId).set({ data: record })
+  return { task: jobView({ _id: jobId, ...record }) }
+}
+
+async function listImports(userId: string) {
+  const result = await nullableDb.collection(JOB_COLLECTION)
+    .where({ userId }).limit(MAX_JOBS).get() as unknown as { data: ImportJobRecord[] }
+  const tasks = result.data
+    .filter((job) => job.status !== 'completed')
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map(jobView)
+  return { tasks }
+}
+
+async function queryImport(userId: string, jobIdValue: unknown) {
+  const jobId = requiredJobId(jobIdValue)
+  const job = await ownedJob(userId, jobId)
+  if (job.status === 'ready') return { task: jobView(job), draft: job.draft }
+  if (job.status === 'failed' || job.expiresAt <= Date.now()) return { task: jobView(job) }
+
+  const result = await createAiProvider().query(job.providerTaskId)
+  if (result.status === 'processing') return { task: jobView(job) }
+  if (result.status === 'failed') {
+    const message = '图片识别没有完成，请重新选择图片后再试'
+    await nullableDb.collection(JOB_COLLECTION).doc(jobId).update({
+      data: { status: 'failed', message, updatedAt: Date.now() },
+    })
+    return { task: jobView({ ...job, status: 'failed', message }) }
+  }
+
+  try {
+    const draft = normalizeDraft(parseJson(result.content), job.options)
+    const ready: ImportJobRecord = { ...job, status: 'ready', draft, updatedAt: Date.now() }
+    await nullableDb.collection(JOB_COLLECTION).doc(jobId).update({
+      data: { status: 'ready', draft, updatedAt: ready.updatedAt },
+    })
+    return { task: jobView(ready), draft }
+  } catch (error) {
+    const message = error instanceof ImportError ? error.message : '识别结果无法读取，请重新选择图片'
+    await nullableDb.collection(JOB_COLLECTION).doc(jobId).update({
+      data: { status: 'failed', message, updatedAt: Date.now() },
+    })
+    return { task: jobView({ ...job, status: 'failed', message }) }
+  }
+}
+
+/** 保存或主动删除后先隐藏任务，再尽力清理图片和任务记录。 */
+async function finishImport(userId: string, jobIdValue: unknown) {
+  const jobId = requiredJobId(jobIdValue)
+  const job = await ownedJob(userId, jobId)
+  await nullableDb.collection(JOB_COLLECTION).doc(jobId).update({
+    data: { status: 'completed', updatedAt: Date.now() },
+  })
+  try {
+    await cloud.deleteFile({ fileList: job.fileIds })
+    await nullableDb.collection(JOB_COLLECTION).doc(jobId).remove()
+  } catch (error) {
+    // completed 状态已让任务从用户列表消失；残留文件可由后续运维清理。
+    console.error('[recipe-import-cleanup]', error instanceof Error ? error.name : 'UnknownError')
+  }
+  return { completedJobId: jobId }
+}
+
+/** 云函数入口：草稿始终需要用户进入编辑页并主动保存。 */
 export async function main(event: ImportEvent) {
   try {
     const userId = currentUserId()
-    const member = await activeMember(userId)
-    const fileIds = importFileIds(event.fileIds, member.familyId)
-    const [options, urls] = await Promise.all([
-      familyOptions(member.familyId),
-      temporaryUrls(fileIds),
-    ])
-    const draft = await recognize(urls, options)
-    return { ok: true, data: draft }
+    const action = typeof event.action === 'string' ? event.action : 'start'
+    if (action === 'start') {
+      return { ok: true, data: await startImport(userId, event.fileIds, event.memberId, event.familyId) }
+    }
+    if (action === 'list') return { ok: true, data: await listImports(userId) }
+    if (action === 'status') return { ok: true, data: await queryImport(userId, event.jobId) }
+    if (action === 'complete' || action === 'discard') {
+      return { ok: true, data: await finishImport(userId, event.jobId) }
+    }
+    throw new ImportError('VALIDATION_ERROR', '不支持的导入操作')
   } catch (error) {
     if (error instanceof ImportError) {
       return { ok: false, error: { code: error.code, message: error.message } }
@@ -276,7 +411,7 @@ export async function main(event: ImportEvent) {
     if (error instanceof AiProviderHttpError) {
       return { ok: false, error: { code: 'MODEL_SERVICE_ERROR', message: '图片识别服务暂时不可用，请重试' } }
     }
-    // 不打印请求体、图片 URL 或鉴权信息，只留下不含敏感内容的错误类型。
+    // 不打印请求体、任务 ID、图片 URL 或鉴权信息。
     console.error('[recipe-import]', error instanceof Error ? error.name : 'UnknownError')
     return { ok: false, error: { code: 'SERVICE_UNAVAILABLE', message: '食谱识别暂时不可用，请稍后重试' } }
   }

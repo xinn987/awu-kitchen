@@ -4,7 +4,11 @@
  */
 import { initCloud } from '../config/cloud'
 import type { ApiResponse } from '../models/api'
-import type { RecipeImportDraft } from '../models/recipe-import'
+import type {
+  RecipeImportDraft,
+  RecipeImportTask,
+  RecipeImportTaskResult,
+} from '../models/recipe-import'
 import { ApiError } from './cloud-client'
 import {
   compressRecipeImage,
@@ -19,7 +23,7 @@ let pendingDraft: RecipeImportDraft | undefined
 export type RecipeImportStatus =
   | { phase: 'processing'; current: number; total: number }
   | { phase: 'uploading'; current: number; total: number }
-  | { phase: 'recognizing'; current: number; total: number }
+  | { phase: 'submitting'; current: number; total: number }
 
 /** 仅跨一次页面跳转传递识别草稿，读取后立即清空，避免残留到下一次导入。 */
 export function setPendingRecipeImportDraft(draft: RecipeImportDraft): void {
@@ -130,24 +134,52 @@ export async function cleanupRecipeImportImages(fileIds: string[]): Promise<void
   }
 }
 
-/** 识别调用只传云文件引用；模型密钥由 recipe-import 云函数运行环境注入。 */
-export async function recognizeRecipeImport(
-  fileIds: string[],
-  onStatus: (status: RecipeImportStatus) => void,
-): Promise<RecipeImportDraft> {
+/** 所有任务操作都只携带应用任务 ID；模型密钥和模型任务 ID 不进入客户端。 */
+async function callRecipeImport<T>(data: Record<string, unknown>): Promise<T> {
   initCloud()
-  onStatus({ phase: 'recognizing', current: 0, total: fileIds.length })
   try {
-    const result = await wx.cloud.callFunction({
-      name: 'recipe-import',
-      data: { fileIds },
-    })
-    const response = result.result as ApiResponse<RecipeImportDraft> | undefined
+    const result = await wx.cloud.callFunction({ name: 'recipe-import', data })
+    const response = result.result as ApiResponse<T> | undefined
     if (!response) throw new ApiError('SERVICE_UNAVAILABLE', '识别服务没有返回结果，请稍后重试')
     if (!response.ok) throw new ApiError(response.error.code, response.error.message)
     return response.data
   } catch (error) {
     if (error instanceof ApiError) throw error
-    throw new ApiError('SERVICE_UNAVAILABLE', '食谱识别失败，请稍后重试')
+    throw new ApiError('SERVICE_UNAVAILABLE', '食谱识别服务暂时不可用，请稍后重试')
   }
+}
+
+/** 提交后立即返回应用任务；耗时识别由模型平台在后台继续执行。 */
+export async function submitRecipeImport(
+  fileIds: string[],
+  familyId: string,
+  memberId: string,
+  onStatus: (status: RecipeImportStatus) => void,
+): Promise<RecipeImportTask> {
+  onStatus({ phase: 'submitting', current: 0, total: fileIds.length })
+  const result = await callRecipeImport<{ task: RecipeImportTask }>({
+    action: 'start', fileIds, familyId, memberId,
+  })
+  return result.task
+}
+
+/** 清单页只读取当前用户自己的未完成任务。 */
+export async function listRecipeImportTasks(): Promise<RecipeImportTask[]> {
+  const result = await callRecipeImport<{ tasks: RecipeImportTask[] }>({ action: 'list' })
+  return result.tasks
+}
+
+/** 每次调用只查询模型状态一次，不在 3 秒云函数内循环等待。 */
+export function getRecipeImportTask(jobId: string): Promise<RecipeImportTaskResult> {
+  return callRecipeImport<RecipeImportTaskResult>({ action: 'status', jobId })
+}
+
+/** 用户保存正式食谱后，服务端隐藏任务并清理识别临时图。 */
+export function completeRecipeImportTask(jobId: string): Promise<void> {
+  return callRecipeImport<{ completedJobId: string }>({ action: 'complete', jobId }).then(() => undefined)
+}
+
+/** 失败或过期任务由用户主动移除，避免自动重试产生额外模型费用。 */
+export function discardRecipeImportTask(jobId: string): Promise<void> {
+  return callRecipeImport<{ completedJobId: string }>({ action: 'discard', jobId }).then(() => undefined)
 }

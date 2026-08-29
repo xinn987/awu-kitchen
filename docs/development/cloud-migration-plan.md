@@ -40,8 +40,8 @@ miniprogram/
 开发内容：
 
 - 创建一个开发 CloudBase 环境；生产环境在发布前再创建。
-- 配置 `cloudfunctionRoot` 和一个 `api` 云函数。
-- 创建 `users`、`families`、`family_members`、`family_invites`、`recipes` 五个集合。
+- 配置 `cloudfunctionRoot`、业务 `api` 云函数和模型适配 `recipe-import` 云函数。
+- 创建 `users`、`families`、`family_members`、`family_invites`、`recipes`、`recipe_comments`、`recipe_import_jobs` 七个集合。
 - 实现统一返回结构、错误码和 OpenID 解析。
 - `App.onLaunch` 初始化云环境并调用 `session.bootstrap`。
 - 新增 onboarding：创建家庭或等待邀请。
@@ -86,6 +86,18 @@ miniprogram/
 
 验收：两人同时编辑不会静默覆盖；恢复旧版本形成新修订；双账号、双设备完整流程通过；生产首次进入为空状态。
 
+### 阶段 5：AI 图片导入（代码和开发环境配置已完成，待真机与隐私验收）
+
+开发内容：
+
+- 从相册选择并压缩多张食谱截图，上传到家庭隔离的临时云存储目录。
+- `recipe-import` 在 3 秒函数限制内提交异步模型任务，并以 `recipe_import_jobs` 保存个人任务状态。
+- 食谱清单展示仅提交者可见的识别中、待核对和失败任务卡。
+- 识别完成后进入现有编辑页预填；用户核对并保存后才创建共享食谱。
+- 模型协议由 `AiProvider` 适配，API Key 只配置在云函数环境变量中。
+
+验收：提交后可立即退出；换页或重新进入能恢复任务；其他家庭成员看不到任务；保存前可修改所有字段；失败、放弃和过期任务能清理临时图片。
+
 ## 4. 当前文件改造范围
 
 | 位置 | 改造 |
@@ -94,15 +106,19 @@ miniprogram/
 | `miniprogram/app.ts` | 初始化 CloudBase 和会话 |
 | `miniprogram/app.json` | 注册 onboarding 页面 |
 | `miniprogram/models/recipe.ts` | 增加服务端版本；移除本地伪身份语义 |
-| `miniprogram/services/recipe-store.ts` | 迁移期间保留，随后退出正式调用链 |
+| `miniprogram/services/recipe-store.ts` | 保留原名，内部作为异步云端食谱仓库 |
+| `miniprogram/models/recipe-import.ts` | 导入任务、草稿和任务状态模型 |
+| `miniprogram/services/recipe-import.ts` | 临时图片上传及 `recipe-import` 云函数调用 |
 | `pages/family` | 复制邀请码、兼容分享链接、云端成员和移出 |
-| `pages/library` | 云端食谱和真实空状态 |
+| `pages/library` | 云端食谱、真实空状态和个人导入任务卡 |
 | `pages/recipe-detail` | 异步详情与复制 |
-| `pages/recipe-edit` | 异步保存与冲突提示 |
+| `pages/recipe-edit` | 异步保存、冲突提示和导入草稿预填 |
+| `pages/recipe-import` | 多图选择、排序、上传和异步任务提交 |
 | `pages/history` | 云端内嵌修订和恢复 |
 | `components/quick-capture` | 异步保存与失败保留输入 |
+| `cloudfunctions/recipe-import` | 服务端模型密钥、异步任务状态和结果清洗 |
 
-当前小程序没有照片字段、选图和展示控件。照片不是本轮迁移内容，后续有明确需要时再整体增加。
+食谱主图、步骤图和 AI 导入临时图片均已接入云存储。正文图片的一致性规则见 [食谱图片首版设计](../design/recipe-images.md)，AI 导入边界见 [AI 食谱图片导入](recipe-import-ai.md)。
 
 ## 5. 最小测试范围
 
@@ -132,12 +148,15 @@ miniprogram/
 
 ## 7. 云环境部署清单
 
-1. 在微信开发者工具中选择开发用云环境，并创建 `users`、`families`、`family_members`、`family_invites`、`recipes`、`recipe_comments` 六个空集合；评论接口也会在首次使用时兼容性地检查并创建缺失集合。
-2. 五个集合的客户端安全规则都设为 `read: false`、`write: false`；小程序只通过云函数读写。
+1. 在微信开发者工具中选择开发用云环境，并创建 `users`、`families`、`family_members`、`family_invites`、`recipes`、`recipe_comments`、`recipe_import_jobs` 七个空集合；`recipe_import_jobs` 只允许云函数访问，用于保存当前用户自己的异步识别任务。
+2. 七个集合的客户端安全规则都禁止直接读写；小程序只通过云函数访问。`recipe_import_jobs` 使用 `ADMINONLY`。
 3. 至少创建以下索引：`family_invites.tokenHash`，`family_members(familyId, status)`，`family_members(familyId, displayName, status)`，`recipes.familyId`。
 4. 在 `cloudfunctions/api` 执行 `pnpm install` 和 `pnpm run build`。构建会把运行用 JavaScript 平铺到云函数根目录；确认根目录 `index.js` 存在后，在开发者工具中上传并部署 `api`，选择云端安装依赖。
-5. 开发联调可让 `CLOUD_ENV_ID` 保持空字符串并使用开发者工具当前环境；发布前必须在 `miniprogram/config/cloud.ts` 填入明确的生产环境 ID。
-6. 生产环境重新创建空集合、规则和索引，不复制开发环境里的测试家庭或食谱。
+5. 在 `cloudfunctions/recipe-import` 执行 `npm install`、`npm run check` 和 `npm run build`，部署时使用云端安装依赖并把函数超时设为 3 秒。
+6. 在 `recipe-import` 云函数环境变量中配置 Provider、异步提交地址、结果查询地址、模型代码和 API Key；真实密钥不进入小程序代码或 Git。
+7. 上传小程序时让 CLI `--version` 与 `miniprogram/config/version.ts` 的 `DEVELOPMENT_VERSION` 保持一致。
+8. 开发联调可让 `CLOUD_ENV_ID` 保持空字符串并使用开发者工具当前环境；发布前必须在 `miniprogram/config/cloud.ts` 填入明确的生产环境 ID。
+9. 生产环境重新创建空集合、规则和索引，不复制开发环境里的测试家庭、食谱或导入任务。
 
 ## 8. 明确后置
 

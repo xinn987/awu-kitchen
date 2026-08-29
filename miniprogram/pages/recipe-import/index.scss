@@ -1,4 +1,4 @@
-/* 食谱导入页只负责选择和识别，最终确认仍在原生编辑页完成。 */
+/* 导入页只负责把图片可靠提交为后台任务，识别结果仍需在编辑页核对。 */
 .import-form { display: flex; flex-direction: column; gap: 30rpx; padding: 32rpx 36rpx 60rpx; }
 .intro-card { padding: 32rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--brand-wash); }
 .intro-title { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }

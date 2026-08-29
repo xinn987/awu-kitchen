@@ -22,3 +22,21 @@ export interface RecipeImportDraft {
   stage: string
   warnings: string[]
 }
+
+/** 未确认的识别任务只属于提交者，不是家庭正式食谱。 */
+export type RecipeImportTaskStatus = 'processing' | 'ready' | 'failed' | 'expired'
+
+export interface RecipeImportTask {
+  id: string
+  status: RecipeImportTaskStatus
+  name: string
+  message: string
+  coverFileId: string
+  warningsCount: number
+  createdAt: number
+}
+
+export interface RecipeImportTaskResult {
+  task: RecipeImportTask
+  draft?: RecipeImportDraft
+}

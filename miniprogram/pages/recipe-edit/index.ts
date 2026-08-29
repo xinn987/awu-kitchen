@@ -11,7 +11,11 @@ import {
 } from '../../models/recipe'
 import type { RecipeImportDraft } from '../../models/recipe-import'
 import { ApiError } from '../../services/cloud-client'
-import { takePendingRecipeImportDraft } from '../../services/recipe-import'
+import {
+  completeRecipeImportTask,
+  getRecipeImportTask,
+  takePendingRecipeImportDraft,
+} from '../../services/recipe-import'
 import {
   chooseRecipeImage,
   cleanupUploadedRecipeImages,
@@ -129,6 +133,7 @@ Page({
   data: {
     id: '',
     importMode: false,
+    importJobId: '',
     pageTitle: '编辑食谱',
     importWarnings: [] as string[],
     found: true,
@@ -166,18 +171,36 @@ Page({
 
   onLoad(options: Record<string, string | undefined>) {
     if (options.mode === 'import') {
+      const importJobId = options.jobId || ''
       const draft = takePendingRecipeImportDraft()
       if (!draft) {
-        this.setData({ importMode: true, pageTitle: '导入食谱', found: false, loading: false })
+        this.setData({ importMode: true, importJobId, pageTitle: '核对导入内容' })
+        if (importJobId) {
+          void this.loadImportJob(importJobId)
+        } else {
+          this.setData({ found: false, loading: false })
+        }
         return
       }
-      this.setData({ importMode: true, pageTitle: '核对导入内容' })
+      this.setData({ importMode: true, importJobId, pageTitle: '核对导入内容' })
       void this.loadImportDraft(draft)
       return
     }
     const id = options.id || ''
     this.setData({ id })
     void this.loadRecipe(id)
+  },
+
+  /** 编辑页被系统重建时，可用任务 ID 从云端恢复待核对草稿。 */
+  async loadImportJob(jobId: string) {
+    try {
+      const result = await getRecipeImportTask(jobId)
+      if (!result.draft) throw new Error('识别结果尚未准备好')
+      await this.loadImportDraft(result.draft)
+    } catch (error) {
+      this.setData({ found: false, loading: false })
+      wx.showToast({ title: error instanceof Error ? error.message : '导入草稿加载失败', icon: 'none' })
+    }
   },
 
   /** 导入草稿只初始化表单；真正的 recipe.create 仍发生在用户点击保存之后。 */
@@ -634,6 +657,14 @@ Page({
       if (this.data.importMode) {
         const recipe = await createRecipe(content)
         savedId = recipe.id
+        if (this.data.importJobId) {
+          // 正式食谱已经创建成功；清理任务失败不能诱导用户再次保存并生成重复食谱。
+          try {
+            await completeRecipeImportTask(this.data.importJobId)
+          } catch (cleanupError) {
+            console.warn('清理已保存的导入任务失败', cleanupError)
+          }
+        }
       } else {
         await updateRecipe(
           this.data.id,

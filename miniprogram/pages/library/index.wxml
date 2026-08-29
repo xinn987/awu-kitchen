@@ -38,49 +38,79 @@
         </view>
       </block>
 
-      <view wx:elif="{{formal.length === 0 && drafts.length === 0}}" class="empty-state">
-        {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
-      </view>
-
       <block wx:else>
-      <view wx:for="{{formal}}" wx:key="id" class="recipe-card" data-id="{{item.id}}" bindtap="openRecipe">
-        <view class="card-heading">
-          <text class="card-title font-serif">{{item.name}}</text>
-          <text wx:if="{{item.type}}" class="type-badge">{{item.type}}</text>
-        </view>
-        <view class="key-preview">
-          <text class="key-text font-serif">{{item.firstKey}}</text>
-          <text wx:if="{{item.moreCount > 0}}" class="more-key">+{{item.moreCount}} 条关键</text>
-        </view>
-        <view class="card-footer">
-          <view class="tag-row">
-            <text wx:for="{{item.visibleTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+        <!-- 导入任务不是正式食谱，只对提交者显示；保存后才进入家庭清单。 -->
+        <view wx:if="{{importTasks.length > 0}}" class="import-task-section">
+          <view class="import-section-head">
+            <text>待处理导入</text>
+            <text>{{importTasks.length}}</text>
           </view>
-          <view class="update-row">
-            <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
-            <text>{{item.updatedLabel}}</text>
+          <view
+            wx:for="{{importTasks}}"
+            wx:key="id"
+            class="import-task-card {{item.problem ? 'problem' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="openImportTask"
+          >
+            <image class="import-task-image" src="{{item.coverFileId}}" mode="aspectFill"></image>
+            <view class="import-task-body">
+              <view class="import-task-heading">
+                <text class="import-task-title font-serif">{{item.title}}</text>
+                <text class="import-status {{item.ready ? 'ready' : ''}} {{item.problem ? 'problem' : ''}}">{{item.statusLabel}}</text>
+              </view>
+              <text class="import-task-help">{{item.help}}</text>
+              <view wx:if="{{item.ready}}" class="import-task-action">核对并保存</view>
+              <view wx:if="{{item.problem}}" class="import-problem-actions">
+                <view class="import-retry" role="button" data-id="{{item.id}}" catchtap="restartImport">重新选择图片</view>
+                <view class="import-delete" role="button" data-id="{{item.id}}" catchtap="discardImport">删除</view>
+              </view>
+            </view>
+            <view wx:if="{{item.status === 'processing'}}" class="import-spinner"></view>
           </view>
         </view>
-      </view>
 
-      <view wx:if="{{drafts.length > 0 && formal.length > 0}}" class="draft-divider">
-        <view></view><text>待补条目</text><view></view>
-      </view>
-
-      <view wx:for="{{drafts}}" wx:key="id" class="recipe-card draft-card" data-id="{{item.id}}" bindtap="openRecipe">
-        <view class="card-heading">
-          <text class="card-title font-serif">{{item.name}}</text>
-          <text class="draft-badge">待补充</text>
+        <view wx:if="{{formal.length === 0 && drafts.length === 0 && importTasks.length === 0}}" class="empty-state">
+          {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
         </view>
-        <text class="draft-help">尚无成功关键——补充后可正式存入</text>
-        <view class="card-footer">
-          <view></view>
-          <view class="update-row">
-            <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
-            <text>{{item.updatedLabel}}</text>
+
+        <view wx:for="{{formal}}" wx:key="id" class="recipe-card" data-id="{{item.id}}" bindtap="openRecipe">
+          <view class="card-heading">
+            <text class="card-title font-serif">{{item.name}}</text>
+            <text wx:if="{{item.type}}" class="type-badge">{{item.type}}</text>
+          </view>
+          <view class="key-preview">
+            <text class="key-text font-serif">{{item.firstKey}}</text>
+            <text wx:if="{{item.moreCount > 0}}" class="more-key">+{{item.moreCount}} 条关键</text>
+          </view>
+          <view class="card-footer">
+            <view class="tag-row">
+              <text wx:for="{{item.visibleTags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+            </view>
+            <view class="update-row">
+              <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+              <text>{{item.updatedLabel}}</text>
+            </view>
           </view>
         </view>
-      </view>
+
+        <view wx:if="{{drafts.length > 0 && formal.length > 0}}" class="draft-divider">
+          <view></view><text>待补条目</text><view></view>
+        </view>
+
+        <view wx:for="{{drafts}}" wx:key="id" class="recipe-card draft-card" data-id="{{item.id}}" bindtap="openRecipe">
+          <view class="card-heading">
+            <text class="card-title font-serif">{{item.name}}</text>
+            <text class="draft-badge">待补充</text>
+          </view>
+          <text class="draft-help">尚无成功关键——补充后可正式存入</text>
+          <view class="card-footer">
+            <view></view>
+            <view class="update-row">
+              <member-avatar name="{{item.updatedName}}" size="38" color="{{item.avatarColor}}"></member-avatar>
+              <text>{{item.updatedLabel}}</text>
+            </view>
+          </view>
+        </view>
       </block>
     </view>
   </scroll-view>
