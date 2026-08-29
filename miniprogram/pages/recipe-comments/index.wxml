@@ -1,5 +1,5 @@
 <view class="page-shell comments-page">
-  <page-navbar left-text="食谱详情" title="评论" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
+  <page-navbar left-text="返回" title="评论" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
 
   <view wx:if="{{found && comments.length > 0}}" class="sort-bar">
     <view
@@ -12,19 +12,16 @@
     <view
       class="sort-option {{sort === 'oldest' ? 'active' : ''}}"
       role="button"
-      aria-label="按最早排序"
+      aria-label="按最旧排序"
       data-sort="oldest"
       bindtap="changeSort"
-    >最早</view>
+    >最旧</view>
   </view>
 
   <scroll-view class="comment-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}">
     <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <app-loading wx:elif="{{loading && comments.length === 0}}" label="正在加载评论"></app-loading>
-    <view wx:elif="{{comments.length === 0}}" class="empty-state comment-empty">
-      <app-icon name="message-circle" size="96"></app-icon>
-      <text>还没有评论，写下这次尝试，或者想问家人的问题</text>
-    </view>
+    <view wx:elif="{{comments.length === 0}}" class="empty-state comment-empty">还没有评论，写下这次尝试，或者想问家人的问题。</view>
     <view wx:else class="comment-list {{loading ? 'refreshing' : ''}}">
       <view wx:for="{{comments}}" wx:key="id" class="comment-item" id="comment-{{item.id}}">
         <member-avatar name="{{item.authorName}}" size="58" color="{{item.avatarColor}}"></member-avatar>

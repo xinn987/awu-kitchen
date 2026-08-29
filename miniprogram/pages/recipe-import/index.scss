@@ -1,8 +1,8 @@
 /* 导入页只负责把图片可靠提交为后台任务，识别结果仍需在编辑页核对。 */
 .import-form { display: flex; flex-direction: column; gap: 30rpx; padding: 32rpx 36rpx 60rpx; }
-.intro-copy { display: block; margin: -8rpx 0 32rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
-
-
+.intro-card { padding: 32rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--brand-wash); }
+.intro-title { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }
+.intro-copy { display: block; margin-top: 12rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
 .section-head { display: flex; align-items: flex-end; justify-content: space-between; }
 .section-title { color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
 .section-meta { margin-left: 12rpx; color: var(--ink-faint); font-size: var(--fs-caption); }
@@ -31,6 +31,4 @@
 .working-copy { margin-top: 5rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .privacy-note { padding: 0 8rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.65; }
 .import-button { width: 100%; margin: 0; }
-/* 禁用态要能被看见：描边 + 提示字，而不是浅底白字。 */
-.import-button.disabled, .import-button[disabled] { border: 1rpx dashed var(--ink-faint); background: transparent; color: var(--ink-faint); }
 @keyframes import-spin { to { transform: rotate(360deg); } }

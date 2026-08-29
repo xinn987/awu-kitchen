@@ -1,12 +1,15 @@
-/* 设置页：开放分组行 + 细分隔线，与家庭页同一版式；图标不再使用品牌色底块。 */
-.settings-content { padding: 32rpx 40rpx 56rpx; }
-.settings-group { border-top: 1rpx solid var(--line-soft); }
-.settings-row { min-height: 120rpx; display: flex; align-items: center; gap: 20rpx; padding: 20rpx 0; border-bottom: 1rpx solid var(--line-soft); color: var(--ink-faint); }
-.settings-row:active { opacity: 0.55; }
-.settings-row-copy { flex: 1; min-width: 0; }
-.settings-row-title, .settings-row-description { display: block; }
-.settings-row-title { color: var(--ink); font-size: var(--fs-body); font-weight: 500; }
-.settings-row-description { margin-top: 6rpx; color: var(--ink-2); font-size: var(--fs-caption); }
-.version-section-label { margin-top: 40rpx; }
-.version-row { min-height: 104rpx; }
-.version-number { color: var(--ink-2); font-size: var(--fs-body); }
+.settings-content { padding: 32rpx 32rpx 56rpx; }
+.settings-section-label { display: block; margin: 0 12rpx 14rpx; color: var(--ink-2); font-size: var(--fs-caption); letter-spacing: 0.08em; }
+.settings-card { border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
+.option-entry { min-height: 128rpx; padding: 24rpx 28rpx; display: flex; align-items: center; gap: 20rpx; color: var(--ink-faint); }
+.trash-entry { border-top: 1rpx solid var(--line-soft); }
+.option-entry:active { opacity: 0.62; }
+.entry-icon { width: 58rpx; height: 58rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: var(--r-sm); background: var(--brand-wash); color: var(--brand); }
+.entry-copy { flex: 1; min-width: 0; }
+.entry-title, .entry-description { display: block; }
+.entry-title { color: var(--ink); font-size: var(--fs-body); font-weight: 500; }
+.entry-description { margin-top: 6rpx; color: var(--ink-2); font-size: var(--fs-caption); }
+.version-section-label { margin-top: 34rpx; }
+.version-card { min-height: 190rpx; padding: 34rpx 36rpx; display: flex; flex-direction: column; justify-content: center; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
+.version-label { color: var(--ink-2); font-size: var(--fs-meta); letter-spacing: 0.08em; }
+.version-number { margin-top: 14rpx; color: var(--ink); font-size: var(--fs-display); font-weight: 600; letter-spacing: 0.02em; }

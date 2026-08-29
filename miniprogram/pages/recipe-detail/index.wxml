@@ -9,7 +9,7 @@
         <view class="title-row">
           <text class="recipe-title font-serif">{{recipe.name}}</text>
           <text wx:if="{{recipe.isDraft}}" class="draft-badge">待补充</text>
-          <text wx:elif="{{recipe.type}}" class="pill title-type"><app-icon name="{{typeIcon}}" size="26"></app-icon>{{recipe.type}}</text>
+          <text wx:elif="{{recipe.type}}" class="pill title-type">{{recipe.type}}</text>
         </view>
         <view class="meta-row">
           <view class="author-row">
@@ -28,7 +28,7 @@
       </view>
 
       <view class="detail-section">
-        <view class="section-label"><text>成功关键</text></view>
+        <view class="section-label"><app-icon name="zap" size="28"></app-icon><text>成功关键</text></view>
         <view wx:if="{{recipe.isDraft}}" class="draft-warning">
           <view class="warning-icon"><app-icon name="alert-triangle" size="34"></app-icon></view>
           <view>
@@ -60,19 +60,19 @@
       </view>
 
       <view wx:if="{{recipe.ingredientRows.length > 0}}" class="detail-section">
-        <view class="section-label"><text>食材</text></view>
+        <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
         <view class="ingredient-row" wx:for="{{recipe.ingredientRows}}" wx:key="index">
           <view class="ingredient-marker">
             <app-icon wx:if="{{item.primary}}" name="sparkle" size="26"></app-icon>
             <view wx:else class="ingredient-dot"></view>
           </view>
           <text class="ingredient-name {{item.primary ? 'primary' : ''}}">{{item.name}}</text>
-          <text class="ingredient-amount">{{item.amount}}</text>
+          <text class="ingredient-amount">{{item.amount || '—'}}</text>
         </view>
       </view>
 
       <view wx:if="{{recipe.steps.length > 0}}" class="detail-section steps-section">
-        <view class="section-label"><text>步骤</text></view>
+        <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
         <view wx:for="{{recipe.steps}}" wx:key="id" class="step-row">
           <text class="step-number">{{index + 1}}</text>
           <view class="step-body">
@@ -97,6 +97,9 @@
       </view>
 
       <view class="footnote">由 {{recipe.createdName}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
+      <view class="archive-row">
+        <view class="archive-link" role="button" bindtap="askArchive">{{archiving ? '正在移入…' : '移入废纸篓'}}</view>
+      </view>
     </view>
   </scroll-view>
 
@@ -105,10 +108,11 @@
       <app-icon name="message-circle" size="30"></app-icon>
       <text>评论{{recipe.commentCountLabel ? ' ' + recipe.commentCountLabel : ''}}</text>
     </view>
-    <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
-    <view class="secondary-button more-button" role="button" aria-label="更多操作" bindtap="openMore">
-      <app-icon name="more" size="32"></app-icon>
+    <view class="secondary-button compact-button" role="button" bindtap="duplicate">
+      <app-icon name="copy" size="30"></app-icon>
+      <text>{{duplicating ? '复制中…' : '复制'}}</text>
     </view>
+    <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
   </view>
   <confirm-panel
     visible="{{archiveConfirm}}"

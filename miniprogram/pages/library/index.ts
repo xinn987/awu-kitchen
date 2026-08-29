@@ -11,7 +11,7 @@ import {
   listRecipeImportTasks,
   setPendingRecipeImportDraft,
 } from '../../services/recipe-import'
-import { isFormalRecipe, relativeTime, typeIconName } from '../../utils/recipe-utils'
+import { isFormalRecipe, relativeTime } from '../../utils/recipe-utils'
 
 interface RecipeCardView extends Recipe {
   isDraft: boolean
@@ -21,7 +21,6 @@ interface RecipeCardView extends Recipe {
   updatedName: string
   updatedLabel: string
   avatarColor: string
-  typeIcon: string
 }
 
 interface FilterChip {
@@ -219,7 +218,6 @@ Page({
       updatedName: nameOf(recipe.updatedById),
       updatedLabel: relativeTime(recipe.updatedAt),
       avatarColor: colorOf(recipe.updatedById),
-      typeIcon: typeIconName(recipe.type),
     })
     const typeCounts = new Map<string, number>()
     formalRecipes.forEach((recipe) => {

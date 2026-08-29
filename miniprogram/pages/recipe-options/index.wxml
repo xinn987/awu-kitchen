@@ -1,14 +1,18 @@
 <view class="page-shell">
-  <page-navbar left-text="设置" title="食谱选项" subtitle="{{familyName}}" bindleft="back"></page-navbar>
+  <page-navbar left-text="返回" title="食谱选项" subtitle="{{familyName}}" bindleft="back"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="options-content">
+      <text class="page-description">管理食谱编辑时可选的分类。删除后，原食谱会回到未选择状态。</text>
+
       <view wx:if="{{loading && foodTypes.length === 0}}" class="empty-state">正在加载食谱选项…</view>
 
       <view wx:else class="option-sections">
         <view class="option-section">
-          <view class="section-label">辅食类型</view>
-          <text class="section-description">每份食谱最多选择一项；删除后，原食谱回到未选择</text>
+          <view class="section-heading">
+            <text class="section-title font-serif">辅食类型</text>
+            <text class="section-description">每份食谱最多选择一项</text>
+          </view>
 
           <!-- 选项沿用首页的胶囊语言；使用数量只在真正删除时提示。 -->
           <text wx:if="{{foodTypes.length === 0}}" class="section-empty">尚未设置，食谱会保持未选择。</text>

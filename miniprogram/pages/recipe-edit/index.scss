@@ -20,7 +20,7 @@
 .section-head .section-label { margin-bottom: 0; }
 .section-label text { font-size: var(--fs-meta); }
 .required { margin-left: 2rpx; color: var(--brand); }
-.keys-hint { color: var(--ink-2); font-size: var(--fs-caption); }
+.keys-hint { color: var(--brand); font-size: var(--fs-caption); }
 .row-placeholder { color: var(--ink-faint); }
 
 /* —— 折叠状态摘要 —— */
@@ -42,7 +42,7 @@
 .key-placeholder { color: var(--ink-faint); }
 .remove-button { width: 60rpx; height: 60rpx; margin-top: 12rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-faint); }
 .remove-button:active { opacity: 0.5; }
-.add-button { margin-top: 20rpx; display: flex; align-items: center; gap: 8rpx; color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; }
+.add-button { margin-top: 20rpx; display: flex; align-items: center; gap: 8rpx; color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
 .add-button:active { opacity: 0.6; }
 
 /* —— 主图 —— */

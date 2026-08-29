@@ -40,8 +40,8 @@
 .create-options { display: flex; flex-direction: column; gap: 18rpx; }
 .create-option { min-height: 132rpx; display: flex; align-items: center; gap: 22rpx; padding: 24rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--paper-deep); color: var(--ink-2); transition: transform 0.15s ease; }
 .create-option:active { transform: scale(0.98); }
-
-.create-option-icon { width: 72rpx; height: 72rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: var(--r-md); background: var(--card); color: var(--ink-2); }
+.create-option.primary { border-color: var(--brand-tint); background: var(--brand-wash); }
+.create-option-icon { width: 72rpx; height: 72rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: var(--r-md); background: var(--card); color: var(--brand); }
 .create-option-copy { flex: 1; min-width: 0; }
 .create-option-title { display: block; color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
 .create-option-help { display: block; margin-top: 8rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.5; }

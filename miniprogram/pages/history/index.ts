@@ -5,7 +5,6 @@ import { relativeTime, shortDate } from '../../utils/recipe-utils'
 
 interface RevisionView extends Revision {
   isCurrent: boolean
-  sameAsCurrent: boolean
   confirming: boolean
   authorName: string
   dateLabel: string
@@ -24,8 +23,6 @@ Page({
     confirmId: '',
     recipeVersion: 1,
     restoring: false,
-    toastVisible: false,
-    toastMessage: '',
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -45,16 +42,11 @@ Page({
       }
       const latestRevision = recipe.revisions[recipe.revisions.length - 1]
       const latestId = latestRevision ? latestRevision.id : ''
-      const currentKeys = latestRevision
-        ? JSON.stringify(latestRevision.snapshot.successKeys)
-        : ''
       const revisions = [...recipe.revisions].reverse().map((revision) => {
         const author = getMemberById(state, revision.authorId)
         return {
           ...revision,
           isCurrent: revision.id === latestId,
-          sameAsCurrent: revision.id !== latestId
-            && JSON.stringify(revision.snapshot.successKeys) === currentKeys,
           confirming: revision.id === this.data.confirmId,
           authorName: author ? author.name : '家人',
           dateLabel: shortDate(revision.time),
@@ -72,13 +64,8 @@ Page({
       })
     } catch (error) {
       this.setData({ loading: false })
-      this.showToast(error instanceof Error ? error.message : '历史记录加载失败')
+      wx.showToast({ title: error instanceof Error ? error.message : '历史记录加载失败', icon: 'none' })
     }
-  },
-
-  showToast(message: string) {
-    this.setData({ toastVisible: true, toastMessage: message })
-    setTimeout(() => this.setData({ toastVisible: false }), 2200)
   },
 
   back() {
@@ -106,7 +93,7 @@ Page({
       })
     } catch (error) {
       this.setData({ restoring: false })
-      this.showToast(error instanceof Error ? error.message : '恢复失败，请重试')
+      wx.showToast({ title: error instanceof Error ? error.message : '恢复失败，请重试', icon: 'none' })
     }
   },
 })

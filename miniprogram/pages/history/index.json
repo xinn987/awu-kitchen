@@ -3,7 +3,6 @@
     "app-icon": "/components/app-icon/index",
     "page-navbar": "/components/page-navbar/index",
     "member-avatar": "/components/member-avatar/index",
-    "app-loading": "/components/app-loading/index",
-    "app-toast": "/components/app-toast/index"
+    "app-loading": "/components/app-loading/index"
   }
 }

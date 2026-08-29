@@ -1,12 +1,9 @@
 <view class="page-shell">
-  <page-navbar left-text="食谱详情" title="修订记录" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
+  <page-navbar left-text="返回" title="修订记录" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <app-loading wx:if="{{loading}}" label="正在加载修订记录"></app-loading>
     <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
-    <view wx:elif="{{revisions.length === 0}}" class="empty-state">
-      <app-icon name="type-plate" size="120"></app-icon>
-      <text>还没有修订记录，第一次保存后会出现在这里</text>
-    </view>
+    <view wx:elif="{{revisions.length === 0}}" class="empty-state">暂无修订记录</view>
     <view wx:else class="timeline">
       <view wx:for="{{revisions}}" wx:key="id" class="revision-row">
         <view wx:if="{{index < revisions.length - 1}}" class="timeline-line"></view>
@@ -22,8 +19,7 @@
           <text class="revision-time">{{item.dateLabel}} · {{item.relativeLabel}}</text>
           <text class="revision-summary">{{item.summary}}</text>
 
-          <view wx:if="{{item.sameAsCurrent}}" class="snapshot-same">成功关键与当前版本相同</view>
-          <view wx:elif="{{item.visibleKeys.length > 0}}" class="snapshot">
+          <view wx:if="{{item.visibleKeys.length > 0}}" class="snapshot">
             <text class="snapshot-label">该版本的成功关键</text>
             <text wx:for="{{item.visibleKeys}}" wx:for-item="key" wx:for-index="keyIndex" wx:key="index" class="snapshot-key font-serif">{{keyIndex + 1}}. {{key}}</text>
           </view>
@@ -34,12 +30,13 @@
               <view class="confirm-link" role="button" data-id="{{item.id}}" bindtap="confirmRestore">{{restoring ? '恢复中…' : '确认恢复'}}</view>
               <view class="cancel-link" role="button" bindtap="cancelRestore">取消</view>
             </view>
-            <view wx:else class="restore-button" role="button" data-id="{{item.id}}" bindtap="startRestore">恢复此版本</view>
+            <view wx:else class="restore-link" role="button" data-id="{{item.id}}" bindtap="startRestore">
+              <app-icon name="rotate" size="26"></app-icon>
+              <text>恢复此版本</text>
+            </view>
           </view>
         </view>
       </view>
     </view>
   </scroll-view>
-
-  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>
