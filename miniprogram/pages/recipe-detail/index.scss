@@ -23,17 +23,23 @@
 .main-photo { display: block; border: 1rpx solid var(--line); background: var(--paper-deep); }
 .image-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10rpx; border: 1rpx solid var(--line-soft); background: var(--paper-deep); color: var(--ink-2); font-size: var(--fs-meta); }
 .retry-link { color: var(--brand); font-weight: 500; text-decoration: underline; text-underline-offset: 6rpx; }
-.ingredient-row { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 1rpx solid var(--line-soft); color: var(--ink); font-size: var(--fs-body); }
+/* 食材：普通项是无序列表圆点；主食材用四角星置顶，名称以淡橙底色块轻强调。 */
+.ingredient-row { display: flex; align-items: center; gap: 16rpx; padding: 16rpx 0; border-bottom: 1rpx solid var(--line-soft); }
 .ingredient-row:last-child { border-bottom: 0; }
-.ingredient-amount { color: var(--ink-2); font-size: var(--fs-meta); }
+.ingredient-marker { width: 32rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--brand); }
+.ingredient-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--ink-faint); }
+.ingredient-name { flex: 1; min-width: 0; color: var(--ink); font-size: var(--fs-body); }
+.ingredient-name.primary { flex: 0 1 auto; padding: 3rpx 16rpx; border-radius: var(--r-pill); background: var(--brand-wash); color: var(--brand-deep); }
+.ingredient-amount { flex-shrink: 0; color: var(--ink-2); font-size: var(--fs-meta); }
 .steps-section { border-bottom: 0; }
-.step-row { display: flex; align-items: flex-start; gap: 22rpx; margin-bottom: 26rpx; }
-.step-number { width: 40rpx; height: 40rpx; margin-top: 4rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
+.step-row { display: flex; align-items: flex-start; gap: 20rpx; margin-bottom: 30rpx; }
+.step-row:last-child { margin-bottom: 0; }
+.step-number { width: 40rpx; height: 40rpx; margin-top: 2rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
 .step-body { flex: 1; min-width: 0; }
 .step-copy { display: block; color: var(--ink); font-size: var(--fs-body); line-height: 1.75; }
-.step-photo-wrap { margin-top: 18rpx; }
-.step-photo, .step-image-error { width: 100%; height: 406rpx; border-radius: var(--r-md); }
-.step-photo { display: block; border: 1rpx solid var(--line); background: var(--paper-deep); }
+/* 步骤图收进右侧缩略图：不打断文字阅读，点击仍可全屏预览。 */
+.step-thumb { width: 184rpx; height: 136rpx; flex-shrink: 0; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--paper-deep); }
+.step-thumb-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .footnote { padding-top: 28rpx; border-top: 1rpx solid var(--line-soft); color: var(--ink-2); font-size: var(--fs-meta); }
 .archive-row { display: flex; justify-content: center; padding: 30rpx 0 8rpx; }
 .archive-link { min-height: 64rpx; display: flex; align-items: center; padding: 0 20rpx; color: var(--danger); font-size: var(--fs-meta); }

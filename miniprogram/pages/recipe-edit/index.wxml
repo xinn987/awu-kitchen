@@ -11,6 +11,7 @@
           <text wx:for="{{importWarnings}}" wx:key="*this" class="import-warning">· {{item}}</text>
         </view>
       </view>
+
       <!-- 名称：直接写成将来的标题样子，衬线大字、无边框。 -->
       <view class="name-block">
         <input
@@ -50,26 +51,44 @@
         </view>
       </view>
 
-      <!-- 主图在成功关键之后出现，不把图片抬到核心经验之前。 -->
+      <!-- —— 辅食类型：一句话就能选完的元数据，紧跟成功关键、保持常显 —— -->
       <view class="edit-section">
-        <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
-        <view wx:if="{{mainImage}}" class="main-image-editor">
-          <image class="main-image-preview" src="{{mainImage.localPath}}" mode="aspectFill"></image>
-          <view class="image-action-row">
-            <text class="image-link" role="button" bindtap="chooseMainImage">更换</text>
-            <text class="image-link danger" role="button" bindtap="removeMainImage">移除</text>
-          </view>
+        <view class="section-label"><app-icon name="tag" size="28"></app-icon><text>辅食类型</text></view>
+        <view class="option-row">
+          <view wx:for="{{typeOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</view>
         </view>
-        <view wx:else class="image-empty" role="button" bindtap="chooseMainImage">
-          <view class="image-empty-icon"><app-icon name="image" size="38"></app-icon></view>
-          <view>
-            <text class="image-empty-title">添加主图</text>
-            <text class="image-empty-copy">记录做成后的样子</text>
-          </view>
-        </view>
+        <view class="classify-note">每份食谱最多选择一项；选项由家庭共同维护，可在「设置 · 食谱选项」中调整。</view>
       </view>
 
-      <!-- —— 食材：点亮星标即主食材，行式编辑、细分隔线 —— -->
+      <!-- 主图：可选的大块内容，默认收起，用摘要提示是否已设置。 -->
+      <view class="edit-section">
+        <view class="section-head" role="button" data-section="mainImage" bindtap="toggleSection">
+          <view class="section-label"><app-icon name="image" size="28"></app-icon><text>主图（可选）</text></view>
+          <view class="collapse-meta">
+            <text wx:if="{{mainImage}}" class="collapse-count">已设置</text>
+            <text wx:else class="collapse-add">添加</text>
+            <view class="collapse-chevron {{sections.mainImage ? 'open' : ''}}"><app-icon name="chevron-down" size="26"></app-icon></view>
+          </view>
+        </view>
+        <block wx:if="{{sections.mainImage}}">
+          <view wx:if="{{mainImage}}" class="main-image-editor">
+            <image class="main-image-preview" src="{{mainImage.localPath}}" mode="aspectFill"></image>
+            <view class="image-action-row">
+              <text class="image-link" role="button" bindtap="chooseMainImage">更换</text>
+              <text class="image-link danger" role="button" bindtap="removeMainImage">移除</text>
+            </view>
+          </view>
+          <view wx:else class="image-empty" role="button" bindtap="chooseMainImage">
+            <view class="image-empty-icon"><app-icon name="image" size="38"></app-icon></view>
+            <view>
+              <text class="image-empty-title">添加主图</text>
+              <text class="image-empty-copy">记录做成后的样子</text>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <!-- —— 食材：点亮四角星即主食材，行式编辑、细分隔线 —— -->
       <view class="edit-section">
         <view class="section-head" role="button" data-section="ingredients" bindtap="toggleSection">
           <view class="section-label"><app-icon name="shopping-bag" size="28"></app-icon><text>食材</text></view>
@@ -89,7 +108,7 @@
                 data-index="{{index}}"
                 bindtap="togglePrimary"
               >
-                <app-icon name="{{item.primary ? 'star-filled' : 'star'}}" size="34"></app-icon>
+                <app-icon name="sparkle" size="28"></app-icon>
               </view>
               <input class="ingredient-name" value="{{item.name}}" placeholder="食材名" placeholder-class="row-placeholder" data-index="{{index}}" data-field="name" bindinput="onIngredientInput" />
               <input class="ingredient-amount" value="{{item.amount}}" placeholder="用量" placeholder-class="row-placeholder" data-index="{{index}}" data-field="amount" bindinput="onIngredientInput" />
@@ -98,7 +117,7 @@
               </view>
             </view>
           </view>
-          <view class="primary-help">点亮星标的食材会作为这道菜的主食材，方便家人按原料查找。</view>
+          <view class="primary-help">点亮星形的食材会置顶展示，并作为这道菜的主食材，方便家人按原料查找。</view>
           <view wx:if="{{ingredientSuggestions.length > 0}}" class="suggestion-block">
             <text class="suggestion-label">全家常用</text>
             <view class="suggestion-row">
@@ -114,8 +133,8 @@
         </block>
       </view>
 
-      <!-- —— 步骤：无框文本直接编辑，序号与图片归属每步 —— -->
-      <view class="edit-section">
+      <!-- —— 步骤：圆角卡片逐行编辑，右上角负责配图与删除 —— -->
+      <view class="edit-section last">
         <view class="section-head" role="button" data-section="steps" bindtap="toggleSection">
           <view class="section-label"><app-icon name="list" size="28"></app-icon><text>步骤</text></view>
           <view class="collapse-meta">
@@ -131,24 +150,13 @@
                 <text class="step-number">{{index + 1}}</text>
                 <view class="step-tools">
                   <view
-                    wx:if="{{index > 0}}"
-                    class="step-tool"
+                    class="step-tool {{item.image ? '' : 'accent'}}"
                     role="button"
-                    aria-label="上移"
+                    aria-label="{{item.image ? '更换步骤图' : '添加步骤图'}}"
                     data-index="{{index}}"
-                    data-offset="-1"
-                    bindtap="moveStep"
-                  ><app-icon name="arrow-up" size="30"></app-icon></view>
-                  <view
-                    wx:if="{{index < steps.length - 1}}"
-                    class="step-tool"
-                    role="button"
-                    aria-label="下移"
-                    data-index="{{index}}"
-                    data-offset="1"
-                    bindtap="moveStep"
-                  ><app-icon name="arrow-down" size="30"></app-icon></view>
-                  <view class="step-tool danger" role="button" aria-label="删除这一步" data-index="{{index}}" bindtap="removeStep">
+                    bindtap="chooseStepImage"
+                  ><app-icon name="{{item.image ? 'image' : 'image-plus'}}" size="30"></app-icon></view>
+                  <view class="step-tool" role="button" aria-label="删除这一步" data-index="{{index}}" bindtap="removeStep">
                     <app-icon name="x" size="30"></app-icon>
                   </view>
                 </view>
@@ -170,9 +178,6 @@
                   <text class="image-link danger" role="button" data-index="{{index}}" bindtap="removeStepImage">移除</text>
                 </view>
               </view>
-              <view wx:else class="step-image-add" role="button" data-index="{{index}}" bindtap="chooseStepImage">
-                <app-icon name="image" size="28"></app-icon><text>添加步骤图</text>
-              </view>
             </view>
             <view wx:if="{{steps.length === 0}}" class="steps-empty">还没有步骤，按做的顺序写下来</view>
           </view>
@@ -180,33 +185,6 @@
             <app-icon name="plus" size="30"></app-icon>
             <text>添加一步</text>
           </view>
-        </block>
-      </view>
-
-      <!-- —— 分类：家庭统一维护的两个单选组 —— -->
-      <view class="edit-section last">
-        <view class="section-head" role="button" data-section="classify" bindtap="toggleSection">
-          <view class="section-label"><app-icon name="tag" size="28"></app-icon><text>分类</text></view>
-          <view class="collapse-meta">
-            <text wx:if="{{classifySummary}}" class="collapse-count">{{classifySummary}}</text>
-            <text wx:else class="collapse-add">添加</text>
-            <view class="collapse-chevron {{sections.classify ? 'open' : ''}}"><app-icon name="chevron-down" size="26"></app-icon></view>
-          </view>
-        </view>
-        <block wx:if="{{sections.classify}}">
-          <view class="classify-group">
-            <text class="classify-label">辅食类型</text>
-            <view class="option-row">
-              <view wx:for="{{typeOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</view>
-            </view>
-          </view>
-          <view class="classify-group">
-            <text class="classify-label">适用阶段</text>
-            <view class="option-row">
-              <view wx:for="{{stageOptions}}" wx:key="label" class="option-chip {{item.active ? 'active' : ''}}" role="button" data-value="{{item.label}}" bindtap="selectStage">{{item.label}}</view>
-            </view>
-          </view>
-          <view class="classify-note">选项由家庭共同维护，可在「设置 · 食谱选项」中调整。</view>
         </block>
       </view>
     </view>

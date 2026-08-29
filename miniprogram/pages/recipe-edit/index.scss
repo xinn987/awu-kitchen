@@ -30,14 +30,14 @@
 .collapse-chevron { display: flex; color: var(--ink-faint); transition: transform 0.2s ease; }
 .collapse-chevron.open { transform: rotate(180deg); }
 
-/* —— 成功关键：输入框直接长成详情页 success-key 的样子 —— */
+/* —— 成功关键：与全 App 输入框同一语言（纸面深底圆角），靠必填标记表达重要性 —— */
 .key-list { display: flex; flex-direction: column; gap: 20rpx; margin-top: 24rpx; }
 .key-editor { display: flex; align-items: flex-start; gap: 16rpx; }
 .key-textarea {
-  flex: 1; min-height: 104rpx; box-sizing: border-box; padding: 24rpx 28rpx;
-  border-left: 6rpx solid var(--brand); border-radius: var(--r-md);
-  background: var(--brand-wash); color: var(--ink);
-  font-size: var(--fs-body); line-height: 1.8;
+  flex: 1; min-height: 104rpx; box-sizing: border-box; padding: 22rpx 26rpx;
+  border-radius: var(--r-md);
+  background: var(--paper-deep); color: var(--ink);
+  font-size: var(--fs-body); line-height: 1.7;
 }
 .key-placeholder { color: var(--ink-faint); }
 .remove-button { width: 60rpx; height: 60rpx; margin-top: 12rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-faint); }
@@ -78,32 +78,27 @@
 .suggestion-chip { display: flex; align-items: center; gap: 6rpx; padding: 8rpx 18rpx; border: 1rpx solid var(--line-strong); border-radius: var(--r-pill); background: var(--card); color: var(--ink-soft); font-size: var(--fs-meta); transition: transform 0.15s ease; }
 .suggestion-chip:active { transform: scale(0.94); }
 
-/* —— 步骤：与详情页 step-row 同构的开放文本 —— */
-.step-list { margin-top: 8rpx; }
-.step-block { padding: 26rpx 0 22rpx; border-bottom: 1rpx solid var(--line-soft); }
-.step-block:last-child { border-bottom: 0; }
-.step-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+/* —— 步骤：白色圆角卡片逐行隔开，右上角负责配图与删除 —— */
+.step-list { margin-top: 8rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.step-block { padding: 18rpx 22rpx 24rpx; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--card); }
+.step-head { display: flex; align-items: center; justify-content: space-between; }
 .step-number { width: 40rpx; height: 40rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
-.step-tools { display: flex; align-items: center; gap: 6rpx; margin-right: -10rpx; }
+.step-tools { display: flex; align-items: center; gap: 4rpx; margin-right: -10rpx; }
 .step-tool { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--ink-faint); }
 .step-tool:active { background: var(--paper-soft); }
-.step-tool.danger { color: var(--danger); }
-.step-textarea { width: 100%; min-height: 64rpx; padding: 0; color: var(--ink); font-size: var(--fs-body); line-height: 1.75; }
-.step-image-editor { margin-top: 18rpx; }
-.step-image-preview { width: 100%; height: 320rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--paper-deep); }
-.step-image-add { min-height: 52rpx; margin-top: 10rpx; display: flex; align-items: center; gap: 8rpx; color: var(--ink-faint); font-size: var(--fs-meta); }
-.step-image-add:active { color: var(--brand); }
+/* 未配图时图片按钮用品牌色发出邀请；已配图转灰表示内容已就位。 */
+.step-tool.accent { color: var(--brand); }
+.step-textarea { width: 100%; min-height: 64rpx; margin-top: 8rpx; padding: 0; color: var(--ink); font-size: var(--fs-body); line-height: 1.75; }
+.step-image-editor { margin-top: 16rpx; }
+.step-image-preview { width: 100%; height: 300rpx; display: block; border: 1rpx solid var(--line); border-radius: var(--r-sm); background: var(--paper-deep); }
 .steps-empty { padding: 16rpx 0 4rpx; color: var(--ink-2); font-size: var(--fs-meta); }
 
-/* —— 分类：家庭统一维护的两个单选组 —— */
-.classify-group { margin-top: 28rpx; }
-.classify-group:first-of-type { margin-top: 24rpx; }
-.classify-label { display: block; margin-bottom: 14rpx; color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; }
-.option-row { display: flex; flex-wrap: wrap; gap: 14rpx; }
+/* —— 辅食类型：常显的单选组，说明行交代规则与维护入口 —— */
+.option-row { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 4rpx; }
 .option-chip { min-height: 54rpx; display: inline-flex; align-items: center; justify-content: center; padding: 0 24rpx; border: 1rpx solid var(--line); border-radius: var(--r-pill); background: var(--card); color: var(--ink-2); font-size: var(--fs-meta); line-height: 1; transition: transform 0.15s ease; }
 .option-chip:active { transform: scale(0.95); }
 .option-chip.active { border-color: var(--brand); background: var(--brand); color: #fff; }
-.classify-note { margin-top: 26rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.6; }
+.classify-note { margin-top: 20rpx; color: var(--ink-faint); font-size: var(--fs-caption); line-height: 1.6; }
 
 /* —— 吸底保存栏 —— */
 .save-button { width: auto; margin: 0; flex: 1; }

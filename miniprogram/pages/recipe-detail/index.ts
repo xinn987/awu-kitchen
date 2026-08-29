@@ -16,6 +16,8 @@ interface DetailStep extends Omit<RecipeStep, 'image'> {
 interface DetailView extends Omit<Recipe, 'mainImage' | 'steps'> {
   mainImage?: DetailImage
   steps: DetailStep[]
+  /** 主食材置顶，并携带标记供模板区分圆点与四角星。 */
+  ingredientRows: Array<{ name: string; amount: string; primary: boolean }>
   isDraft: boolean
   updatedName: string
   createdName: string
@@ -68,6 +70,10 @@ Page({
       const viewImage = (image?: RecipeImage): DetailImage | undefined => image
         ? { ...image, src: image.fileId, loadError: false }
         : undefined
+      const ingredientRows = [
+        ...recipe.ingredients.filter((item) => recipe.tags.includes(item.name.trim())),
+        ...recipe.ingredients.filter((item) => !recipe.tags.includes(item.name.trim())),
+      ].map((item) => ({ name: item.name, amount: item.amount || '', primary: recipe.tags.includes(item.name.trim()) }))
       this.setData({
         found: true,
         loading: false,
@@ -75,6 +81,7 @@ Page({
           ...recipe,
           mainImage: viewImage(recipe.mainImage),
           steps: recipe.steps.map((step) => ({ ...step, image: viewImage(step.image) })),
+          ingredientRows,
           isDraft: !isFormalRecipe(recipe),
           updatedName: updatedMember ? updatedMember.name : '家人',
           createdName: createdMember ? createdMember.name : '家人',
