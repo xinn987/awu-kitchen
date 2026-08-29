@@ -16,6 +16,7 @@ Page({
   data: {
     statusBarHeight: 20,
     familyName: '',
+    loading: true,
     members: [] as MemberView[],
     memberCount: 0,
     inviteToken: '',
@@ -57,8 +58,10 @@ Page({
         members,
         memberCount: members.length,
         canInvite: Boolean(isCurrentAdmin),
+        loading: false,
       })
     } catch (error) {
+      this.setData({ loading: false })
       if (error instanceof ApiError
         && (error.code === 'NO_MEMBERSHIP' || error.code === 'MEMBERSHIP_REMOVED')) return
       this.showToast(error instanceof Error ? error.message : '家庭成员加载失败')

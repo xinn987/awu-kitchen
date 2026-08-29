@@ -5,7 +5,7 @@
     <view class="trash-content">
       <text class="page-note">移入废纸篓的食谱仍保留正文和修订记录，恢复后回到家庭食谱库。</text>
 
-      <view wx:if="{{loading}}" class="empty-state">正在加载废纸篓…</view>
+      <app-loading wx:if="{{loading}}" label="正在加载废纸篓"></app-loading>
       <view wx:elif="{{items.length === 0}}" class="empty-state">废纸篓是空的</view>
 
       <view wx:else class="trash-list">

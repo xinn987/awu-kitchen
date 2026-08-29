@@ -4,6 +4,7 @@
     "page-navbar": "/components/page-navbar/index",
     "member-avatar": "/components/member-avatar/index",
     "app-toast": "/components/app-toast/index",
+    "app-loading": "/components/app-loading/index",
     "confirm-panel": "/components/confirm-panel/index"
   }
 }

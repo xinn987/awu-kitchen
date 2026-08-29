@@ -2,6 +2,7 @@
   "usingComponents": {
     "app-icon": "/components/app-icon/index",
     "page-navbar": "/components/page-navbar/index",
+    "app-loading": "/components/app-loading/index",
     "confirm-panel": "/components/confirm-panel/index"
   }
 }

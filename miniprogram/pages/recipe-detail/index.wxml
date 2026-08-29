@@ -2,7 +2,8 @@
   <page-navbar left-text="食谱库" bindleft="backToLibrary"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
+    <app-loading wx:if="{{loading}}" label="正在加载食谱"></app-loading>
+    <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:elif="{{recipe}}" class="detail-content">
       <view class="title-section">
         <view class="title-row">

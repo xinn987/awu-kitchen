@@ -20,7 +20,7 @@
 
   <scroll-view class="comment-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}">
     <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
-    <view wx:elif="{{loading && comments.length === 0}}" class="empty-state">正在加载评论…</view>
+    <app-loading wx:elif="{{loading && comments.length === 0}}" label="正在加载评论"></app-loading>
     <view wx:elif="{{comments.length === 0}}" class="empty-state comment-empty">还没有评论，写下这次尝试，或者想问家人的问题。</view>
     <view wx:else class="comment-list {{loading ? 'refreshing' : ''}}">
       <view wx:for="{{comments}}" wx:key="id" class="comment-item" id="comment-{{item.id}}">

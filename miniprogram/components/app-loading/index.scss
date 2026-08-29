@@ -1,0 +1,26 @@
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22rpx;
+  padding: 140rpx 40rpx;
+}
+
+.spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 5rpx solid var(--brand-tint);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: app-loading-spin 0.9s linear infinite;
+}
+
+.label {
+  color: var(--ink-2);
+  font-size: var(--fs-meta);
+}
+
+@keyframes app-loading-spin {
+  to { transform: rotate(360deg); }
+}

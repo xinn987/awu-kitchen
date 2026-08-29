@@ -30,6 +30,7 @@ Page({
     id: '',
     recipe: null as DetailView | null,
     found: true,
+    loading: true,
     duplicating: false,
     archiving: false,
     archiveConfirm: false,
@@ -59,7 +60,7 @@ Page({
       const state = await getState()
       const recipe = state.recipes.find((item) => item.id === this.data.id)
       if (!recipe) {
-        this.setData({ found: false, recipe: null })
+        this.setData({ found: false, recipe: null, loading: false })
         return
       }
       const updatedMember = getMemberById(state, recipe.updatedById)
@@ -69,6 +70,7 @@ Page({
         : undefined
       this.setData({
         found: true,
+        loading: false,
         recipe: {
           ...recipe,
           mainImage: viewImage(recipe.mainImage),
@@ -85,6 +87,7 @@ Page({
         },
       })
     } catch (error) {
+      this.setData({ loading: false })
       this.showToast(error instanceof Error ? error.message : '食谱加载失败')
     }
   },

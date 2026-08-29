@@ -19,6 +19,7 @@ Page({
     recipeName: '',
     revisions: [] as RevisionView[],
     found: true,
+    loading: true,
     confirmId: '',
     recipeVersion: 1,
     restoring: false,
@@ -36,7 +37,7 @@ Page({
       const state = await getState()
       const recipe = state.recipes.find((item) => item.id === this.data.id)
       if (!recipe) {
-        this.setData({ found: false, recipeName: '', revisions: [] })
+        this.setData({ found: false, recipeName: '', revisions: [], loading: false })
         return
       }
       const latestRevision = recipe.revisions[recipe.revisions.length - 1]
@@ -56,11 +57,13 @@ Page({
       })
       this.setData({
         found: true,
+        loading: false,
         recipeName: recipe.name,
         recipeVersion: recipe.version || 1,
         revisions,
       })
     } catch (error) {
+      this.setData({ loading: false })
       wx.showToast({ title: error instanceof Error ? error.message : '历史记录加载失败', icon: 'none' })
     }
   },

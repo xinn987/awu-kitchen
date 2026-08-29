@@ -28,6 +28,7 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 Page({
   data: {
     statusBarHeight: 20,
+    loading: true,
     query: '',
     filter: '全部',
     formalCount: 0,
@@ -58,6 +59,7 @@ Page({
       const state = await getState(force)
       if (state !== cached) this.renderState(state)
     } catch (error) {
+      this.setData({ loading: false })
       // 云客户端已经负责跳转首次使用页，这里不再额外显示一次失败提示。
       if (error instanceof ApiError
         && (error.code === 'NO_MEMBERSHIP' || error.code === 'MEMBERSHIP_REMOVED')) return
@@ -117,6 +119,7 @@ Page({
       ...(pendingRecipes.length > 0 ? [{ label: '待补充', count: pendingRecipes.length }] : []),
     ]
     this.setData({
+      loading: false,
       formalCount: formalRecipes.length,
       pendingCount: pendingRecipes.length,
       filter,

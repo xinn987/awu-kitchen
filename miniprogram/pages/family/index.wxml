@@ -2,10 +2,12 @@
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="family-header" style="padding-top: {{statusBarHeight + 20}}px;">
       <text class="family-title font-serif">{{familyName}}</text>
-      <text class="family-meta">{{memberCount}} 位成员 · 家庭共同维护</text>
+      <text class="family-meta">{{loading ? '正在找到你的家人…' : memberCount + ' 位成员 · 家庭共同维护'}}</text>
     </view>
 
     <view class="member-list">
+      <app-loading wx:if="{{loading}}" label="正在加载家庭成员"></app-loading>
+      <block wx:else>
       <view wx:for="{{members}}" wx:key="id" class="member-card">
         <member-avatar name="{{item.name}}" size="80" color="{{item.color}}"></member-avatar>
         <view class="member-copy">
@@ -47,6 +49,7 @@
         </view>
         <app-icon name="chevron-right" size="28"></app-icon>
       </view>
+      </block>
     </view>
   </scroll-view>
 

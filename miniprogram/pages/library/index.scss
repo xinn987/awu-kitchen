@@ -34,3 +34,16 @@
 .draft-help { color: var(--ink-2); font-size: var(--fs-meta); font-style: italic; }
 .draft-divider { display: flex; align-items: center; gap: 24rpx; margin: 12rpx 8rpx 4rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .draft-divider view { flex: 1; height: 1rpx; background: var(--line-soft); }
+
+/* —— 无缓存首载骨架：纸面色块轻呼吸，结构与食谱卡片一致 —— */
+.skeleton-card { display: flex; flex-direction: column; gap: 26rpx; padding: 36rpx 32rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
+.skeleton-line { border-radius: var(--r-pill); background: var(--paper-soft); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.skeleton-title { width: 40%; height: 40rpx; }
+.skeleton-key { width: 78%; height: 30rpx; animation-delay: 0.15s; }
+.skeleton-footer { display: flex; align-items: center; justify-content: space-between; }
+.skeleton-tag { width: 120rpx; height: 32rpx; animation-delay: 0.3s; }
+.skeleton-dot { width: 44rpx; height: 44rpx; border-radius: 50%; animation-delay: 0.3s; }
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

@@ -123,6 +123,7 @@ Page({
   data: {
     id: '',
     found: true,
+    loading: true,
     name: '',
     keys: [''] as string[],
     mainImage: null as EditableImage | null,
@@ -175,7 +176,7 @@ Page({
       if (state.recipeSchemaVersion !== 2 || state.recipeOptions.version === 0) state = await getState(true)
       const recipe = state.recipes.find((item) => item.id === id)
       if (!recipe) {
-        this.setData({ id, found: false })
+        this.setData({ id, found: false, loading: false })
         return
       }
       editingState = state
@@ -192,6 +193,7 @@ Page({
       this.setData({
         id,
         found: true,
+        loading: false,
         name: recipe.name,
         keys: recipe.successKeys.length > 0 ? [...recipe.successKeys] : [''],
         mainImage,
@@ -211,7 +213,7 @@ Page({
         this.recompute()
       })
     } catch (error) {
-      this.setData({ found: false })
+      this.setData({ found: false, loading: false })
       wx.showToast({ title: error instanceof Error ? error.message : '食谱加载失败', icon: 'none' })
     }
   },

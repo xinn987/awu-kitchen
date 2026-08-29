@@ -30,6 +30,23 @@
     </scroll-view>
 
     <view class="recipe-list">
+      <!-- 无缓存首载：骨架占位，避免把“加载中”误读成“没有食谱”。 -->
+      <block wx:if="{{loading}}">
+        <view wx:for="{{[0, 1, 2]}}" wx:key="*this" class="skeleton-card">
+          <view class="skeleton-line skeleton-title"></view>
+          <view class="skeleton-line skeleton-key"></view>
+          <view class="skeleton-footer">
+            <view class="skeleton-line skeleton-tag"></view>
+            <view class="skeleton-line skeleton-dot"></view>
+          </view>
+        </view>
+      </block>
+
+      <view wx:elif="{{formal.length === 0 && drafts.length === 0}}" class="empty-state">
+        {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
+      </view>
+
+      <block wx:else>
       <view wx:for="{{formal}}" wx:key="id" class="recipe-card" data-id="{{item.id}}" bindtap="openRecipe">
         <view class="card-heading">
           <text class="card-title font-serif">{{item.name}}</text>
@@ -68,10 +85,7 @@
           </view>
         </view>
       </view>
-
-      <view wx:if="{{formal.length === 0 && drafts.length === 0}}" class="empty-state">
-        {{query ? '没有找到「' + query + '」相关的食谱' : '这里还没有食谱'}}
-      </view>
+      </block>
     </view>
   </scroll-view>
 

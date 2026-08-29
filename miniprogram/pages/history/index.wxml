@@ -1,7 +1,8 @@
 <view class="page-shell">
   <page-navbar left-text="返回" title="修订记录" subtitle="{{recipeName}}" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view wx:if="{{!found}}" class="empty-state">没有找到这份食谱</view>
+    <app-loading wx:if="{{loading}}" label="正在加载修订记录"></app-loading>
+    <view wx:elif="{{!found}}" class="empty-state">没有找到这份食谱</view>
     <view wx:elif="{{revisions.length === 0}}" class="empty-state">暂无修订记录</view>
     <view wx:else class="timeline">
       <view wx:for="{{revisions}}" wx:key="id" class="revision-row">

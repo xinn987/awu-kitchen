@@ -5,6 +5,7 @@
     "bottom-nav": "/components/bottom-nav/index",
     "quick-capture": "/components/quick-capture/index",
     "app-toast": "/components/app-toast/index",
+    "app-loading": "/components/app-loading/index",
     "confirm-panel": "/components/confirm-panel/index"
   }
 }
