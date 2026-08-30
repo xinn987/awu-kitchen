@@ -14,6 +14,8 @@ import { getState } from '../../services/recipe-store'
 
 Page({
   data: {
+    toastVisible: false,
+    toastMessage: '',
     images: [] as LocalRecipeImage[],
     maxImages: MAX_IMPORT_IMAGES,
     working: false,
@@ -22,7 +24,7 @@ Page({
 
   back() {
     if (this.data.working) {
-      wx.showToast({ title: '正在识别食谱，请稍候', icon: 'none' })
+      this.showToast('正在识别食谱，请稍候')
       return
     }
     wx.navigateBack({ fail: () => wx.redirectTo({ url: '/pages/library/index' }) })
@@ -93,13 +95,13 @@ Page({
       await submitRecipeImport(fileIds, state.family.id, state.currentMemberId || '', (status) => {
         this.status(status.phase, status.current, status.total)
       })
-      wx.showToast({ title: '已提交识别', icon: 'success' })
+      this.showToast('已提交识别')
       wx.navigateBack({
         fail: () => wx.redirectTo({
           url: '/pages/library/index?importSubmitted=1',
           fail: () => {
             this.setData({ working: false, statusText: '' })
-            wx.showToast({ title: '任务已提交，可返回清单查看', icon: 'none' })
+            this.showToast('任务已提交，可返回清单查看')
           },
         }),
       })
@@ -114,5 +116,9 @@ Page({
         confirmText: '知道了',
       })
     }
+  },
+  showToast(message: string) {
+    this.setData({ toastVisible: true, toastMessage: message })
+    setTimeout(() => this.setData({ toastVisible: false }), 2200)
   },
 })

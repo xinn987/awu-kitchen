@@ -1,5 +1,5 @@
 <view class="page-shell">
-  <page-navbar left-text="返回" title="设置" bindleft="back"></page-navbar>
+  <page-navbar left-text="家庭" title="设置" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="settings-content">
       <text class="settings-section-label">家庭设置</text>

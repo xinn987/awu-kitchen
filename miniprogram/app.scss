@@ -15,7 +15,7 @@ page {
   /* —— 色板：文字与线条 —— */
   --ink: #1a1714;          /* 正文 */
   --ink-soft: #5f554c;     /* 强调的次级文字 */
-  --ink-2: #6f6257;        /* 次级文字，纸面上对比度 ≥ 4.5:1 */
+  --ink-2: #7c6f63;        /* 次级文字，纸面上对比度 ≥ 4.5:1 */
   --ink-faint: #9a8e82;    /* 仅装饰性文字、图标与禁用文字 */
   --line: rgba(26, 23, 20, 0.1);     /* 卡片描边 */
   --line-soft: rgba(26, 23, 20, 0.07); /* 分隔线 */
@@ -25,7 +25,23 @@ page {
   --brand: #bf5924;        /* 主行动色 */
   --brand-tint: rgba(191, 89, 36, 0.4); /* 强调条、弱化描边 */
   --brand-wash: rgba(191, 89, 36, 0.06); /* 选中/编辑高亮底 */
-  --danger: #b3402a;       /* 唯一的警示色 */
+  --danger: #c0392b;       /* 唯一的警示色 */
+  --amber-bg: #fef3c7;     /* 琥珀警示底：待补充徽章、草稿警示卡（设计稿 amber-100） */
+  --amber-border: #fde68a; /* 琥珀警示描边（amber-200/300） */
+  --amber-accent: #d97706; /* 琥珀图标与强调（amber-600） */
+  --amber-deep: #b45309;   /* 琥珀正文（amber-700） */
+  --amber-title: #92400e;  /* 琥珀标题（amber-800） */
+  --emerald-bg: #ecfdf5;   /* 绿色转正底：草稿转正式提示（emerald-50） */
+  --emerald-border: #a7f3d0; /* 绿色转正描边（emerald-200） */
+  --emerald-deep: #047857; /* 绿色正文（emerald-700） */
+
+  /* —— 间距标尺：新样式一律取档，不再使用散点数值 —— */
+  --space-1: 8rpx;
+  --space-2: 12rpx;
+  --space-3: 16rpx;
+  --space-4: 24rpx;
+  --space-5: 32rpx;
+  --space-6: 48rpx;
   --danger-wash: rgba(179, 64, 42, 0.08);
   --mask: rgba(26, 23, 20, 0.35);      /* 半屏遮罩 */
   --mask-soft: rgba(26, 23, 20, 0.14); /* 轻遮罩 */
@@ -96,7 +112,7 @@ button::after { border: 0; }
   color: rgba(26, 23, 20, 0.45);
   font-size: var(--fs-meta);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 .pill {
@@ -144,9 +160,9 @@ button::after { border: 0; }
 
 .field-input, .field-textarea {
   width: 100%;
-  border: 0;
+  border: 1rpx solid var(--line);
   border-radius: var(--r-md);
-  background: var(--paper-deep);
+  background: var(--card);
   color: var(--ink);
 }
 

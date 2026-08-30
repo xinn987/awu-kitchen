@@ -38,7 +38,7 @@
 .card-title { flex: 1; min-width: 0; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .type-badge { flex-shrink: 0; padding: 4rpx 16rpx; border-radius: var(--r-pill); background: var(--paper-soft); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
 .key-preview { padding-left: 22rpx; border-left: 4rpx solid var(--brand-tint); }
-.key-text { display: -webkit-box; color: rgba(26, 23, 20, 0.78); font-size: var(--fs-body); line-height: 1.65; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.key-text { display: -webkit-box; color: rgba(26, 23, 20, 0.78); font-size: var(--fs-body); font-style: italic; line-height: 1.65; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .more-key { display: block; margin-top: 4rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .card-footer { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
 .tag-row { display: flex; gap: 10rpx; }
@@ -47,7 +47,8 @@
 /* 待补条目不是警告，用纸面色系表达“未完成”。 */
 .draft-card { border: 3rpx dashed rgba(26, 23, 20, 0.22); background: rgba(234, 227, 216, 0.5); box-shadow: none; }
 .draft-card .card-title { color: rgba(26, 23, 20, 0.65); }
-.draft-badge { flex-shrink: 0; padding: 4rpx 16rpx; border: 1rpx dashed var(--ink-faint); border-radius: var(--r-pill); background: rgba(234, 227, 216, 0.6); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 500; }
+/* 待补充是状态警示：按设计稿用琥珀系，与橙色行动分工。 */
+.draft-badge { flex-shrink: 0; padding: 4rpx 16rpx; border: 1rpx solid var(--amber-border); border-radius: var(--r-pill); background: var(--amber-bg); color: var(--amber-deep); font-size: var(--fs-caption); font-weight: 500; }
 .draft-help { color: var(--ink-2); font-size: var(--fs-meta); font-style: italic; }
 .draft-divider { display: flex; align-items: center; gap: 24rpx; margin: 12rpx 8rpx 4rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .draft-divider view { flex: 1; height: 1rpx; background: var(--line-soft); }

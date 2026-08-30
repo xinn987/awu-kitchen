@@ -8,6 +8,9 @@
 .import-warning-list { margin-top: 14rpx; padding-top: 12rpx; border-top: 1rpx solid var(--brand-tint); }
 .import-warning { color: var(--brand-deep); font-size: var(--fs-caption); line-height: 1.65; }
 
+/* 草稿补齐成功关键后的转正提示：设计稿用 emerald 表达「成功」。 */
+.formalize-notice { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4); padding: 22rpx 26rpx; border: 1rpx solid var(--emerald-border); border-radius: var(--r-md); background: var(--emerald-bg); color: var(--emerald-deep); font-size: var(--fs-meta); }
+
 /* —— 名称：衬线大字，就是详情页的标题 —— */
 .name-block { padding: 28rpx 0 32rpx; border-bottom: 1rpx solid var(--line-soft); }
 .name-input { width: 100%; height: 72rpx; color: var(--ink); font-size: var(--fs-display); font-weight: 600; line-height: 1.3; }

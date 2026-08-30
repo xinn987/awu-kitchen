@@ -1,5 +1,5 @@
 <view class="page-shell">
-  <page-navbar left-text="返回" title="废纸篓" bindleft="back"></page-navbar>
+  <page-navbar left-text="设置" title="废纸篓" bindleft="back"></page-navbar>
 
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="trash-content">

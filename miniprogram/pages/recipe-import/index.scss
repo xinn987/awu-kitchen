@@ -1,6 +1,7 @@
 /* 导入页只负责把图片可靠提交为后台任务，识别结果仍需在编辑页核对。 */
 .import-form { display: flex; flex-direction: column; gap: 30rpx; padding: 32rpx 36rpx 60rpx; }
-.intro-card { padding: 32rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--brand-wash); }
+.intro-block { padding: 8rpx 0 4rpx; }
+.intro-title { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }
 .intro-title { display: block; color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }
 .intro-copy { display: block; margin-top: 12rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
 .section-head { display: flex; align-items: flex-end; justify-content: space-between; }

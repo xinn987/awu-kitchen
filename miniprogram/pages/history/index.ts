@@ -23,6 +23,8 @@ Page({
     confirmId: '',
     recipeVersion: 1,
     restoring: false,
+    toastVisible: false,
+    toastMessage: '',
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -64,8 +66,13 @@ Page({
       })
     } catch (error) {
       this.setData({ loading: false })
-      wx.showToast({ title: error instanceof Error ? error.message : '历史记录加载失败', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '历史记录加载失败')
     }
+  },
+
+  showToast(message: string) {
+    this.setData({ toastVisible: true, toastMessage: message })
+    setTimeout(() => this.setData({ toastVisible: false }), 2200)
   },
 
   back() {
@@ -93,7 +100,7 @@ Page({
       })
     } catch (error) {
       this.setData({ restoring: false })
-      wx.showToast({ title: error instanceof Error ? error.message : '恢复失败，请重试', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '恢复失败，请重试')
     }
   },
 })

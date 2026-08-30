@@ -16,7 +16,9 @@
     "noUnusedParameters": true,
     "strict": true,
     "strictPropertyInitialization": true,
-    "lib": ["ES2018"],
+    "lib": [
+      "ES2018"
+    ],
     "skipLibCheck": true,
     "typeRoots": [
       "./typings"
@@ -28,6 +30,7 @@
   "exclude": [
     "node_modules",
     "demo",
-    "cloudfunctions"
+    "cloudfunctions",
+    "家庭食谱移动端设计"
   ]
 }

@@ -1,10 +1,10 @@
 <view class="page-shell">
-  <page-navbar left-text="返回" title="导入食谱" bindleft="back"></page-navbar>
+  <page-navbar left-text="食谱库" title="导入食谱" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="import-form">
-      <view class="intro-card">
+      <view class="intro-block">
         <text class="intro-title font-serif">从图片快速填写</text>
-        <text class="intro-copy">按原食谱顺序选择小红书截图。提交后可以离开，识别完成会在食谱清单提醒你核对。</text>
+        <text class="intro-copy">按原食谱顺序选择截图，提交后可以离开，识别完成会在食谱清单提醒你核对。</text>
       </view>
 
       <view class="section-head">
@@ -52,6 +52,8 @@
       </view>
     </view>
   </scroll-view>
+
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 
   <view class="action-bar">
     <button class="primary-button import-button {{images.length === 0 || working ? 'disabled' : ''}}" hover-class="none" disabled="{{images.length === 0 || working}}" bindtap="recognize">

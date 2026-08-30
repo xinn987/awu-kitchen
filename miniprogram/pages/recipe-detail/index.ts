@@ -116,6 +116,19 @@ Page({
     wx.navigateTo({ url: `/pages/recipe-edit/index?id=${this.data.id}` })
   },
 
+  /** 次级操作收纳进更多菜单：复制与归档都不值得占据一级底栏。 */
+  openMore() {
+    wx.showActionSheet({
+      itemList: ['复制一份新食谱', '移入废纸篓'],
+      itemColor: '#1a1714',
+      success: (result) => {
+        if (result.tapIndex === 0) void this.duplicate()
+        if (result.tapIndex === 1) this.askArchive()
+      },
+      fail: () => {},
+    })
+  },
+
   openHistory() {
     wx.navigateTo({ url: `/pages/history/index?id=${this.data.id}` })
   },

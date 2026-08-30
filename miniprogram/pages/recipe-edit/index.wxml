@@ -11,6 +11,11 @@
           <text wx:for="{{importWarnings}}" wx:key="*this" class="import-warning">· {{item}}</text>
         </view>
       </view>
+      <view wx:if="{{formalizing}}" class="formalize-notice">
+        <app-icon name="check-circle" size="30"></app-icon>
+        <text>补充了成功关键，保存后将正式存入食谱库</text>
+      </view>
+
       <!-- 名称：直接写成将来的标题样子，衬线大字、无边框。 -->
       <view class="name-block">
         <input
@@ -202,6 +207,8 @@
   <view wx:if="{{found && !loading}}" class="action-bar">
     <button class="primary-button save-button {{!canSave || saving ? 'disabled' : ''}}" hover-class="none" aria-label="保存食谱修改" catchtap="save">{{saving ? saveStatus : (importMode ? '确认并保存食谱' : ('保存' + (formalizing ? '并转为正式食谱' : '修改')))}}</button>
   </view>
+
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 
   <confirm-panel
     visible="{{confirmVisible}}"

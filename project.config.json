@@ -48,7 +48,12 @@
   "libVersion": "2.32.3",
   "packOptions": {
     "ignore": [],
-    "include": []
+    "include": [
+      {
+        "type": "file",
+        "value": "miniprogram/assets/fonts/noto-serif-sc-500.woff2"
+      }
+    ]
   },
   "appid": "wx90f731f67d44a245",
   "isGameTourist": false

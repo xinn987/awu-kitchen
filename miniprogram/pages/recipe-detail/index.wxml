@@ -34,6 +34,7 @@
           <view>
             <text class="warning-title">还没有记录成功关键</text>
             <text class="warning-copy">补充至少一条，这道做法才能正式存入食谱库。</text>
+            <view class="warning-link" role="button" bindtap="editRecipe">现在补充 →</view>
           </view>
         </view>
         <view wx:else class="success-list">
@@ -99,9 +100,6 @@
       </view>
 
       <view class="footnote">由 {{recipe.createdName}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
-      <view class="archive-row">
-        <view class="archive-link" role="button" bindtap="askArchive">{{archiving ? '正在移入…' : '移入废纸篓'}}</view>
-      </view>
     </view>
   </scroll-view>
 
@@ -110,11 +108,10 @@
       <app-icon name="message-circle" size="30"></app-icon>
       <text>评论{{recipe.commentCountLabel ? ' ' + recipe.commentCountLabel : ''}}</text>
     </view>
-    <view class="secondary-button compact-button" role="button" bindtap="duplicate">
-      <app-icon name="copy" size="30"></app-icon>
-      <text>{{duplicating ? '复制中…' : '复制'}}</text>
-    </view>
     <view class="primary-button edit-button" role="button" bindtap="editRecipe">{{recipe.isDraft ? '补充成功关键' : '完善食谱'}}</view>
+    <view class="secondary-button more-button" role="button" aria-label="更多操作" bindtap="openMore">
+      <app-icon name="more" size="32"></app-icon>
+    </view>
   </view>
   <confirm-panel
     visible="{{archiveConfirm}}"

@@ -160,6 +160,8 @@ Page({
     saving: false,
     saveStatus: '',
     showKeysHint: false,
+    toastVisible: false,
+    toastMessage: '',
     confirmVisible: false,
     confirmTitle: '',
     confirmCopy: '',
@@ -201,7 +203,7 @@ Page({
       await this.loadImportDraft(result.draft)
     } catch (error) {
       this.setData({ found: false, loading: false })
-      wx.showToast({ title: error instanceof Error ? error.message : '导入草稿加载失败', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '导入草稿加载失败')
     }
   },
 
@@ -248,7 +250,7 @@ Page({
       }, () => this.recompute())
     } catch (error) {
       this.setData({ found: false, loading: false })
-      wx.showToast({ title: error instanceof Error ? error.message : '导入草稿加载失败', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '导入草稿加载失败')
     }
   },
 
@@ -305,7 +307,7 @@ Page({
       })
     } catch (error) {
       this.setData({ found: false, loading: false })
-      wx.showToast({ title: error instanceof Error ? error.message : '食谱加载失败', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '食谱加载失败')
     }
   },
 
@@ -336,6 +338,11 @@ Page({
       wx.disableAlertBeforeUnload()
       dirtyGuardOn = false
     }
+  },
+
+  showToast(message: string) {
+    this.setData({ toastVisible: true, toastMessage: message })
+    setTimeout(() => this.setData({ toastVisible: false }), 2200)
   },
 
   openConfirm(options: ConfirmOptions) {
@@ -381,7 +388,7 @@ Page({
 
   cancel() {
     if (this.data.saving) {
-      wx.showToast({ title: '图片和食谱正在保存，请稍候', icon: 'none' })
+      this.showToast('图片和食谱正在保存，请稍候')
       return
     }
     wx.navigateBack({
@@ -431,7 +438,7 @@ Page({
         confirmText: '去设置',
         cancelText: '取消',
         success: (result) => { if (result.confirm) void wx.openSetting({}) },
-        fail: () => wx.showToast({ title: '图片选择失败，请重试', icon: 'none' }),
+        fail: () => this.showToast('图片选择失败，请重试'),
       })
       return undefined
     }
@@ -476,12 +483,12 @@ Page({
     const target = this.data.ingredients[index]
     if (!target) return
     if (!target.primary && !target.name.trim()) {
-      wx.showToast({ title: '先填写食材名', icon: 'none' })
+      this.showToast('先填写食材名')
       return
     }
     const primaryCount = this.data.ingredients.filter((item) => item.primary).length
     if (!target.primary && primaryCount >= MAX_PRIMARY) {
-      wx.showToast({ title: `主食材最多 ${MAX_PRIMARY} 个`, icon: 'none' })
+      this.showToast(`主食材最多 ${MAX_PRIMARY} 个`)
       return
     }
     const ingredients = this.data.ingredients.map((item, i) =>
@@ -593,12 +600,12 @@ Page({
   save() {
     if (this.data.saving) return
     if (!this.data.name.trim()) {
-      wx.showToast({ title: '请填写食谱名称', icon: 'none' })
+      this.showToast('请填写食谱名称')
       return
     }
     if (!this.data.keys.some((key) => key.trim().length > 0)) {
       this.setData({ showKeysHint: true })
-      wx.showToast({ title: '请先写一条成功关键', icon: 'none' })
+      this.showToast('请先写一条成功关键')
       return
     }
 
@@ -722,7 +729,7 @@ Page({
         })
         return
       }
-      wx.showToast({ title: error instanceof Error ? error.message : '保存失败，请重试', icon: 'none' })
+      this.showToast(error instanceof Error ? error.message : '保存失败，请重试')
     } finally {
       wx.hideLoading()
     }
