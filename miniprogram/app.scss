@@ -85,7 +85,8 @@ button {
 
 button::after { border: 0; }
 
-.font-serif { font-family: 'Noto Serif SC', 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', serif; }
+/* 全端统一使用系统无衬线字体；保留旧类名，避免一次性改动所有页面结构。 */
+.font-serif { font-family: inherit; }
 
 .page-shell {
   height: 100vh;
