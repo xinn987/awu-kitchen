@@ -1,0 +1,10 @@
+const path = require('path')
+const automator = require('miniprogram-automator')
+const SHOTS = path.resolve(__dirname, '../shots')
+automator.connect({ wsEndpoint: 'ws://127.0.0.1:9420' }).then(async (mini) => {
+  const attempt = await mini.reLaunch('/pages/recipe-attempt-edit/index')
+  await attempt.waitFor(1300)
+  await mini.screenshot({ path: path.join(SHOTS, 'n1-attempt-note.png') })
+  console.log('ok')
+  await mini.disconnect()
+}).catch((e) => { console.log('failed:', e.message); process.exit(1) })
