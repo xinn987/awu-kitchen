@@ -88,6 +88,9 @@ $foot: "%3C/svg%3E";
 /* 更多：横向三点，收纳次级操作。 */
 .icon-more { @include icon-mask("#{$head}%3Ccircle cx='5' cy='12' r='1.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%23000' stroke='none'/%3E%3Ccircle cx='19' cy='12' r='1.6' fill='%23000' stroke='none'/%3E#{$foot}"); }
 
+/* 食记：笔记本，与 clock（时间语义）区分。 */
+.icon-journal { @include icon-mask("#{$head}%3Crect x='5' y='3' width='14' height='18' rx='2'/%3E%3Cpath d='M9 3v18'/%3E%3Cpath d='M13 8h3.5M13 12h3.5'/%3E#{$foot}"); }
+
 /* 四角星：主食材标记，编辑页与详情页共用。实心=已选，空心=未选。 */
 .icon-sparkle { @include icon-mask("#{$head}%3Cpath d='M12 2 C12.9 7.4 16.6 11.1 22 12 C16.6 12.9 12.9 16.6 12 22 C11.1 16.6 7.4 12.9 2 12 C7.4 11.1 11.1 7.4 12 2 Z' fill='%23000' stroke='none'/%3E#{$foot}"); }
 

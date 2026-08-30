@@ -1,10 +1,10 @@
 <view class="tabbar">
   <view class="tab {{active === 'library' ? 'active' : ''}}" bindtap="goLibrary">
-    <app-icon name="books" size="38"></app-icon>
+    <app-icon name="books" size="42"></app-icon>
     <text>食谱库</text>
   </view>
   <view class="tab {{active === 'journal' ? 'active' : ''}}" bindtap="goJournal">
-    <app-icon name="clock" size="38"></app-icon>
+    <app-icon name="journal" size="42"></app-icon>
     <text>食记</text>
   </view>
   <view class="tab-center">
@@ -17,11 +17,11 @@
     </view>
   </view>
   <view class="tab {{active === 'family' ? 'active' : ''}}" bindtap="goFamily">
-    <app-icon name="users" size="38"></app-icon>
+    <app-icon name="users" size="42"></app-icon>
     <text>家庭</text>
   </view>
   <view class="tab {{active === 'settings' ? 'active' : ''}}" bindtap="goSettings">
-    <app-icon name="settings" size="38"></app-icon>
+    <app-icon name="settings" size="42"></app-icon>
     <text>设置</text>
   </view>
 </view>

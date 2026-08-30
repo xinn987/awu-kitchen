@@ -52,8 +52,8 @@
 .recent-hit { flex: 1; max-width: 32rpx; min-width: 12rpx; height: 100%; display: flex; align-items: flex-end; }
 .recent-bar { width: 100%; border-radius: var(--r-pill) var(--r-pill) 3rpx 3rpx; }
 .recent-loved { height: 72rpx; background: var(--brand); }
-.recent-accepted { height: 48rpx; background: #cba77b; }
-.recent-rejected { height: 26rpx; background: #9b8a7d; }
+.recent-accepted { height: 48rpx; background: var(--sand); }
+.recent-rejected { height: 26rpx; background: var(--bark); }
 .recent-meta, .recent-empty { display: block; color: var(--ink-2); font-size: var(--fs-caption); }
 .recent-meta { margin-top: 12rpx; }
 .recent-empty { margin-top: 18rpx; line-height: 1.6; }

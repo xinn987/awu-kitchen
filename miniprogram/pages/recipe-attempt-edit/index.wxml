@@ -19,7 +19,7 @@
       <view class="form-section">
         <text class="field-label">日期</text>
         <picker mode="date" value="{{occurredOn}}" end="{{maxDate}}" disabled="{{!canEdit}}" bindchange="onDateChange">
-          <view class="picker-field"><text>{{occurredOn}}</text><app-icon name="chevron-down" size="28"></app-icon></view>
+          <view class="picker-field"><text>{{occurredLabel}}</text><app-icon name="chevron-down" size="28"></app-icon></view>
         </picker>
       </view>
 

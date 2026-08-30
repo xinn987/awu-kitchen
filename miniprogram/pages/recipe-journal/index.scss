@@ -1,15 +1,15 @@
 /** 食记沿用暖纸面和克制卡片；竖条是回忆线索，不是量化仪表盘。 */
-.journal-header { padding-right: 40rpx; padding-bottom: 28rpx; padding-left: 40rpx; }
+.journal-header { padding: 0 40rpx 28rpx; }
 .journal-title { display: block; color: var(--ink); font-size: var(--fs-display); font-weight: 600; }
-.journal-subtitle { display: block; max-width: 600rpx; margin-top: 10rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.6; }
 .journal-content { padding: 0 32rpx 56rpx; }
-.record-entry { min-height: 116rpx; padding: 22rpx 26rpx; display: flex; align-items: center; gap: 20rpx; border-radius: var(--r-lg); background: var(--brand); color: #fff; }
+/* 记一次是轻量白卡入口：实体橙只保留给中央 FAB。 */
+.record-entry { min-height: 116rpx; padding: 22rpx 26rpx; display: flex; align-items: center; gap: 20rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); }
 .record-entry:active { opacity: 0.86; }
-.record-entry-icon { width: 62rpx; height: 62rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
+.record-entry-icon { width: 62rpx; height: 62rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--brand-wash); color: var(--brand); }
 .record-entry-copy { flex: 1; min-width: 0; }
 .record-entry-title, .record-entry-help { display: block; }
-.record-entry-title { font-size: var(--fs-body); font-weight: 600; }
-.record-entry-help { margin-top: 5rpx; color: rgba(255, 255, 255, 0.78); font-size: var(--fs-caption); }
+.record-entry-title { color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
+.record-entry-help { margin-top: 5rpx; color: var(--ink-2); font-size: var(--fs-caption); }
 .journal-list { margin-top: 24rpx; display: flex; flex-direction: column; gap: 20rpx; }
 .journal-card { padding: 28rpx 28rpx 22rpx; border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
 .card-head { display: flex; align-items: center; color: var(--ink-faint); }
@@ -22,9 +22,9 @@
 .attempt-bar { width: 100%; min-width: 10rpx; border-radius: var(--r-pill) var(--r-pill) 4rpx 4rpx; transition: opacity 0.15s ease; }
 .attempt-hit:active .attempt-bar { opacity: 0.55; }
 .bar-loved { height: 92rpx; background: var(--brand); }
-.bar-accepted { height: 62rpx; background: #cba77b; }
-.bar-rejected { height: 34rpx; background: #9b8a7d; }
-.chart-caption { margin-top: 10rpx; display: flex; justify-content: space-between; color: var(--ink-faint); font-size: 19rpx; }
+.bar-accepted { height: 62rpx; background: var(--sand); }
+.bar-rejected { height: 34rpx; background: var(--bark); }
+.chart-caption { margin-top: 10rpx; display: flex; justify-content: space-between; color: var(--ink-faint); font-size: var(--fs-caption); }
 .journal-empty { margin-top: 24rpx; padding: 76rpx 44rpx; border: 1rpx dashed var(--line-strong); border-radius: var(--r-lg); text-align: center; }
 .empty-title, .empty-copy { display: block; }
 .empty-title { color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }

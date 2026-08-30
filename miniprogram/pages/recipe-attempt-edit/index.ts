@@ -4,6 +4,7 @@ import {
   createRecipeAttempt, deleteRecipeAttempt, listRecipeAttempts, updateRecipeAttempt,
 } from '../../services/recipe-attempt-service'
 import { getState } from '../../services/recipe-store'
+import { shortDate } from '../../utils/recipe-utils'
 
 const ACCEPTANCE_OPTIONS: Array<{ value: RecipeAcceptance; label: string; help: string }> = [
   { value: 'loved', label: '很喜欢', help: '主动吃或还想要' },
@@ -31,6 +32,7 @@ Page({
     recipeId: '',
     recipeName: '',
     occurredOn: today(),
+    occurredLabel: shortDate(today()),
     maxDate: today(),
     acceptance: 'accepted' as RecipeAcceptance,
     acceptanceOptions: ACCEPTANCE_OPTIONS,
@@ -82,6 +84,7 @@ Page({
       recipeId: attempt.recipeId,
       recipeName: attempt.recipeName,
       occurredOn: attempt.occurredOn,
+      occurredLabel: shortDate(attempt.occurredOn),
       acceptance: attempt.acceptance,
       followedOriginal: attempt.followedOriginal,
       adjustmentNote: attempt.adjustmentNote,
@@ -102,7 +105,7 @@ Page({
     if (recipe) this.setData({ recipeIndex, recipeId: recipe.id, recipeName: recipe.name })
   },
   onDateChange(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    if (this.data.canEdit) this.setData({ occurredOn: event.detail.value })
+    if (this.data.canEdit) this.setData({ occurredOn: event.detail.value, occurredLabel: shortDate(event.detail.value) })
   },
   chooseAcceptance(event: WechatMiniprogram.BaseEvent) {
     if (this.data.canEdit) this.setData({ acceptance: String(event.currentTarget.dataset.value) as RecipeAcceptance })

@@ -2,11 +2,10 @@
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="journal-header" style="padding-top: {{statusBarHeight + 20}}px;">
       <text class="journal-title font-serif">食谱记录</text>
-      <text class="journal-subtitle">记下实际做过的感受，慢慢把食谱变得更适合宝宝</text>
     </view>
     <view class="journal-content">
       <view class="record-entry" role="button" bindtap="addAttempt">
-        <view class="record-entry-icon"><app-icon name="plus" size="34"></app-icon></view>
+        <view class="record-entry-icon"><app-icon name="pencil" size="32"></app-icon></view>
         <view class="record-entry-copy">
           <text class="record-entry-title">记一次</text>
           <text class="record-entry-help">选择食谱，留下宝宝这次的接受程度</text>
