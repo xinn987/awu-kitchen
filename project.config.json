@@ -19,7 +19,7 @@
     "enhance": false,
     "showShadowRootInWxmlPanel": false,
     "packNpmRelationList": [],
-    "ignoreUploadUnusedFiles": true,
+    "ignoreUploadUnusedFiles": false,
     "compileHotReLoad": false,
     "skylineRenderEnable": true,
     "es6": false,
@@ -48,12 +48,7 @@
   "libVersion": "2.32.3",
   "packOptions": {
     "ignore": [],
-    "include": [
-      {
-        "type": "file",
-        "value": "miniprogram/assets/fonts/noto-serif-sc-500.woff2"
-      }
-    ]
+    "include": []
   },
   "appid": "wx90f731f67d44a245",
   "isGameTourist": false
