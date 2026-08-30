@@ -1,6 +1,6 @@
 /** 食记首页：按食谱聚合真实制作记录，用轻量竖条展示接受程度的变化。 */
 import type { RecipeAcceptance, RecipeAttempt } from '../../models/recipe'
-import { listRecipeAttempts } from '../../services/recipe-attempt-service'
+import { getCachedRecipeAttempts, listRecipeAttempts } from '../../services/recipe-attempt-service'
 
 const ACCEPTANCE_LABELS: Record<RecipeAcceptance, string> = {
   loved: '很喜欢',
@@ -57,6 +57,7 @@ Page({
   data: {
     statusBarHeight: 20,
     loading: true,
+    error: '',
     cards: [] as JournalCard[],
     captureOpen: false,
     toastVisible: false,
@@ -66,18 +67,27 @@ Page({
   onLoad() {
     this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
   },
-  onShow() { void this.refresh() },
+  onShow() {
+    // 写入成功会先更新内存缓存；返回本页时先同步绘制，再在后台校准云端数据。
+    const cached = getCachedRecipeAttempts()
+    if (cached) this.setData({ cards: groupAttempts(cached), loading: false, error: '' })
+    void this.refresh(!cached)
+  },
 
-  async refresh() {
-    this.setData({ loading: true })
+  async refresh(showLoading = false) {
+    if (showLoading) this.setData({ loading: true })
     try {
-      const attempts = await listRecipeAttempts()
-      this.setData({ cards: groupAttempts(attempts), loading: false })
+      const attempts = await listRecipeAttempts('', true)
+      this.setData({ cards: groupAttempts(attempts), loading: false, error: '' })
     } catch (error) {
-      this.setData({ loading: false })
-      this.showToast(error instanceof Error ? error.message : '食谱记录加载失败')
+      const message = error instanceof Error ? error.message : '食谱记录加载失败'
+      this.setData({ loading: false, error: message })
+      // 已有缓存时继续展示旧内容，只用轻提示说明后台刷新失败。
+      if (this.data.cards.length) this.showToast(message)
     }
   },
+
+  retry() { void this.refresh(true) },
 
   /** 新记录先进入表单选食谱，不把中央“+”改造成混合用途入口。 */
   addAttempt() { wx.navigateTo({ url: '/pages/recipe-attempt-edit/index' }) },

@@ -77,6 +77,13 @@ $foot: "%3C/svg%3E";
 
 .icon-check-circle { @include icon-mask("#{$head}%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E#{$foot}"); }
 
+/* 食记反馈：只使用品牌单色线性图标，不引入红黄绿评分语义。 */
+.icon-heart { @include icon-mask("#{$head}%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z'/%3E#{$foot}"); }
+
+.icon-minus-circle { @include icon-mask("#{$head}%3Ccircle cx='12' cy='12' r='9'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E#{$foot}"); }
+
+.icon-calendar { @include icon-mask("#{$head}%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cline x1='16' y1='3' x2='16' y2='7'/%3E%3Cline x1='8' y1='3' x2='8' y2='7'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E#{$foot}"); }
+
 .icon-arrow-up { @include icon-mask("#{$head}%3Cline x1='12' y1='19' x2='12' y2='5'/%3E%3Cpolyline points='5 12 12 5 19 12'/%3E#{$foot}"); }
 
 .icon-arrow-down { @include icon-mask("#{$head}%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cpolyline points='19 12 12 19 5 12'/%3E#{$foot}"); }

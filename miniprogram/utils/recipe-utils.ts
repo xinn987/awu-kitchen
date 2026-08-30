@@ -34,6 +34,17 @@ export function shortDate(iso: string): string {
   return `${date.getMonth() + 1}月${date.getDate()}日`
 }
 
+/** 记录表单使用的日期文案：当天优先表达“今天”，跨年时补全年份。 */
+export function formDateLabel(iso: string, todayIso: string): string {
+  const parts = iso.split('-').map(Number)
+  const todayParts = todayIso.split('-').map(Number)
+  if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) return iso
+  const [year, month, day] = parts
+  if (iso === todayIso) return `今天 · ${month}月${day}日`
+  if (year === todayParts[0]) return `${month}月${day}日`
+  return `${year}年${month}月${day}日`
+}
+
 /** 是否已经具备至少一条可复用的成功关键。 */
 export function isFormalRecipe(recipe: { successKeys: string[] }): boolean {
   return recipe.successKeys.some((key) => key.trim().length > 0)

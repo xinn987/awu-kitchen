@@ -12,7 +12,7 @@ import {
   createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
 } from './recipe-comment'
 import {
-  createRecipeAttempt, deleteRecipeAttempt, listRecipeAttempts, updateRecipeAttempt,
+  createRecipeAttempt, deleteRecipeAttempt, getRecipeAttempt, listRecipeAttempts, updateRecipeAttempt,
 } from './recipe-attempt'
 import { addRecipeOption, listRecipeOptions, removeRecipeOption } from './recipe-options'
 
@@ -42,6 +42,7 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipeComment.update': updateRecipeComment,
   'recipeComment.delete': deleteRecipeComment,
   'recipeAttempt.list': listRecipeAttempts,
+  'recipeAttempt.get': getRecipeAttempt,
   'recipeAttempt.create': createRecipeAttempt,
   'recipeAttempt.update': updateRecipeAttempt,
   'recipeAttempt.delete': deleteRecipeAttempt,

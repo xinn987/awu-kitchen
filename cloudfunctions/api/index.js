@@ -30,6 +30,7 @@ const handlers = {
     'recipeComment.update': recipe_comment_1.updateRecipeComment,
     'recipeComment.delete': recipe_comment_1.deleteRecipeComment,
     'recipeAttempt.list': recipe_attempt_1.listRecipeAttempts,
+    'recipeAttempt.get': recipe_attempt_1.getRecipeAttempt,
     'recipeAttempt.create': recipe_attempt_1.createRecipeAttempt,
     'recipeAttempt.update': recipe_attempt_1.updateRecipeAttempt,
     'recipeAttempt.delete': recipe_attempt_1.deleteRecipeAttempt,

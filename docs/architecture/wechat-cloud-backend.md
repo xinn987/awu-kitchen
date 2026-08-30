@@ -150,7 +150,7 @@
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
 | 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.listArchived`、`recipe.restore`、`recipe.duplicate`、`recipe.restoreRevision` |
 | 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
-| 食记 | `recipeAttempt.list`、`recipeAttempt.create`、`recipeAttempt.update`、`recipeAttempt.delete` |
+| 食记 | `recipeAttempt.list`、`recipeAttempt.get`、`recipeAttempt.create`、`recipeAttempt.update`、`recipeAttempt.delete` |
 | 食谱选项 | `recipeOptions.list`、`recipeOptions.add`、`recipeOptions.remove` |
 
 `recipe-import` 支持 `start`、`list`、`status`、`complete` 和 `discard`。单次调用只提交任务或查询一次状态，保证在个人版云函数 3 秒超时限制内尽快返回；页面隐藏后停止轮询，重新进入食谱清单时恢复查询。
@@ -229,9 +229,11 @@ type ApiResponse<T> =
 
 ### 5.8 食记
 
-记录创建时由云函数读取当前食谱名称和版本并保存快照，客户端不能伪造家庭、作者或食谱快照。记录列表既支持家庭范围聚合，也支持按食谱查询详情页的轻量引用。
+记录创建时由云函数读取当前食谱名称和版本并保存快照，客户端不能伪造家庭、作者或食谱快照。记录列表既支持家庭范围聚合，也支持按食谱查询详情页的轻量引用；单次查看和编辑使用 `recipeAttempt.get`，不为读取一条记录拉取全家列表。
 
 作者可以编辑自己的记录，作者或管理员可以删除；操作使用记录自身的 `expectedVersion`，不会引发食谱版本冲突。选择“按原食谱”时云端强制清空调整说明，避免产生含义冲突的数据。
+
+客户端只把食记保存在页面间共享的短期内存缓存中。创建、更新、删除成功后同步修正缓存，使返回页面立即回显；页面随后强制刷新云端，错误状态与“没有记录”空状态分开呈现。
 
 ### 5.9 AI 图片导入
 

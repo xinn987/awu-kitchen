@@ -1,96 +1,113 @@
 <view class="page-shell">
-  <page-navbar left-text="食记" title="记下这一次" bindleft="back"></page-navbar>
+  <page-navbar left-text="食记" title="{{pageTitle}}" bindleft="back"></page-navbar>
   <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <app-loading wx:if="{{loading}}" label="正在准备记录"></app-loading>
-    <view wx:else class="attempt-note">
-      <!-- 便签标题：食谱名即主角；新建时点击从列表选择 -->
-      <view class="note-head" role="button" bindtap="openRecipeSheet">
-        <text wx:if="{{recipeName}}" class="note-title font-serif">{{recipeName}}</text>
-        <text wx:else class="note-title placeholder font-serif">选择食谱</text>
-        <app-icon wx:if="{{!id}}" name="chevron-down" size="30"></app-icon>
+    <view wx:else class="attempt-form">
+      <!-- 食谱和日期使用同构表单入口：左图标、主值、右箭头，点击感知明确。 -->
+      <view class="form-field">
+        <text class="field-label">食谱</text>
+        <view
+          class="select-field {{recipeError ? 'invalid' : ''}} {{!canEdit || id ? 'readonly' : ''}}"
+          role="button"
+          aria-label="{{recipeName ? ('当前食谱：' + recipeName) : '选择一份食谱'}}"
+          bindtap="openRecipeSheet"
+        >
+          <view class="select-icon"><app-icon name="books" size="30"></app-icon></view>
+          <text class="select-value font-serif {{recipeName ? '' : 'placeholder'}}">{{recipeName || '选择一份食谱'}}</text>
+          <app-icon wx:if="{{canEdit && !id}}" name="chevron-right" size="28"></app-icon>
+        </view>
+        <text wx:if="{{recipeError}}" class="field-error">{{recipeError}}</text>
       </view>
 
-      <!-- 元数据行：日期与做法，行内轻字段 -->
-      <view class="note-meta">
-        <view class="meta-item" role="button" aria-label="选择日期" bindtap="openDateSheet">
-          <app-icon name="clock" size="26"></app-icon>
-          <text>{{occurredLabel}}</text>
-        </view>
-        <view class="meta-item {{followedOriginal ? '' : 'accent'}}" role="button" aria-label="切换按原食谱或有调整" bindtap="toggleFollowed">
-          <app-icon name="pencil" size="26"></app-icon>
-          <text>{{followedOriginal ? '按原食谱' : '有调整'}}</text>
+      <view class="form-field compact">
+        <text class="field-label">日期</text>
+        <view class="select-field {{!canEdit ? 'readonly' : ''}}" role="button" aria-label="选择日期，当前为{{occurredLabel}}" bindtap="openDateSheet">
+          <view class="select-icon"><app-icon name="calendar" size="30"></app-icon></view>
+          <text class="select-value">{{occurredLabel}}</text>
+          <app-icon wx:if="{{canEdit}}" name="chevron-right" size="28"></app-icon>
         </view>
       </view>
 
-      <!-- 唯一的问题：接受程度 -->
-      <view class="note-question">
-        <text class="field-label">宝宝这次的接受程度</text>
-        <view class="option-row">
+      <!-- 接受程度是本页核心判断：三张等宽卡保持同一品牌色，只用图形与文案区分语义。 -->
+      <view class="feedback-section">
+        <text class="question-title font-serif">宝宝这次吃得怎么样？</text>
+        <view class="acceptance-grid">
           <view
             wx:for="{{acceptanceOptions}}"
             wx:key="value"
-            class="option-chip {{acceptance === item.value ? 'active' : ''}}"
+            class="acceptance-card {{acceptance === item.value ? 'active' : ''}} {{!canEdit ? 'readonly' : ''}}"
             role="button"
+            aria-label="{{item.label}}"
             data-value="{{item.value}}"
             bindtap="chooseAcceptance"
-          >{{item.label}}</view>
+          >
+            <view class="acceptance-icon"><app-icon name="{{item.icon}}" size="38"></app-icon></view>
+            <text class="acceptance-label">{{item.label}}</text>
+          </view>
         </view>
-        <text class="acceptance-help">{{acceptanceHelp}}</text>
+        <text class="acceptance-help {{acceptanceError ? 'error' : ''}}">{{acceptanceError || acceptanceHelp}}</text>
       </view>
 
-      <!-- 有调整时的备注 -->
-      <view wx:if="{{!followedOriginal}}" class="adjustment-block">
-        <textarea
-          class="field-textarea"
-          value="{{adjustmentNote}}"
-          placeholder="简单写下换了什么、少了什么，或做法哪里不同"
-          maxlength="120"
-          disabled="{{!canEdit}}"
-          bindinput="onAdjustmentInput"
-        ></textarea>
-        <text class="adjustment-help">只记变化，不必重新录入整份食材和步骤。</text>
+      <view class="method-section">
+        <text class="question-title font-serif">这次怎么做的？</text>
+        <view class="segment-control {{!canEdit ? 'readonly' : ''}}">
+          <view class="segment-option {{followedOriginal ? 'active' : ''}}" role="button" data-value="original" bindtap="chooseFollowed">按原食谱</view>
+          <view class="segment-option {{!followedOriginal ? 'active' : ''}}" role="button" data-value="adjusted" bindtap="chooseFollowed">有调整</view>
+        </view>
+        <view wx:if="{{!followedOriginal}}" class="adjustment-block">
+          <textarea
+            class="field-textarea {{adjustmentError ? 'invalid' : ''}}"
+            value="{{adjustmentNote}}"
+            placeholder="简单写下换了什么、少了什么，或做法哪里不同"
+            placeholder-class="textarea-placeholder"
+            maxlength="120"
+            disabled="{{!canEdit}}"
+            bindinput="onAdjustmentInput"
+          ></textarea>
+          <text wx:if="{{adjustmentError}}" class="field-error">{{adjustmentError}}</text>
+          <text wx:else class="adjustment-help">只记变化，不必重新录入整份食材和步骤。</text>
+        </view>
       </view>
 
+      <text wx:if="{{saveError}}" class="save-error">{{saveError}}</text>
       <text wx:if="{{id}}" class="record-author">由 {{authorName}} 记录 · 食谱正文不会被自动修改</text>
+      <view wx:if="{{id && canDelete}}" class="delete-entry" role="button" bindtap="deleteAttempt">{{deleting ? '正在删除…' : '删除这次记录'}}</view>
     </view>
   </scroll-view>
 
   <view wx:if="{{!loading && canEdit}}" class="action-bar">
-    <view class="primary-button save-button {{!recipeId || saving ? 'disabled' : ''}}" role="button" bindtap="save">{{saving ? '正在保存…' : (id ? '保存修改' : '记下这一次')}}</view>
+    <view class="primary-button save-button {{saving ? 'disabled' : ''}}" role="button" bindtap="save">{{saving ? '正在保存…' : (id ? '保存修改' : '记下这一次')}}</view>
   </view>
 
-  <view wx:if="{{id && canEdit}}" class="delete-entry" role="button" bindtap="deleteAttempt">{{deleting ? '正在删除…' : '删除这次记录'}}</view>
-
   <picker-sheet visible="{{recipeSheetVisible}}" title="选择食谱" bindclose="closeRecipeSheet">
+    <view class="recipe-search">
+      <view class="search-icon"><app-icon name="search" size="28"></app-icon></view>
+      <input value="{{recipeQuery}}" placeholder="搜索食谱名或食材" placeholder-class="search-placeholder" bindinput="onRecipeSearchInput" />
+      <view wx:if="{{recipeQuery}}" class="search-clear" role="button" aria-label="清空搜索" bindtap="clearRecipeSearch"><app-icon name="x" size="26"></app-icon></view>
+    </view>
     <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="recipe-options">
+      <view wx:if="{{visibleRecipes.length === 0}}" class="recipe-empty">{{recipes.length ? '没有找到相符的食谱' : '还没有可以选择的食谱'}}</view>
       <view
-        wx:for="{{recipes}}"
+        wx:for="{{visibleRecipes}}"
         wx:key="id"
         class="recipe-option {{item.id === recipeId ? 'selected' : ''}}"
         role="button"
         data-id="{{item.id}}"
-        data-name="{{item.name}}"
         bindtap="chooseRecipe"
       >
         <text class="recipe-option-name font-serif">{{item.name}}</text>
-        <app-icon wx:if="{{item.id === recipeId}}" name="check-circle" size="32"></app-icon>
+        <app-icon wx:if="{{item.id === recipeId}}" name="check-circle" size="30"></app-icon>
       </view>
     </scroll-view>
   </picker-sheet>
 
   <picker-sheet visible="{{dateSheetVisible}}" title="选择日期" bindclose="closeDateSheet">
     <picker-view class="date-wheel" value="{{wheelValue}}" bindchange="onWheelChange">
-      <picker-view-column>
-        <view wx:for="{{wheelYears}}" wx:key="*this" class="wheel-cell">{{item}}年</view>
-      </picker-view-column>
-      <picker-view-column>
-        <view wx:for="{{wheelMonths}}" wx:key="*this" class="wheel-cell">{{item}}月</view>
-      </picker-view-column>
-      <picker-view-column>
-        <view wx:for="{{wheelDays}}" wx:key="*this" class="wheel-cell">{{item}}日</view>
-      </picker-view-column>
+      <picker-view-column><view wx:for="{{wheelYears}}" wx:key="*this" class="wheel-cell">{{item}}年</view></picker-view-column>
+      <picker-view-column><view wx:for="{{wheelMonths}}" wx:key="*this" class="wheel-cell">{{item}}月</view></picker-view-column>
+      <picker-view-column><view wx:for="{{wheelDays}}" wx:key="*this" class="wheel-cell">{{item}}日</view></picker-view-column>
     </picker-view>
-    <view class="wheel-confirm primary-button {{confirming ? 'disabled' : ''}}" role="button" bindtap="confirmDate">确定</view>
+    <view class="wheel-confirm primary-button" role="button" bindtap="confirmDate">确定</view>
   </picker-sheet>
 
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>

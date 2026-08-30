@@ -13,11 +13,7 @@
         <app-icon name="chevron-right" size="30"></app-icon>
       </view>
       <app-loading wx:if="{{loading}}" label="正在整理食谱记录"></app-loading>
-      <view wx:elif="{{cards.length === 0}}" class="journal-empty">
-        <text class="empty-title font-serif">还没有食谱记录</text>
-        <text class="empty-copy">下次照着食谱做完，简单记一下宝宝的反应就好。</text>
-      </view>
-      <view wx:else class="journal-list">
+      <view wx:elif="{{cards.length > 0}}" class="journal-list">
         <view wx:for="{{cards}}" wx:key="recipeId" class="journal-card">
           <view class="card-head" role="button" data-id="{{item.recipeId}}" bindtap="openRecipe">
             <view class="card-title-copy">
@@ -33,6 +29,15 @@
           </view>
           <view class="chart-caption"><text>较早</text><text>每条代表一次记录</text><text>最近</text></view>
         </view>
+      </view>
+      <view wx:elif="{{error}}" class="journal-empty error-state">
+        <text class="empty-title font-serif">暂时没能加载记录</text>
+        <text class="empty-copy">{{error}}</text>
+        <view class="retry-link" role="button" bindtap="retry">重新加载</view>
+      </view>
+      <view wx:else class="journal-empty">
+        <text class="empty-title font-serif">还没有食谱记录</text>
+        <text class="empty-copy">下次照着食谱做完，简单记一下宝宝的反应就好。</text>
       </view>
     </view>
   </scroll-view>

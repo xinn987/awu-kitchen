@@ -30,4 +30,5 @@
 .sheet-handle { width: 64rpx; height: 8rpx; margin: 0 auto 18rpx; border-radius: var(--r-pill); background: var(--paper-soft); }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18rpx; border-bottom: 1rpx solid var(--line-soft); }
 .sheet-title { color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
-.sheet-close { display: flex; padding: 8rpx; color: var(--ink-faint); }
+.sheet-close { width: 64rpx; height: 64rpx; margin: -8rpx -8rpx -8rpx 0; display: flex; align-items: center; justify-content: center; color: var(--ink-faint); }
+.sheet-close:active { opacity: 0.55; }

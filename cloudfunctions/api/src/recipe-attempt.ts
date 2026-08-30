@@ -88,10 +88,20 @@ function writableAttempt(attempt: AttemptRecord): Omit<AttemptRecord, '_id'> {
 function occurredOn(value: unknown): string {
   const date = requiredText(value, '日期', 10)
   assertDomain(/^\d{4}-\d{2}-\d{2}$/.test(date), 'VALIDATION_ERROR', '请选择有效日期')
-  const parsed = new Date(`${date}T00:00:00Z`)
-  assertDomain(!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date, 'VALIDATION_ERROR', '请选择有效日期')
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  assertDomain(date < tomorrow, 'VALIDATION_ERROR', '不能记录未来的日期')
+  const [year, month, day] = date.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  assertDomain(
+    parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day,
+    'VALIDATION_ERROR',
+    '请选择有效日期',
+  )
+  // 食记的“今天”以中国家庭所在的业务时区为准，避免北京时间凌晨被 UTC 误判为未来。
+  const todayParts = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date())
+  const part = (type: string) => todayParts.find((item) => item.type === type)?.value || ''
+  const today = `${part('year')}-${part('month')}-${part('day')}`
+  assertDomain(date <= today, 'VALIDATION_ERROR', '不能记录未来的日期')
   return date
 }
 
@@ -133,6 +143,17 @@ export async function listRecipeAttempts(userId: string, payload: Record<string,
     .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.createdAt.localeCompare(a.createdAt))
     .map(attemptView)
   return { attempts }
+}
+
+/** 单条读取只校验家庭归属，已归档食谱的历史记录仍可回看。 */
+export async function getRecipeAttempt(userId: string, payload: Record<string, unknown>) {
+  await ensureCollection()
+  const { member } = await getActiveContext(userId)
+  const attemptId = requiredText(payload.attemptId, '记录', 80)
+  const result = await db.collection(COLLECTION).doc(attemptId).get() as unknown as { data: AttemptRecord | null }
+  const attempt = result.data
+  assertDomain(attempt && attempt.familyId === member.familyId, 'FORBIDDEN', '无权查看这条记录')
+  return attemptView(attempt)
 }
 
 export async function createRecipeAttempt(userId: string, payload: Record<string, unknown>) {

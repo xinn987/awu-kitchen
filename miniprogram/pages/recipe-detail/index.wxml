@@ -112,6 +112,11 @@
           </view>
           <text class="recent-meta">共记录 {{attemptCount}} 次 · 点击竖条查看</text>
         </view>
+        <text wx:elif="{{attemptsLoading}}" class="recent-empty">正在整理最近记录…</text>
+        <view wx:elif="{{attemptsError}}" class="recent-error">
+          <text>{{attemptsError}}</text>
+          <view class="recent-retry" role="button" bindtap="retryAttempts">重试</view>
+        </view>
         <text wx:else class="recent-empty">还没有记录；下次做完，简单记下宝宝的反应。</text>
       </view>
 

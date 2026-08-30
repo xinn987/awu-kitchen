@@ -57,3 +57,5 @@
 .recent-meta, .recent-empty { display: block; color: var(--ink-2); font-size: var(--fs-caption); }
 .recent-meta { margin-top: 12rpx; }
 .recent-empty { margin-top: 18rpx; line-height: 1.6; }
+.recent-error { margin-top: 18rpx; display: flex; align-items: center; justify-content: space-between; gap: 18rpx; color: var(--ink-2); font-size: var(--fs-caption); line-height: 1.6; }
+.recent-retry { flex-shrink: 0; padding: 10rpx 0 10rpx 20rpx; color: var(--brand); font-weight: 500; }

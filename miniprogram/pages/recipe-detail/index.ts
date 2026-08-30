@@ -1,7 +1,7 @@
 /** 食谱详情：优先呈现成功关键，其次才是食材和步骤。 */
-import type { Recipe, RecipeAcceptance, RecipeImage, RecipeStep } from '../../models/recipe'
+import type { Recipe, RecipeAcceptance, RecipeAttempt, RecipeImage, RecipeStep } from '../../models/recipe'
 import { resolveRecipeImageUrls } from '../../services/recipe-media'
-import { listRecipeAttempts } from '../../services/recipe-attempt-service'
+import { getCachedRecipeAttempts, listRecipeAttempts } from '../../services/recipe-attempt-service'
 import { archiveRecipe, duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
 
@@ -47,6 +47,8 @@ Page({
     recipe: null as DetailView | null,
     recentAttempts: [] as RecentAttemptBar[],
     attemptCount: 0,
+    attemptsLoading: true,
+    attemptsError: '',
     found: true,
     loading: true,
     duplicating: false,
@@ -112,7 +114,9 @@ Page({
             : '',
         },
       })
-      void this.refreshAttempts(recipe.id)
+      const cachedAttempts = getCachedRecipeAttempts(recipe.id)
+      if (cachedAttempts) this.applyAttempts(cachedAttempts)
+      void this.refreshAttempts(recipe.id, !cachedAttempts)
     } catch (error) {
       this.setData({ loading: false })
       this.showToast(error instanceof Error ? error.message : '食谱加载失败')
@@ -120,20 +124,30 @@ Page({
   },
 
   /** 反馈是食谱末尾的轻引用；接口暂时失败时不阻断做饭所需的正文。 */
-  async refreshAttempts(recipeId: string) {
+  applyAttempts(attempts: RecipeAttempt[]) {
+    const recentAttempts = attempts.slice(0, 12).reverse().map((attempt): RecentAttemptBar => ({
+      id: attempt.id,
+      acceptance: attempt.acceptance,
+      acceptanceLabel: ACCEPTANCE_LABELS[attempt.acceptance],
+      occurredOn: attempt.occurredOn,
+    }))
+    this.setData({ recentAttempts, attemptCount: attempts.length, attemptsLoading: false, attemptsError: '' })
+  },
+
+  async refreshAttempts(recipeId: string, showLoading = false) {
+    if (showLoading) this.setData({ attemptsLoading: true, attemptsError: '' })
     try {
-      const attempts = await listRecipeAttempts(recipeId)
-      const recentAttempts = attempts.slice(0, 12).reverse().map((attempt): RecentAttemptBar => ({
-        id: attempt.id,
-        acceptance: attempt.acceptance,
-        acceptanceLabel: ACCEPTANCE_LABELS[attempt.acceptance],
-        occurredOn: attempt.occurredOn,
-      }))
-      this.setData({ recentAttempts, attemptCount: attempts.length })
-    } catch {
-      this.setData({ recentAttempts: [], attemptCount: 0 })
+      const attempts = await listRecipeAttempts(recipeId, true)
+      this.applyAttempts(attempts)
+    } catch (error) {
+      this.setData({
+        attemptsLoading: false,
+        attemptsError: error instanceof Error ? error.message : '记录加载失败',
+      })
     }
   },
+
+  retryAttempts() { void this.refreshAttempts(this.data.id, true) },
 
   backToLibrary() { wx.reLaunch({ url: '/pages/library/index' }) },
 

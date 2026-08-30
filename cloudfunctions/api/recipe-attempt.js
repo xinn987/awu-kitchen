@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listRecipeAttempts = listRecipeAttempts;
+exports.getRecipeAttempt = getRecipeAttempt;
 exports.createRecipeAttempt = createRecipeAttempt;
 exports.updateRecipeAttempt = updateRecipeAttempt;
 exports.deleteRecipeAttempt = deleteRecipeAttempt;
@@ -77,10 +78,16 @@ function writableAttempt(attempt) {
 function occurredOn(value) {
     const date = (0, validation_1.requiredText)(value, '日期', 10);
     (0, errors_1.assertDomain)(/^\d{4}-\d{2}-\d{2}$/.test(date), 'VALIDATION_ERROR', '请选择有效日期');
-    const parsed = new Date(`${date}T00:00:00Z`);
-    (0, errors_1.assertDomain)(!Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date, 'VALIDATION_ERROR', '请选择有效日期');
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    (0, errors_1.assertDomain)(date < tomorrow, 'VALIDATION_ERROR', '不能记录未来的日期');
+    const [year, month, day] = date.split('-').map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    (0, errors_1.assertDomain)(parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day, 'VALIDATION_ERROR', '请选择有效日期');
+    // 食记的“今天”以中国家庭所在的业务时区为准，避免北京时间凌晨被 UTC 误判为未来。
+    const todayParts = new Intl.DateTimeFormat('zh-CN', {
+        timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(new Date());
+    const part = (type) => todayParts.find((item) => item.type === type)?.value || '';
+    const today = `${part('year')}-${part('month')}-${part('day')}`;
+    (0, errors_1.assertDomain)(date <= today, 'VALIDATION_ERROR', '不能记录未来的日期');
     return date;
 }
 function acceptance(value) {
@@ -122,6 +129,16 @@ async function listRecipeAttempts(userId, payload) {
         .sort((a, b) => b.occurredOn.localeCompare(a.occurredOn) || b.createdAt.localeCompare(a.createdAt))
         .map(attemptView);
     return { attempts };
+}
+/** 单条读取只校验家庭归属，已归档食谱的历史记录仍可回看。 */
+async function getRecipeAttempt(userId, payload) {
+    await ensureCollection();
+    const { member } = await (0, auth_1.getActiveContext)(userId);
+    const attemptId = (0, validation_1.requiredText)(payload.attemptId, '记录', 80);
+    const result = await cloud_1.db.collection(COLLECTION).doc(attemptId).get();
+    const attempt = result.data;
+    (0, errors_1.assertDomain)(attempt && attempt.familyId === member.familyId, 'FORBIDDEN', '无权查看这条记录');
+    return attemptView(attempt);
 }
 async function createRecipeAttempt(userId, payload) {
     await ensureCollection();

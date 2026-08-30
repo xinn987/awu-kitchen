@@ -29,3 +29,6 @@
 .empty-title, .empty-copy { display: block; }
 .empty-title { color: var(--ink); font-size: var(--fs-title-sm); font-weight: 600; }
 .empty-copy { margin-top: 12rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.7; }
+.error-state { border-style: solid; }
+.retry-link { min-height: 64rpx; margin-top: 18rpx; display: flex; align-items: center; justify-content: center; color: var(--brand); font-size: var(--fs-meta); font-weight: 500; }
+.retry-link:active { opacity: 0.55; }

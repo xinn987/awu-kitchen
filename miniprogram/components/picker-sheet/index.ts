@@ -1,5 +1,12 @@
 /** 底部选择弹层的通用容器：白底、把手、上滑入场；内容由使用方通过 slot 提供。 */
-let exitTimer: ReturnType<typeof setTimeout> | undefined
+const exitTimers = new WeakMap<object, ReturnType<typeof setTimeout>>()
+
+/** 一个页面可能同时挂载多个选择器；退出计时器必须按组件实例隔离。 */
+function clearExitTimer(instance: object) {
+  const timer = exitTimers.get(instance)
+  if (timer) clearTimeout(timer)
+  exitTimers.delete(instance)
+}
 
 Component({
   options: { styleIsolation: 'apply-shared' },
@@ -16,24 +23,23 @@ Component({
   observers: {
     visible(visible: boolean) {
       if (visible) {
-        if (exitTimer) {
-          clearTimeout(exitTimer)
-          exitTimer = undefined
-        }
+        clearExitTimer(this)
         this.setData({ mounted: true, open: false })
         wx.nextTick(() => this.setData({ open: true }))
       } else if (this.data.mounted) {
         this.setData({ open: false })
-        exitTimer = setTimeout(() => {
+        clearExitTimer(this)
+        const timer = setTimeout(() => {
           this.setData({ mounted: false })
-          exitTimer = undefined
+          exitTimers.delete(this)
         }, 240)
+        exitTimers.set(this, timer)
       }
     },
   },
   lifetimes: {
     detached() {
-      if (exitTimer) clearTimeout(exitTimer)
+      clearExitTimer(this)
     },
   },
   methods: {
