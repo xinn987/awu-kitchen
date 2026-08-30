@@ -20,6 +20,7 @@ import {
   cleanupUploadedRecipeImages,
   prepareAndUploadRecipeImages,
   RecipeMediaError,
+  resolveRecipeImageUrls,
   type LocalRecipeImage,
 } from '../../services/recipe-media'
 import { createRecipe, getIngredientSuggestions, getState, updateRecipe } from '../../services/recipe-store'
@@ -95,10 +96,11 @@ interface ConfirmOptions {
   cancelable?: boolean
 }
 
-function editableImage(image?: RecipeImage): EditableImage | null {
+function editableImage(image?: RecipeImage, resolvedUrl = ''): EditableImage | null {
   return image ? {
     fileId: image.fileId,
-    localPath: image.fileId,
+    // 旧环境仍可回退 cloud fileId；家庭私有存储优先使用云函数签发的 HTTPS 地址。
+    localPath: resolvedUrl || image.fileId,
     width: image.width,
     height: image.height,
     size: 0,
@@ -267,6 +269,14 @@ Page({
       }
       editingState = state
       editingVersion = recipe.version || 1
+      let resolvedImages: Array<{ fileId: string; url: string }> = []
+      try {
+        resolvedImages = await resolveRecipeImageUrls(recipe.id)
+      } catch (error) {
+        // 图片解析失败时仍允许修改文字，并保留原 fileId 供后续保存。
+        console.warn('解析编辑页图片失败', error)
+      }
+      const imageUrls = new Map(resolvedImages.map((item) => [item.fileId, item.url]))
       const wasDraft = !isFormalRecipe(recipe)
       // 主食材标记与旧版自由标签兼容：标签里出现过的食材名直接点亮。
       const ingredients = recipe.ingredients.map((item) => ({
@@ -278,11 +288,14 @@ Page({
         ...ingredients.filter((item) => item.primary),
         ...ingredients.filter((item) => !item.primary),
       ]
-      const mainImage = editableImage(recipe.mainImage)
+      const mainImage = editableImage(
+        recipe.mainImage,
+        recipe.mainImage ? imageUrls.get(recipe.mainImage.fileId) : undefined,
+      )
       const steps = recipe.steps.map((step) => ({
         id: step.id,
         text: step.text,
-        image: editableImage(step.image),
+        image: editableImage(step.image, step.image ? imageUrls.get(step.image.fileId) : undefined),
       }))
       originalCore = coreOf(recipe.successKeys, mainImage, ingredients, steps)
       this.setData({

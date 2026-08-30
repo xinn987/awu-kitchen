@@ -18,6 +18,7 @@ const handlers = {
     'family.listMembers': (userId) => (0, family_1.listMembers)(userId),
     'family.removeMember': family_1.removeMember,
     'recipe.list': recipe_1.listRecipeState,
+    'recipe.resolveMedia': recipe_1.resolveRecipeMedia,
     'recipe.create': recipe_1.createRecipe,
     'recipe.update': recipe_1.updateRecipe,
     'recipe.archive': recipe_1.archiveRecipe,

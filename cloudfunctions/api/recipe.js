@@ -1,10 +1,44 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listRecipeState = listRecipeState;
 exports.createRecipe = createRecipe;
+exports.resolveRecipeMedia = resolveRecipeMedia;
 exports.updateRecipe = updateRecipe;
 exports.duplicateRecipe = duplicateRecipe;
 exports.archiveRecipe = archiveRecipe;
@@ -13,7 +47,7 @@ exports.restoreRecipe = restoreRecipe;
 exports.restoreRevision = restoreRevision;
 const crypto_1 = __importDefault(require("crypto"));
 const auth_1 = require("./auth");
-const cloud_1 = require("./cloud");
+const cloud_1 = __importStar(require("./cloud"));
 const errors_1 = require("./errors");
 const validation_1 = require("./validation");
 const recipe_option_model_1 = require("./recipe-option-model");
@@ -147,6 +181,45 @@ async function ownedRecipe(familyId, recipeId) {
             throw error;
         throw new errors_1.DomainError('VALIDATION_ERROR', '食谱不存在');
     }
+}
+/**
+ * 只从已经通过家庭隔离的食谱文档中收集媒体引用。
+ * 客户端不能提交 fileId，避免借临时地址接口读取其他家庭的云文件。
+ */
+function recipeMediaFileIds(recipe, familyId) {
+    const familyMarker = `/recipe-media/${familyId}/`;
+    const fileIds = [];
+    const addImage = (value) => {
+        if (!value || typeof value !== 'object')
+            return;
+        const fileId = String(value.fileId || '');
+        if (fileId.startsWith('cloud://') && fileId.includes(familyMarker))
+            fileIds.push(fileId);
+    };
+    addImage(recipe.mainImage);
+    if (Array.isArray(recipe.steps)) {
+        recipe.steps.forEach((step) => {
+            if (step && typeof step === 'object')
+                addImage(step.image);
+        });
+    }
+    return [...new Set(fileIds)];
+}
+/** 家庭成员通过云函数取得当前食谱媒体的短期 HTTPS 地址。 */
+async function resolveRecipeMedia(userId, payload) {
+    const { member } = await (0, auth_1.getActiveContext)(userId);
+    const recipeId = (0, validation_1.requiredText)(payload.recipeId, '食谱', 80);
+    const recipe = await ownedRecipe(member.familyId, recipeId);
+    const fileIds = recipeMediaFileIds(recipe, member.familyId);
+    if (fileIds.length === 0)
+        return { images: [] };
+    const result = await cloud_1.default.getTempFileURL({ fileList: fileIds });
+    const images = result.fileList
+        .filter((item) => item.status === 0 && Boolean(item.tempFileURL)
+        && String(item.tempFileURL).startsWith('https://'))
+        .map((item) => ({ fileId: item.fileID, url: String(item.tempFileURL) }));
+    (0, errors_1.assertDomain)(images.length > 0, 'SERVICE_UNAVAILABLE', '食谱图片暂时无法读取，请稍后重试');
+    return { images };
 }
 async function updateRecipe(userId, payload) {
     const { member } = await (0, auth_1.getActiveContext)(userId);

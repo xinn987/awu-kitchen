@@ -6,7 +6,7 @@ import {
 } from './family'
 import {
   archiveRecipe, createRecipe, duplicateRecipe, listArchivedRecipes, listRecipeState,
-  restoreRecipe, restoreRevision, updateRecipe,
+  resolveRecipeMedia, restoreRecipe, restoreRevision, updateRecipe,
 } from './recipe'
 import {
   createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
@@ -30,6 +30,7 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'family.listMembers': (userId) => listMembers(userId),
   'family.removeMember': removeMember,
   'recipe.list': listRecipeState,
+  'recipe.resolveMedia': resolveRecipeMedia,
   'recipe.create': createRecipe,
   'recipe.update': updateRecipe,
   'recipe.archive': archiveRecipe,

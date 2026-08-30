@@ -9,6 +9,7 @@ import type { Member, Recipe, RecipeContent, RecipeImage, RecipeState, RecipeSte
 import { isFormalRecipe } from '../utils/recipe-utils'
 import { uid } from '../utils/recipe-utils'
 import { callApi } from './cloud-client'
+import { invalidateRecipeImageUrls } from './recipe-media'
 
 let cachedState: RecipeState | undefined
 let pendingState: Promise<RecipeState> | undefined
@@ -110,6 +111,7 @@ export function setCachedCommentCount(recipeId: string, commentCount: number): v
 
 /** 写入成功后直接接入服务端返回值，避免跳转后的页面再次空等整库刷新。 */
 function upsertCachedRecipe(recipe: Recipe): void {
+  invalidateRecipeImageUrls(recipe.id)
   if (!cachedState) return
   const exists = cachedState.recipes.some((item) => item.id === recipe.id)
   cachedState = {

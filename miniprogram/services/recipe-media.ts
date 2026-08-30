@@ -4,6 +4,7 @@
  */
 import { initCloud } from '../config/cloud'
 import type { RecipeImage } from '../models/recipe'
+import { callApi } from './cloud-client'
 
 const MAX_LONG_EDGE = 1600
 const TARGET_MAX_BYTES = 1.5 * 1024 * 1024
@@ -174,12 +175,31 @@ export async function prepareAndUploadRecipeImages(
   return { images, uploadedFileIds }
 }
 
-/** 图片预览使用临时 HTTPS 地址，正文图片仍可直接懒加载 cloud fileId。 */
-export async function resolveRecipeImageUrls(fileIds: string[]): Promise<Array<{ fileId: string; url: string }>> {
-  if (fileIds.length === 0) return []
-  initCloud()
-  const result = await wx.cloud.getTempFileURL({ fileList: fileIds })
-  return result.fileList
-    .filter((item) => item.status === 0 && Boolean(item.tempFileURL))
-    .map((item) => ({ fileId: item.fileID, url: item.tempFileURL }))
+export interface ResolvedRecipeImage {
+  fileId: string
+  url: string
+}
+
+/** 临时地址只短期复用；食谱发生写入或缓存到期后重新向云函数申请。 */
+const MEDIA_URL_CACHE_MS = 30 * 60 * 1000
+const resolvedRecipeMedia = new Map<string, { images: ResolvedRecipeImage[]; resolvedAt: number }>()
+
+/**
+ * 云函数先验证当前成员能访问这份食谱，再为食谱实际引用的文件签发临时地址。
+ * 客户端不再直接向云存储申请任意 fileId，保持家庭间媒体隔离。
+ */
+export async function resolveRecipeImageUrls(
+  recipeId: string,
+  force = false,
+): Promise<ResolvedRecipeImage[]> {
+  const cached = resolvedRecipeMedia.get(recipeId)
+  if (!force && cached && Date.now() - cached.resolvedAt < MEDIA_URL_CACHE_MS) return cached.images
+  const result = await callApi<{ images: ResolvedRecipeImage[] }>('recipe.resolveMedia', { recipeId })
+  const images = result.images.filter((item) => item.fileId && item.url.startsWith('https://'))
+  resolvedRecipeMedia.set(recipeId, { images, resolvedAt: Date.now() })
+  return images
+}
+
+export function invalidateRecipeImageUrls(recipeId: string): void {
+  resolvedRecipeMedia.delete(recipeId)
 }

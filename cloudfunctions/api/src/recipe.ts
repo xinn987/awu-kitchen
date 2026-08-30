@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { getActiveContext, type MemberRecord } from './auth'
-import { db } from './cloud'
+import cloud, { db } from './cloud'
 import { DomainError, assertDomain } from './errors'
 import { normalizeRecipeContent, requiredText, type RecipeContent } from './validation'
 import { optionsFromFamily, type RecipeOptions } from './recipe-option-model'
@@ -147,6 +147,46 @@ async function ownedRecipe(familyId: string, recipeId: string): Promise<Record<s
     if (error instanceof DomainError) throw error
     throw new DomainError('VALIDATION_ERROR', '食谱不存在')
   }
+}
+
+/**
+ * 只从已经通过家庭隔离的食谱文档中收集媒体引用。
+ * 客户端不能提交 fileId，避免借临时地址接口读取其他家庭的云文件。
+ */
+function recipeMediaFileIds(recipe: Record<string, unknown>, familyId: string): string[] {
+  const familyMarker = `/recipe-media/${familyId}/`
+  const fileIds: string[] = []
+  const addImage = (value: unknown) => {
+    if (!value || typeof value !== 'object') return
+    const fileId = String((value as Record<string, unknown>).fileId || '')
+    if (fileId.startsWith('cloud://') && fileId.includes(familyMarker)) fileIds.push(fileId)
+  }
+  addImage(recipe.mainImage)
+  if (Array.isArray(recipe.steps)) {
+    recipe.steps.forEach((step) => {
+      if (step && typeof step === 'object') addImage((step as Record<string, unknown>).image)
+    })
+  }
+  return [...new Set(fileIds)]
+}
+
+/** 家庭成员通过云函数取得当前食谱媒体的短期 HTTPS 地址。 */
+export async function resolveRecipeMedia(userId: string, payload: Record<string, unknown>) {
+  const { member } = await getActiveContext(userId)
+  const recipeId = requiredText(payload.recipeId, '食谱', 80)
+  const recipe = await ownedRecipe(member.familyId, recipeId)
+  const fileIds = recipeMediaFileIds(recipe, member.familyId)
+  if (fileIds.length === 0) return { images: [] }
+
+  const result = await cloud.getTempFileURL({ fileList: fileIds }) as unknown as {
+    fileList: Array<{ fileID: string; tempFileURL?: string; status: number }>
+  }
+  const images = result.fileList
+    .filter((item) => item.status === 0 && Boolean(item.tempFileURL)
+      && String(item.tempFileURL).startsWith('https://'))
+    .map((item) => ({ fileId: item.fileID, url: String(item.tempFileURL) }))
+  assertDomain(images.length > 0, 'SERVICE_UNAVAILABLE', '食谱图片暂时无法读取，请稍后重试')
+  return { images }
 }
 
 export async function updateRecipe(userId: string, payload: Record<string, unknown>) {

@@ -148,7 +148,7 @@
 | --- | --- |
 | 会话 | `session.bootstrap` |
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
-| 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.listArchived`、`recipe.restore`、`recipe.duplicate`、`recipe.restoreRevision` |
+| 食谱 | `recipe.list`、`recipe.resolveMedia`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.listArchived`、`recipe.restore`、`recipe.duplicate`、`recipe.restoreRevision` |
 | 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
 | 食记 | `recipeAttempt.list`、`recipeAttempt.get`、`recipeAttempt.create`、`recipeAttempt.update`、`recipeAttempt.delete` |
 | 食谱选项 | `recipeOptions.list`、`recipeOptions.add`、`recipeOptions.remove` |
@@ -208,6 +208,8 @@ type ApiResponse<T> =
 ### 5.5 食谱读写
 
 每次请求都先通过当前 OpenID 解析有效成员，再从成员取得 `familyId`。客户端不提交或决定家庭、作者、角色和服务端时间。
+
+食谱图片保持家庭私有。客户端只提交 `recipeId`，`recipe.resolveMedia` 在校验成员资格与食谱家庭归属后，从食谱文档中提取实际引用的文件并签发短期 HTTPS 地址；客户端不能用该接口解析任意 `fileId`。
 
 首版单次最多加载当前家庭的 1000 份食谱，在小程序内完成搜索和类型筛选。家庭数据接近此规模前就应增加分页和服务端搜索。
 

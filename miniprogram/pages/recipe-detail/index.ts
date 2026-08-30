@@ -85,8 +85,16 @@ Page({
       }
       const updatedMember = getMemberById(state, recipe.updatedById)
       const createdMember = getMemberById(state, recipe.createdById)
+      let resolvedImages: Array<{ fileId: string; url: string }> = []
+      try {
+        resolvedImages = await resolveRecipeImageUrls(recipe.id)
+      } catch (error) {
+        // 图片失败不能阻断做饭所需的文字正文；对应位置保留可重试状态。
+        console.warn('解析食谱图片失败', error)
+      }
+      const imageUrls = new Map(resolvedImages.map((item) => [item.fileId, item.url]))
       const viewImage = (image?: RecipeImage): DetailImage | undefined => image
-        ? { ...image, src: image.fileId, loadError: false }
+        ? { ...image, src: imageUrls.get(image.fileId) || '', loadError: !imageUrls.has(image.fileId) }
         : undefined
       this.setData({
         found: true,
@@ -198,12 +206,8 @@ Page({
     const recipe = this.data.recipe
     if (!recipe) return
     const currentFileId = String(event.currentTarget.dataset.fileId)
-    const fileIds = [
-      recipe.mainImage && recipe.mainImage.fileId,
-      ...recipe.steps.map((step) => step.image && step.image.fileId),
-    ].filter((fileId): fileId is string => Boolean(fileId))
     try {
-      const resolved = await resolveRecipeImageUrls(fileIds)
+      const resolved = await resolveRecipeImageUrls(recipe.id)
       const urls = resolved.map((item) => item.url)
       const current = resolved.find((item) => item.fileId === currentFileId)
       if (urls.length === 0) throw new Error('图片暂时无法打开')
@@ -223,7 +227,7 @@ Page({
     this.setData({ [`recipe.steps[${index}].image.loadError`]: true } as Record<string, boolean>)
   },
 
-  retryImage(event: WechatMiniprogram.BaseEvent) {
+  async retryImage(event: WechatMiniprogram.BaseEvent) {
     const recipe = this.data.recipe
     if (!recipe) return
     const kind = String(event.currentTarget.dataset.kind)
@@ -231,10 +235,17 @@ Page({
     const image = kind === 'main' ? recipe.mainImage : recipe.steps[index] && recipe.steps[index].image
     if (!image) return
     const srcPath = kind === 'main' ? 'recipe.mainImage' : `recipe.steps[${index}].image`
-    // 先清空 src 再恢复，让原生 image 节点真正发起一次新的加载。
-    this.setData({ [`${srcPath}.loadError`]: false, [`${srcPath}.src`]: '' } as Record<string, string | boolean>, () => {
-      this.setData({ [`${srcPath}.src`]: image.fileId } as Record<string, string>)
-    })
+    try {
+      const resolved = await resolveRecipeImageUrls(recipe.id, true)
+      const current = resolved.find((item) => item.fileId === image.fileId)
+      if (!current) throw new Error('图片暂时无法读取')
+      // 先清空 src 再恢复，让原生 image 节点真正发起一次新的加载。
+      this.setData({ [`${srcPath}.loadError`]: false, [`${srcPath}.src`]: '' } as Record<string, string | boolean>, () => {
+        this.setData({ [`${srcPath}.src`]: current.url } as Record<string, string>)
+      })
+    } catch (error) {
+      this.showToast(error instanceof Error ? error.message : '图片暂时无法读取')
+    }
   },
 
   async duplicate() {
