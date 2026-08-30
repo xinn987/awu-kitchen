@@ -1,0 +1,33 @@
+/* 弹层容器与快速收录面板同一语言：白底、把手、上滑入场。 */
+.sheet-layer {
+  position: fixed;
+  z-index: 600;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  background: var(--mask);
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.sheet-layer.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  padding: 18rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  background: var(--card);
+  transform: translateY(100%);
+  transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.sheet-layer.open .sheet { transform: translateY(0); }
+.sheet-handle { width: 64rpx; height: 8rpx; margin: 0 auto 18rpx; border-radius: var(--r-pill); background: var(--paper-soft); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18rpx; border-bottom: 1rpx solid var(--line-soft); }
+.sheet-title { color: var(--ink); font-size: var(--fs-body); font-weight: 600; }
+.sheet-close { display: flex; padding: 8rpx; color: var(--ink-faint); }

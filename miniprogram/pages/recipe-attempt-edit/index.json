@@ -3,6 +3,7 @@
     "page-navbar": "/components/page-navbar/index",
     "app-icon": "/components/app-icon/index",
     "app-loading": "/components/app-loading/index",
-    "app-toast": "/components/app-toast/index"
+    "app-toast": "/components/app-toast/index",
+    "picker-sheet": "/components/picker-sheet/index"
   }
 }

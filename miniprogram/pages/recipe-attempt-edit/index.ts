@@ -33,8 +33,14 @@ Page({
     recipeName: '',
     occurredOn: today(),
     occurredLabel: shortDate(today()),
-    maxDate: today(),
+    recipeSheetVisible: false,
+    dateSheetVisible: false,
+    wheelYears: [] as number[],
+    wheelMonths: [] as number[],
+    wheelDays: [] as number[],
+    wheelValue: [0, 0, 0] as number[],
     acceptance: 'accepted' as RecipeAcceptance,
+    acceptanceHelp: ACCEPTANCE_OPTIONS[1].help,
     acceptanceOptions: ACCEPTANCE_OPTIONS,
     followedOriginal: true,
     adjustmentNote: '',
@@ -86,6 +92,7 @@ Page({
       occurredOn: attempt.occurredOn,
       occurredLabel: shortDate(attempt.occurredOn),
       acceptance: attempt.acceptance,
+      acceptanceHelp: ACCEPTANCE_OPTIONS.find((option) => option.value === attempt.acceptance)?.help ?? '',
       followedOriginal: attempt.followedOriginal,
       adjustmentNote: attempt.adjustmentNote,
       version: attempt.version,
@@ -98,23 +105,79 @@ Page({
   back() {
     wx.navigateBack({ fail: () => wx.reLaunch({ url: '/pages/recipe-journal/index' }) })
   },
-  onRecipeChange(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
+  openRecipeSheet() {
     if (this.data.id || !this.data.canEdit) return
-    const recipeIndex = Number(event.detail.value)
-    const recipe = this.data.recipes[recipeIndex]
-    if (recipe) this.setData({ recipeIndex, recipeId: recipe.id, recipeName: recipe.name })
+    this.setData({ recipeSheetVisible: true })
   },
-  onDateChange(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
-    if (this.data.canEdit) this.setData({ occurredOn: event.detail.value, occurredLabel: shortDate(event.detail.value) })
+  closeRecipeSheet() {
+    this.setData({ recipeSheetVisible: false })
+  },
+  chooseRecipe(event: WechatMiniprogram.BaseEvent) {
+    if (this.data.id || !this.data.canEdit) return
+    const recipeId = String(event.currentTarget.dataset.id)
+    const recipe = this.data.recipes.find((item) => item.id === recipeId)
+    if (!recipe) return
+    this.setData({ recipeId: recipe.id, recipeName: recipe.name, recipeSheetVisible: false })
+  },
+  /** 日期滚轮：年份允许补记一年内，不允许未来日期。先填列数据再定位选中值，避免渲染竞态。 */
+  openDateSheet() {
+    if (!this.data.canEdit) return
+    const currentYear = new Date().getFullYear()
+    const [year, month, day] = this.data.occurredOn.split('-').map(Number)
+    const wheelYears = [currentYear - 1, currentYear]
+    const yearIndex = Math.max(0, wheelYears.indexOf(year))
+    const wheelMonths = Array.from({ length: 12 }, (_, i) => i + 1)
+    this.setData({
+      recipeSheetVisible: false,
+      dateSheetVisible: true,
+      wheelYears,
+      wheelMonths,
+    }, () => {
+      const daysInMonth = new Date(year, month, 0).getDate()
+      this.setData({ wheelDays: Array.from({ length: daysInMonth }, (_, i) => i + 1) }, () => {
+        this.setData({ wheelValue: [yearIndex, month - 1, Math.min(day - 1, daysInMonth - 1)] })
+      })
+    })
+  },
+  onWheelChange(event: WechatMiniprogram.CustomEvent<{ value: number[] }>) {
+    const [yearIndex, monthIndex, dayIndex] = event.detail.value
+    this.setData({ wheelValue: [yearIndex, monthIndex, dayIndex] }, () => this.refreshWheelDays())
+  },
+  refreshWheelDays() {
+    const [yearIndex, monthIndex, dayIndex] = this.data.wheelValue
+    const year = this.data.wheelYears[yearIndex] ?? new Date().getFullYear()
+    const month = this.data.wheelMonths[monthIndex] ?? 1
+    const daysInMonth = new Date(year, month, 0).getDate()
+    if (this.data.wheelDays.length === daysInMonth) return
+    this.setData({ wheelDays: Array.from({ length: daysInMonth }, (_, i) => i + 1) }, () => {
+      this.setData({ wheelValue: [yearIndex, monthIndex, Math.min(dayIndex, daysInMonth - 1)] })
+    })
+  },
+  confirmDate() {
+    const [yearIndex, monthIndex, dayIndex] = this.data.wheelValue
+    const year = this.data.wheelYears[yearIndex]
+    const month = this.data.wheelMonths[monthIndex]
+    const day = this.data.wheelDays[dayIndex]
+    if (!year || !month || !day) return
+    const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    if (iso > today()) {
+      this.showToast('不能记录未来的日期')
+      return
+    }
+    this.setData({ occurredOn: iso, occurredLabel: shortDate(iso), dateSheetVisible: false })
+  },
+  toggleFollowed() {
+    if (!this.data.canEdit) return
+    this.setData({ followedOriginal: !this.data.followedOriginal })
   },
   chooseAcceptance(event: WechatMiniprogram.BaseEvent) {
-    if (this.data.canEdit) this.setData({ acceptance: String(event.currentTarget.dataset.value) as RecipeAcceptance })
-  },
-  chooseOriginal(event: WechatMiniprogram.BaseEvent) {
     if (!this.data.canEdit) return
-    const followedOriginal = event.currentTarget.dataset.value === 'original'
-    this.setData({ followedOriginal, adjustmentNote: followedOriginal ? '' : this.data.adjustmentNote })
+    const acceptance = String(event.currentTarget.dataset.value) as RecipeAcceptance
+    const help = ACCEPTANCE_OPTIONS.find((option) => option.value === acceptance)?.help ?? ''
+    this.setData({ acceptance, acceptanceHelp: help })
   },
+
+
   onAdjustmentInput(event: WechatMiniprogram.CustomEvent<{ value: string }>) {
     this.setData({ adjustmentNote: event.detail.value })
   },
