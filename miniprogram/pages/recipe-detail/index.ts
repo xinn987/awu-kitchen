@@ -167,7 +167,8 @@ Page({
   openMore() {
     wx.showActionSheet({
       itemList: ['复制一份新食谱', '移入废纸篓'],
-      itemColor: '#1a1714',
+      // 原生操作菜单无法读取页面 CSS 变量，手动与全局主文字色保持一致。
+      itemColor: '#302c28',
       success: (result) => {
         if (result.tapIndex === 0) void this.duplicate()
         if (result.tapIndex === 1) this.askArchive()
