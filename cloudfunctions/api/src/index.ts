@@ -11,6 +11,9 @@ import {
 import {
   createRecipeComment, deleteRecipeComment, listRecipeComments, updateRecipeComment,
 } from './recipe-comment'
+import {
+  createRecipeAttempt, deleteRecipeAttempt, listRecipeAttempts, updateRecipeAttempt,
+} from './recipe-attempt'
 import { addRecipeOption, listRecipeOptions, removeRecipeOption } from './recipe-options'
 
 interface ApiEvent {
@@ -38,6 +41,10 @@ const handlers: Record<string, (userId: string, payload: Record<string, unknown>
   'recipeComment.create': createRecipeComment,
   'recipeComment.update': updateRecipeComment,
   'recipeComment.delete': deleteRecipeComment,
+  'recipeAttempt.list': listRecipeAttempts,
+  'recipeAttempt.create': createRecipeAttempt,
+  'recipeAttempt.update': updateRecipeAttempt,
+  'recipeAttempt.delete': deleteRecipeAttempt,
   'recipeOptions.list': listRecipeOptions,
   'recipeOptions.add': addRecipeOption,
   'recipeOptions.remove': removeRecipeOption,

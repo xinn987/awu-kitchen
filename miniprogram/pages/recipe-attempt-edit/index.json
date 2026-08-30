@@ -1,8 +1,8 @@
 {
   "usingComponents": {
+    "page-navbar": "/components/page-navbar/index",
     "app-icon": "/components/app-icon/index",
-    "bottom-nav": "/components/bottom-nav/index",
-    "quick-capture": "/components/quick-capture/index",
+    "app-loading": "/components/app-loading/index",
     "app-toast": "/components/app-toast/index"
   }
 }

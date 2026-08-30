@@ -1,6 +1,8 @@
 {
   "pages": [
     "pages/library/index",
+    "pages/recipe-journal/index",
+    "pages/recipe-attempt-edit/index",
     "pages/onboarding/index",
     "pages/recipe-detail/index",
     "pages/recipe-comments/index",

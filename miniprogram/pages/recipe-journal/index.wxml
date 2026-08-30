@@ -1,0 +1,43 @@
+<view class="page-shell">
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="journal-header" style="padding-top: {{statusBarHeight + 20}}px;">
+      <text class="journal-title font-serif">食谱记录</text>
+      <text class="journal-subtitle">记下实际做过的感受，慢慢把食谱变得更适合宝宝</text>
+    </view>
+    <view class="journal-content">
+      <view class="record-entry" role="button" bindtap="addAttempt">
+        <view class="record-entry-icon"><app-icon name="plus" size="34"></app-icon></view>
+        <view class="record-entry-copy">
+          <text class="record-entry-title">记一次</text>
+          <text class="record-entry-help">选择食谱，留下宝宝这次的接受程度</text>
+        </view>
+        <app-icon name="chevron-right" size="30"></app-icon>
+      </view>
+      <app-loading wx:if="{{loading}}" label="正在整理食谱记录"></app-loading>
+      <view wx:elif="{{cards.length === 0}}" class="journal-empty">
+        <text class="empty-title font-serif">还没有食谱记录</text>
+        <text class="empty-copy">下次照着食谱做完，简单记一下宝宝的反应就好。</text>
+      </view>
+      <view wx:else class="journal-list">
+        <view wx:for="{{cards}}" wx:key="recipeId" class="journal-card">
+          <view class="card-head" role="button" data-id="{{item.recipeId}}" bindtap="openRecipe">
+            <view class="card-title-copy">
+              <text class="card-title font-serif">{{item.recipeName}}</text>
+              <text class="card-meta">共 {{item.count}} 次 · 最近 {{item.latestDate}}</text>
+            </view>
+            <app-icon name="chevron-right" size="30"></app-icon>
+          </view>
+          <view class="attempt-chart" aria-label="每次接受程度，从左到右按时间排列">
+            <view wx:for="{{item.attempts}}" wx:for-item="attempt" wx:key="id" class="attempt-hit" role="button" aria-label="{{attempt.dateLabel}}，{{attempt.acceptanceLabel}}" data-id="{{attempt.id}}" catchtap="openAttempt">
+              <view class="attempt-bar bar-{{attempt.acceptance}}"></view>
+            </view>
+          </view>
+          <view class="chart-caption"><text>较早</text><text>每条代表一次记录</text><text>最近</text></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <bottom-nav active="journal" bindcapture="openCapture"></bottom-nav>
+  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindchooseimport="openImport" bindsaved="onCaptured"></quick-capture>
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

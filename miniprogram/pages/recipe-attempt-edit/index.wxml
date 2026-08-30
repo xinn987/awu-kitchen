@@ -1,0 +1,57 @@
+<view class="page-shell">
+  <page-navbar left-text="食记" title="记下这一次" bindleft="back"></page-navbar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <app-loading wx:if="{{loading}}" label="正在准备记录"></app-loading>
+    <view wx:else class="attempt-form">
+      <view class="form-intro">
+        <text class="intro-title font-serif">{{recipeName || '选一份食谱'}}</text>
+        <text class="intro-copy">不用重填食材和步骤，只留下这次真正有用的反馈。</text>
+      </view>
+
+      <view class="form-section">
+        <text class="field-label">食谱</text>
+        <picker wx:if="{{!id}}" mode="selector" range="{{recipes}}" range-key="name" value="{{recipeIndex}}" bindchange="onRecipeChange">
+          <view class="picker-field"><text>{{recipeName || '请选择食谱'}}</text><app-icon name="chevron-down" size="28"></app-icon></view>
+        </picker>
+        <view wx:else class="readonly-field">{{recipeName}}</view>
+      </view>
+
+      <view class="form-section">
+        <text class="field-label">日期</text>
+        <picker mode="date" value="{{occurredOn}}" end="{{maxDate}}" disabled="{{!canEdit}}" bindchange="onDateChange">
+          <view class="picker-field"><text>{{occurredOn}}</text><app-icon name="chevron-down" size="28"></app-icon></view>
+        </picker>
+      </view>
+
+      <view class="form-section">
+        <text class="field-label">宝宝这次的接受程度</text>
+        <view class="acceptance-list">
+          <view wx:for="{{acceptanceOptions}}" wx:key="value" class="acceptance-option acceptance-{{item.value}} {{acceptance === item.value ? 'selected' : ''}}" role="button" data-value="{{item.value}}" bindtap="chooseAcceptance">
+            <view class="acceptance-mark"></view>
+            <view class="acceptance-copy"><text class="acceptance-title">{{item.label}}</text><text class="acceptance-help">{{item.help}}</text></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="form-section">
+        <text class="field-label">这次怎么做的</text>
+        <view class="original-switch">
+          <view class="switch-option {{followedOriginal ? 'selected' : ''}}" role="button" data-value="original" bindtap="chooseOriginal">按原食谱</view>
+          <view class="switch-option {{!followedOriginal ? 'selected' : ''}}" role="button" data-value="adjusted" bindtap="chooseOriginal">有调整</view>
+        </view>
+        <view wx:if="{{!followedOriginal}}" class="adjustment-wrap">
+          <textarea class="field-textarea" value="{{adjustmentNote}}" placeholder="简单写下换了什么、少了什么，或做法哪里不同" maxlength="120" disabled="{{!canEdit}}" bindinput="onAdjustmentInput"></textarea>
+          <text class="adjustment-help">只记变化，不必重新录入整份食材和步骤。</text>
+        </view>
+      </view>
+
+      <text wx:if="{{id}}" class="record-author">由 {{authorName}} 记录 · 食谱正文不会被自动修改</text>
+      <view wx:if="{{id}}" class="delete-entry" role="button" bindtap="deleteAttempt">{{deleting ? '正在删除…' : '删除这次记录'}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{!loading && canEdit}}" class="action-bar">
+    <view class="primary-button save-button {{!recipeId ? 'disabled' : ''}}" role="button" bindtap="save">{{saving ? '正在保存…' : (id ? '保存修改' : '记下这一次')}}</view>
+  </view>
+  <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
+</view>

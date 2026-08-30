@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "app-icon": "/components/app-icon/index",
+    "app-loading": "/components/app-loading/index",
+    "app-toast": "/components/app-toast/index",
+    "bottom-nav": "/components/bottom-nav/index",
+    "quick-capture": "/components/quick-capture/index"
+  }
+}

@@ -83,6 +83,28 @@ export interface RecipeComment {
   version: number
 }
 
+/** 宝宝对一次实际制作的接受程度；刻意不换算成分数。 */
+export type RecipeAcceptance = 'loved' | 'accepted' | 'rejected'
+
+/**
+ * 食记中的一次记录。
+ * 它保存当时的食谱名称和版本，但不复制食材与步骤，避免形成第二套食谱正文。
+ */
+export interface RecipeAttempt {
+  id: string
+  recipeId: string
+  recipeName: string
+  recipeVersion: number
+  occurredOn: string
+  acceptance: RecipeAcceptance
+  followedOriginal: boolean
+  adjustmentNote: string
+  authorMemberId: string
+  createdAt: string
+  updatedAt: string
+  version: number
+}
+
 /** 家庭内的成员：微信身份 + 家庭称谓 + 角色。 */
 export interface Member {
   id: string

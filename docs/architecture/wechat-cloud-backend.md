@@ -113,7 +113,20 @@
 
 `recipes` 只增加轻量 `commentCount`，供详情入口显示数量。评论写入不会修改食谱 `version`、`updatedAt` 或修订数组。
 
-### 3.7 `recipe_import_jobs`
+### 3.7 `recipe_attempts`
+
+食记记录独立于食谱正文保存，避免实际制作历史持续放大食谱文档：
+
+| 字段组 | 字段 |
+| --- | --- |
+| 归属 | `_id`、`familyId`、`recipeId` |
+| 食谱快照 | `recipeName`、`recipeVersion` |
+| 本次反馈 | `occurredOn`、`acceptance`、`followedOriginal`、`adjustmentNote` |
+| 归因与并发 | `authorMemberId`、`createdAt`、`updatedAt`、`version` |
+
+记录不复制食材和步骤，也不修改食谱版本或修订历史。详细产品边界见 [食记首版设计](../design/recipe-journal.md)。
+
+### 3.8 `recipe_import_jobs`
 
 异步识别任务独立于共享食谱存储，只允许云函数访问，并按提交用户隔离：
 
@@ -137,6 +150,7 @@
 | 家庭 | `family.create`、`family.createInvite`、`family.previewInvite`、`family.join`、`family.listMembers`、`family.removeMember` |
 | 食谱 | `recipe.list`、`recipe.create`、`recipe.update`、`recipe.archive`、`recipe.listArchived`、`recipe.restore`、`recipe.duplicate`、`recipe.restoreRevision` |
 | 评论 | `recipeComment.list`、`recipeComment.create`、`recipeComment.update`、`recipeComment.delete` |
+| 食记 | `recipeAttempt.list`、`recipeAttempt.create`、`recipeAttempt.update`、`recipeAttempt.delete` |
 | 食谱选项 | `recipeOptions.list`、`recipeOptions.add`、`recipeOptions.remove` |
 
 `recipe-import` 支持 `start`、`list`、`status`、`complete` 和 `discard`。单次调用只提交任务或查询一次状态，保证在个人版云函数 3 秒超时限制内尽快返回；页面隐藏后停止轮询，重新进入食谱清单时恢复查询。
@@ -213,7 +227,13 @@ type ApiResponse<T> =
 
 所有有效成员都可以添加和删除。配置使用独立 `version` 做并发校验。删除选项时先从家庭配置移除，再清除当前食谱中的对应值并递增食谱版本；不改变修改人、更新时间和修订数组。食谱列表、复制和历史恢复都会按最新家庭配置过滤，已删除选项不能重新出现。
 
-### 5.8 AI 图片导入
+### 5.8 食记
+
+记录创建时由云函数读取当前食谱名称和版本并保存快照，客户端不能伪造家庭、作者或食谱快照。记录列表既支持家庭范围聚合，也支持按食谱查询详情页的轻量引用。
+
+作者可以编辑自己的记录，作者或管理员可以删除；操作使用记录自身的 `expectedVersion`，不会引发食谱版本冲突。选择“按原食谱”时云端强制清空调整说明，避免产生含义冲突的数据。
+
+### 5.9 AI 图片导入
 
 1. 用户从相册选择按顺序排列的食谱截图，小程序压缩后上传到当前家庭的临时目录。
 2. `recipe-import.start` 校验当前用户与家庭，把短期图片地址提交给异步模型 API，并在 `recipe_import_jobs` 保存服务端任务 ID。

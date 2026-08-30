@@ -99,6 +99,22 @@
         </view>
       </view>
 
+      <view class="detail-section recent-section">
+        <view class="recent-head">
+          <view class="section-label recent-label"><app-icon name="clock" size="28"></app-icon><text>最近记录</text></view>
+          <view class="recent-action" role="button" bindtap="recordAttempt">记一次</view>
+        </view>
+        <view wx:if="{{recentAttempts.length > 0}}" class="recent-card">
+          <view class="recent-chart" aria-label="最近几次宝宝的接受程度，从左到右按时间排列">
+            <view wx:for="{{recentAttempts}}" wx:key="id" class="recent-hit" role="button" aria-label="{{item.occurredOn}}，{{item.acceptanceLabel}}" data-id="{{item.id}}" bindtap="openAttempt">
+              <view class="recent-bar recent-{{item.acceptance}}"></view>
+            </view>
+          </view>
+          <text class="recent-meta">共记录 {{attemptCount}} 次 · 点击竖条查看</text>
+        </view>
+        <text wx:else class="recent-empty">还没有记录；下次做完，简单记下宝宝的反应。</text>
+      </view>
+
       <view class="footnote">由 {{recipe.createdName}} 创建 · 家庭共同拥有 · {{recipe.relativeUpdated}}更新</view>
     </view>
   </scroll-view>

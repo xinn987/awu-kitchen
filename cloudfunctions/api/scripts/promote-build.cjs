@@ -6,7 +6,7 @@ const path = require('path')
 const functionRoot = path.resolve(__dirname, '..')
 const outputRoot = path.join(functionRoot, 'lib')
 const modules = [
-  'auth', 'cloud', 'errors', 'family', 'index', 'recipe-comment',
+  'auth', 'cloud', 'errors', 'family', 'index', 'recipe-attempt', 'recipe-comment',
   'recipe-option-model', 'recipe-options', 'recipe', 'validation',
 ]
 

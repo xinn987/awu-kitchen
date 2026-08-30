@@ -1,6 +1,7 @@
 /** 食谱详情：优先呈现成功关键，其次才是食材和步骤。 */
-import type { Recipe, RecipeImage, RecipeStep } from '../../models/recipe'
+import type { Recipe, RecipeAcceptance, RecipeImage, RecipeStep } from '../../models/recipe'
 import { resolveRecipeImageUrls } from '../../services/recipe-media'
+import { listRecipeAttempts } from '../../services/recipe-attempt-service'
 import { archiveRecipe, duplicateRecipe, getMemberById, getState } from '../../services/recipe-store'
 import { isFormalRecipe, relativeTime, shortDate } from '../../utils/recipe-utils'
 
@@ -27,10 +28,25 @@ interface DetailView extends Omit<Recipe, 'mainImage' | 'steps'> {
   commentCountLabel: string
 }
 
+interface RecentAttemptBar {
+  id: string
+  acceptance: RecipeAcceptance
+  acceptanceLabel: string
+  occurredOn: string
+}
+
+const ACCEPTANCE_LABELS: Record<RecipeAcceptance, string> = {
+  loved: '很喜欢',
+  accepted: '能接受',
+  rejected: '不太接受',
+}
+
 Page({
   data: {
     id: '',
     recipe: null as DetailView | null,
+    recentAttempts: [] as RecentAttemptBar[],
+    attemptCount: 0,
     found: true,
     loading: true,
     duplicating: false,
@@ -96,9 +112,26 @@ Page({
             : '',
         },
       })
+      void this.refreshAttempts(recipe.id)
     } catch (error) {
       this.setData({ loading: false })
       this.showToast(error instanceof Error ? error.message : '食谱加载失败')
+    }
+  },
+
+  /** 反馈是食谱末尾的轻引用；接口暂时失败时不阻断做饭所需的正文。 */
+  async refreshAttempts(recipeId: string) {
+    try {
+      const attempts = await listRecipeAttempts(recipeId)
+      const recentAttempts = attempts.slice(0, 12).reverse().map((attempt): RecentAttemptBar => ({
+        id: attempt.id,
+        acceptance: attempt.acceptance,
+        acceptanceLabel: ACCEPTANCE_LABELS[attempt.acceptance],
+        occurredOn: attempt.occurredOn,
+      }))
+      this.setData({ recentAttempts, attemptCount: attempts.length })
+    } catch {
+      this.setData({ recentAttempts: [], attemptCount: 0 })
     }
   },
 
@@ -135,6 +168,14 @@ Page({
 
   openComments() {
     wx.navigateTo({ url: `/pages/recipe-comments/index?id=${this.data.id}` })
+  },
+
+  recordAttempt() {
+    wx.navigateTo({ url: `/pages/recipe-attempt-edit/index?recipeId=${this.data.id}` })
+  },
+
+  openAttempt(event: WechatMiniprogram.BaseEvent) {
+    wx.navigateTo({ url: `/pages/recipe-attempt-edit/index?id=${String(event.currentTarget.dataset.id)}` })
   },
 
   /** 点击任一图片时，按“主图 + 步骤顺序”浏览当前食谱的全部图片。 */

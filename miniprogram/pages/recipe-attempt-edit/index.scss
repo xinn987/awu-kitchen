@@ -1,0 +1,28 @@
+/** 单次记录表单沿用编辑页的纸面、细线和低对比选项，不制造打卡氛围。 */
+.attempt-form { padding: 0 40rpx 56rpx; }
+.form-intro { padding: 32rpx 0 28rpx; border-bottom: 1rpx solid var(--line-soft); }
+.intro-title, .intro-copy { display: block; }
+.intro-title { color: var(--ink); font-size: var(--fs-title); font-weight: 600; }
+.intro-copy { margin-top: 10rpx; color: var(--ink-2); font-size: var(--fs-meta); line-height: 1.65; }
+.form-section { padding: 30rpx 0; border-bottom: 1rpx solid var(--line-soft); }
+.picker-field, .readonly-field { min-height: 80rpx; padding: 0 24rpx; display: flex; align-items: center; justify-content: space-between; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--card); color: var(--ink); font-size: var(--fs-body); }
+.readonly-field { color: var(--ink-2); }
+.acceptance-list { display: flex; flex-direction: column; gap: 12rpx; }
+.acceptance-option { min-height: 92rpx; padding: 18rpx 22rpx; display: flex; align-items: center; gap: 18rpx; border: 1rpx solid var(--line); border-radius: var(--r-md); background: var(--card); }
+.acceptance-option.selected { border-color: var(--brand-tint); background: var(--brand-wash); }
+.acceptance-mark { width: 18rpx; border-radius: var(--r-pill); background: var(--paper-dim); }
+.acceptance-loved .acceptance-mark { height: 54rpx; background: var(--brand); }
+.acceptance-accepted .acceptance-mark { height: 38rpx; background: #cba77b; }
+.acceptance-rejected .acceptance-mark { height: 24rpx; background: #9b8a7d; }
+.acceptance-copy { flex: 1; }
+.acceptance-title, .acceptance-help { display: block; }
+.acceptance-title { color: var(--ink); font-size: var(--fs-body); font-weight: 500; }
+.acceptance-help { margin-top: 3rpx; color: var(--ink-2); font-size: var(--fs-caption); }
+.original-switch { padding: 6rpx; display: flex; border-radius: var(--r-md); background: var(--paper-soft); }
+.switch-option { flex: 1; height: 68rpx; display: flex; align-items: center; justify-content: center; border-radius: 18rpx; color: var(--ink-2); font-size: var(--fs-meta); }
+.switch-option.selected { background: var(--card); color: var(--ink); box-shadow: 0 2rpx 8rpx rgba(26, 23, 20, 0.08); font-weight: 500; }
+.adjustment-wrap { margin-top: 18rpx; }
+.adjustment-help { display: block; margin-top: 10rpx; color: var(--ink-faint); font-size: var(--fs-caption); }
+.record-author { display: block; padding: 28rpx 0; color: var(--ink-faint); font-size: var(--fs-caption); text-align: center; }
+.delete-entry { padding: 24rpx; color: var(--danger); font-size: var(--fs-meta); text-align: center; }
+.save-button { flex: 1; }

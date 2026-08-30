@@ -7,6 +7,7 @@ const errors_1 = require("./errors");
 const family_1 = require("./family");
 const recipe_1 = require("./recipe");
 const recipe_comment_1 = require("./recipe-comment");
+const recipe_attempt_1 = require("./recipe-attempt");
 const recipe_options_1 = require("./recipe-options");
 const handlers = {
     'session.bootstrap': (userId) => (0, family_1.bootstrap)(userId),
@@ -28,6 +29,10 @@ const handlers = {
     'recipeComment.create': recipe_comment_1.createRecipeComment,
     'recipeComment.update': recipe_comment_1.updateRecipeComment,
     'recipeComment.delete': recipe_comment_1.deleteRecipeComment,
+    'recipeAttempt.list': recipe_attempt_1.listRecipeAttempts,
+    'recipeAttempt.create': recipe_attempt_1.createRecipeAttempt,
+    'recipeAttempt.update': recipe_attempt_1.updateRecipeAttempt,
+    'recipeAttempt.delete': recipe_attempt_1.deleteRecipeAttempt,
     'recipeOptions.list': recipe_options_1.listRecipeOptions,
     'recipeOptions.add': recipe_options_1.addRecipeOption,
     'recipeOptions.remove': recipe_options_1.removeRecipeOption,

@@ -1,4 +1,7 @@
-.settings-content { padding: 32rpx 32rpx 56rpx; }
+.settings-header { padding-right: 40rpx; padding-bottom: 28rpx; padding-left: 40rpx; }
+.settings-title { display: block; color: var(--ink); font-size: var(--fs-display); font-weight: 600; }
+.settings-subtitle { display: block; margin-top: 10rpx; color: var(--ink-2); font-size: var(--fs-meta); }
+.settings-content { padding: 0 32rpx 56rpx; }
 .settings-section-label { display: block; margin: 0 12rpx 14rpx; color: var(--ink-2); font-size: var(--fs-caption); letter-spacing: 0.08em; }
 .settings-card { border: 1rpx solid var(--line); border-radius: var(--r-lg); background: var(--card); box-shadow: 0 2rpx 6rpx rgba(26, 23, 20, 0.05); }
 .option-entry { min-height: 128rpx; padding: 24rpx 28rpx; display: flex; align-items: center; gap: 20rpx; color: var(--ink-faint); }

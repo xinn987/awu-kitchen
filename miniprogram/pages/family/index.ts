@@ -34,10 +34,6 @@ Page({
     this.setData({ statusBarHeight: wx.getWindowInfo().statusBarHeight || 20 })
   },
 
-  openSettings() {
-    wx.navigateTo({ url: '/pages/settings/index' })
-  },
-
   onShow() { void this.refresh() },
 
   async refresh() {
@@ -133,6 +129,10 @@ Page({
 
   openCapture() { this.setData({ captureOpen: true }) },
   closeCapture() { this.setData({ captureOpen: false }) },
+  openImport() {
+    this.setData({ captureOpen: false })
+    wx.navigateTo({ url: '/pages/recipe-import/index' })
+  },
 
   onCaptured(event: WechatMiniprogram.CustomEvent<{ id: string; formal: boolean; message: string }>) {
     const { id, formal, message } = event.detail

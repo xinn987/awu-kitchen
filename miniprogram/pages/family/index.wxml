@@ -42,13 +42,6 @@
       </view>
 
       <view class="family-note">所有成员均可查看和编辑食谱；管理员只负责邀请和移除成员。食谱属于家庭共同拥有，经验仅供参考，不构成专业建议。</view>
-      <view class="settings-row" role="button" aria-label="设置" bindtap="openSettings">
-        <view class="settings-row-label">
-          <app-icon name="settings" size="30"></app-icon>
-          <text>设置</text>
-        </view>
-        <app-icon name="chevron-right" size="28"></app-icon>
-      </view>
       </block>
     </view>
   </scroll-view>
@@ -64,6 +57,6 @@
   ></confirm-panel>
 
   <bottom-nav active="family" bindcapture="openCapture"></bottom-nav>
-  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindsaved="onCaptured"></quick-capture>
+  <quick-capture opened="{{captureOpen}}" bindclose="closeCapture" bindchooseimport="openImport" bindsaved="onCaptured"></quick-capture>
   <app-toast visible="{{toastVisible}}" message="{{toastMessage}}"></app-toast>
 </view>

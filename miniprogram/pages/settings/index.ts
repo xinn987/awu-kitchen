@@ -1,4 +1,4 @@
-/** 设置页首版只承担版本识别，后续有真实配置需求时再增加条目。 */
+/** 独立设置栏目：承载食谱维护入口和版本信息，不再寄生在家庭页。 */
 import { DEVELOPMENT_VERSION } from '../../config/version'
 
 function displayVersion(): string {
@@ -10,16 +10,17 @@ function displayVersion(): string {
 
 Page({
   data: {
+    statusBarHeight: 20,
     versionLabel: '',
+    captureOpen: false,
+    toastVisible: false,
+    toastMessage: '',
   },
 
   onLoad() {
-    this.setData({ versionLabel: displayVersion() })
-  },
-
-  back() {
-    wx.navigateBack({
-      fail: () => wx.redirectTo({ url: '/pages/family/index' }),
+    this.setData({
+      statusBarHeight: wx.getWindowInfo().statusBarHeight || 20,
+      versionLabel: displayVersion(),
     })
   },
 
@@ -29,5 +30,25 @@ Page({
 
   openTrash() {
     wx.navigateTo({ url: '/pages/trash/index' })
+  },
+
+  openCapture() { this.setData({ captureOpen: true }) },
+  closeCapture() { this.setData({ captureOpen: false }) },
+  openImport() {
+    this.setData({ captureOpen: false })
+    wx.navigateTo({ url: '/pages/recipe-import/index' })
+  },
+  onCaptured(event: WechatMiniprogram.CustomEvent<{ id: string; formal: boolean; message: string }>) {
+    const { id, formal, message } = event.detail
+    this.setData({ captureOpen: false })
+    if (formal) {
+      wx.navigateTo({ url: `/pages/recipe-detail/index?id=${id}&toast=${encodeURIComponent(message)}` })
+    } else {
+      this.showToast(message)
+    }
+  },
+  showToast(message: string) {
+    this.setData({ toastVisible: true, toastMessage: message })
+    setTimeout(() => this.setData({ toastVisible: false }), 2200)
   },
 })
