@@ -13,7 +13,7 @@
 .meta-item.accent { color: var(--brand); background: var(--brand-wash); }
 
 .note-question { padding-top: var(--space-6); }
-.note-question .field-label { margin-bottom: var(--space-4); }
+.note-question .field-label { margin-bottom: var(--space-4); line-height: 1.6; }
 .option-row { gap: var(--space-3); }
 .acceptance-help { display: block; margin-top: var(--space-4); color: var(--ink-faint); font-size: var(--fs-caption); }
 
